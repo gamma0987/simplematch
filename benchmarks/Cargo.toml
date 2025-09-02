@@ -1,0 +1,19 @@
+[package]
+authors = ["gamma0987 <gamma0987@posteo.de>"]
+edition = "2021"
+license = "Apache-2.0 OR MIT"
+name = "benchmarks"
+rust-version = "1.74.1"
+version = "0.0.0"
+publish = false
+
+[dev-dependencies]
+iai-callgrind = "0.16.1"
+quickmatch = { version = "0.1.0", path = ".." }
+wildcard = "0.3.0"
+wildmatch = "2.4.0"
+
+[[bench]]
+harness = false
+name = "compare"
+path = "benches/compare.rs"

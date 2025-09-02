@@ -1,0 +1,17 @@
+# spell-checker: ignore dtolnay taiki Swatinem binstall taplo rustup
+
+name: Deploy quickmatch
+on:
+  push:
+    tags:
+      - "v*"
+
+jobs:
+  publish:
+    name: Publish to crates.io
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: dtolnay/rust-toolchain@stable
+      - name: Publish quickmatch
+        run: cargo publish -p quickmatch --token ${{ secrets.CRATES_GITHUB_TOKEN }}

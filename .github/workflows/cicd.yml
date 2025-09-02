@@ -1,0 +1,148 @@
+# spell-checker: ignore dtolnay taiki Swatinem binstall taplo rustup
+name: Build, Check and Test
+
+on:
+  push:
+    branches: ["main"]
+  pull_request:
+    branches: ["main"]
+
+env:
+  CARGO_TERM_COLOR: always
+  RUST_BACKTRACE: "1"
+
+concurrency:
+  group: ${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  deny:
+    name: Check dependencies
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: dtolnay/rust-toolchain@1.63.0
+      - name: Cache/Restore cargo registry
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+          key: deny-cargo-registry
+      - uses: taiki-e/install-action@cargo-deny
+      - uses: taiki-e/install-action@just
+      - name: Check advisories
+        run: just args='--deny warnings' deny advisories
+      - name: Check bans licenses sources
+        run: just deny bans licenses sources
+
+  minimal_versions:
+    name: Check minimal version requirements of dependencies
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        toolchain:
+          - stable
+          - nightly
+    steps:
+      - uses: actions/checkout@v5
+      - uses: dtolnay/rust-toolchain@master
+        if: ${{ startsWith(matrix.toolchain, 'nightly') }}
+        with:
+          toolchain: ${{ matrix.toolchain }}
+      - uses: dtolnay/rust-toolchain@master
+        if: ${{ ! startsWith(matrix.toolchain, 'nightly') }}
+        with:
+          toolchain: nightly
+      - uses: dtolnay/rust-toolchain@master
+        if: ${{ ! startsWith(matrix.toolchain, 'nightly') }}
+        with:
+          toolchain: ${{ matrix.toolchain }}
+      - uses: Swatinem/rust-cache@v2
+        with:
+          key: ubuntu-latest_${{ matrix.toolchain }}
+      - uses: taiki-e/install-action@cargo-hack
+      - uses: taiki-e/install-action@cargo-minimal-versions
+      - uses: taiki-e/install-action@just
+      - name: Check build with minimal versions
+        run: just minimal-versions
+
+  format:
+    name: Check format and spelling
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: dtolnay/rust-toolchain@nightly
+        with:
+          components: rustfmt
+      - uses: taiki-e/install-action@cargo-binstall
+      - uses: taiki-e/install-action@just
+      - run: cargo binstall --no-confirm --no-symlinks taplo-cli
+      # Using the rust-cache action here to also cache the binaries. Especially
+      # taplo-cli is slow to build
+      - name: Cache/Restore rust cache
+        uses: Swatinem/rust-cache@v2
+      - run: just check-fmt-all
+
+  base:
+    needs: [deny, minimal_versions, format]
+    name: Build, check and test
+    strategy:
+      fail-fast: false
+      matrix:
+        toolchain:
+          - "1.63.0" # MSRV
+          - stable
+          - nightly
+        include:
+          - toolchain: stable
+            components: clippy, llvm-tools
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: dtolnay/rust-toolchain@master
+        with:
+          toolchain: ${{ matrix.toolchain }}
+          components: ${{ matrix.components }}
+      - name: "Prepare: Install stable toolchain with clippy"
+        if: matrix.toolchain != 'stable'
+        run: |
+          rustup toolchain install stable --no-self-update --component clippy
+      - name: Lock msrv dependencies
+        if: matrix.toolchain == '1.63.0'
+        run: cargo +stable generate-lockfile
+        env:
+          CARGO_RESOLVER_INCOMPATIBLE_RUST_VERSIONS: fallback
+      - name: "Prepare: Run cargo update"
+        if: matrix.toolchain == 'stable' || matrix.toolchain == 'nightly'
+        run: |
+          cargo update
+      - uses: taiki-e/install-action@cargo-hack
+      - uses: taiki-e/install-action@just
+      - name: Info
+        run: |
+          set -x
+          uname -a
+          pwd
+          rustup --version
+          rustup show
+          rustup component list --installed
+          printenv
+      - name: Set cargo registry protocol if the toolchain is MSRV
+        if: matrix.toolchain == '1.63.0'
+        run: |
+          echo CARGO_REGISTRIES_CRATES_IO_PROTOCOL=git >> $GITHUB_ENV
+      - name: Cache/Restore cargo registry
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+          key: ${{ runner.os }}-cargo-${{ matrix.toolchain }}
+      - name: Lint
+        run: just lint
+      - name: Build
+        run: just build-hack
+      - name: Run tests
+        run: just test-hack

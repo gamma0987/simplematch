@@ -1,0 +1,34 @@
+[package]
+name = "quickmatch-fuzz"
+version = "0.0.0"
+publish = false
+edition = "2021"
+
+[package.metadata]
+cargo-fuzz = true
+
+[workspace]
+members = ["."]
+
+[profile.release]
+debug = true
+
+[dependencies]
+arbitrary = "1"
+libfuzzer-sys = "0.4"
+quickmatch = { path = "..", features = ["_fuzz"] }
+regex = "1"
+
+[[bin]]
+name = "dowild"
+path = "fuzz_targets/dowild.rs"
+test = false
+doc = false
+bench = false
+
+[[bin]]
+name = "dowild_with"
+path = "fuzz_targets/dowild_with.rs"
+test = false
+doc = false
+bench = false
