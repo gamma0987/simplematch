@@ -21,7 +21,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v5
-      - uses: dtolnay/rust-toolchain@1.63.0
+      - uses: dtolnay/rust-toolchain@1.62.0
       - name: Cache/Restore cargo registry
         uses: actions/cache@v4
         with:
@@ -78,11 +78,11 @@ jobs:
           components: rustfmt
       - uses: taiki-e/install-action@cargo-binstall
       - uses: taiki-e/install-action@just
-      - run: cargo binstall --no-confirm --no-symlinks taplo-cli
       # Using the rust-cache action here to also cache the binaries. Especially
       # taplo-cli is slow to build
       - name: Cache/Restore rust cache
         uses: Swatinem/rust-cache@v2
+      - run: cargo binstall --no-confirm --no-symlinks taplo-cli
       - run: just check-fmt-all
 
   base:
@@ -92,7 +92,7 @@ jobs:
       fail-fast: false
       matrix:
         toolchain:
-          - "1.63.0" # MSRV
+          - "1.62.0" # MSRV
           - stable
           - nightly
         include:
@@ -110,7 +110,7 @@ jobs:
         run: |
           rustup toolchain install stable --no-self-update --component clippy
       - name: Lock msrv dependencies
-        if: matrix.toolchain == '1.63.0'
+        if: matrix.toolchain == '1.62.0'
         run: cargo +stable generate-lockfile
         env:
           CARGO_RESOLVER_INCOMPATIBLE_RUST_VERSIONS: fallback
@@ -130,7 +130,7 @@ jobs:
           rustup component list --installed
           printenv
       - name: Set cargo registry protocol if the toolchain is MSRV
-        if: matrix.toolchain == '1.63.0'
+        if: matrix.toolchain == '1.62.0'
         run: |
           echo CARGO_REGISTRIES_CRATES_IO_PROTOCOL=git >> $GITHUB_ENV
       - name: Cache/Restore cargo registry
@@ -146,3 +146,42 @@ jobs:
         run: just build-hack
       - name: Run tests
         run: just test-hack
+
+  fuzz:
+    name: Fuzzy testing
+    needs: [deny, minimal_versions, format]
+    runs-on: ubuntu-latest
+    env:
+      FUZZ_TIME: 300
+
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - fuzz_target: dowild
+          - fuzz_target: dowild_with
+
+    steps:
+      - uses: actions/checkout@v5
+      - uses: dtolnay/rust-toolchain@nightly
+        with:
+          targets: "x86_64-unknown-linux-musl"
+      - uses: taiki-e/install-action@just
+      - name: Cache/Restore rust cache
+        uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: |
+            . -> target
+            fuzz -> target
+          cache-directories: |
+            fuzz/corpus
+      - run: cargo install cargo-fuzz --locked
+      # Run the fuzz target
+      - run: just args='-- -max_total_time=${{ env.FUZZ_TIME }}' fuzz ${{ matrix.fuzz_target }}
+
+      # Upload fuzzing artifacts on failure for post-mortem debugging.
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: fuzzing-artifacts-${{ matrix.fuzz_target }}-${{ github.sha }}
+          path: fuzz/artifacts

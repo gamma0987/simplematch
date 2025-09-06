@@ -18,12 +18,12 @@ cspell_bin := ```
 
 this_dir := `realpath .`
 args := ''
-msrv := '1.63.0'
+msrv := '1.62.0'
 
 # A thorough build of all packages with `cargo hack` and the feature powerset (Uses: 'cargo-hack')
 [group('build')]
 build-hack:
-    cargo hack --workspace --feature-powerset build
+    cargo hack --workspace --feature-powerset --exclude-features _fuzz build
 
 # Check and fix format of rust files (Uses: 'cargo +nightly')
 [group('formatting')]
@@ -105,11 +105,11 @@ build-and-test-docs: build-docs test-doc
 
 [group('test')]
 test-hack:
-    cargo hack --workspace --feature-powerset test
+    cargo hack --workspace --feature-powerset --exclude-features _fuzz test
 
 [group('test')]
 fuzz target:
-     RUSTFLAGS='-C target-feature=-crt-static' cargo +nightly fuzz run {{ target }}
+     RUSTFLAGS='-C target-feature=-crt-static' cargo +nightly fuzz run {{ target }} {{ if args != '' { args } else { '' } }}
 
 # Generate the coverage of tests (Uses: 'cargo', 'grcov')
 [group('coverage')]

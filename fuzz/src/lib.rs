@@ -18,12 +18,6 @@ pub fn pattern_to_regex(pattern: &str, options: Options) -> Result<Regex, regex:
         None => (false, DEFAULT_ESCAPE as char),
     };
 
-    let wrap_char = |regex: &mut String, c| {
-        regex.push('[');
-        regex.push(c);
-        regex.push(']');
-    };
-
     let mut regex = String::with_capacity(pattern.len() * 3);
     regex.push('^');
 
@@ -40,7 +34,7 @@ pub fn pattern_to_regex(pattern: &str, options: Options) -> Result<Regex, regex:
                 is_escape = true;
             }
             c if is_escape => {
-                if !(c == '*' || c == '?' || c == '\\') && c != escape {
+                if !(c == wildcard_any || c == wildcard_one || c == escape) {
                     wrap_char(&mut regex, escape)
                 }
                 wrap_char(&mut regex, c);
@@ -62,4 +56,10 @@ pub fn pattern_to_regex(pattern: &str, options: Options) -> Result<Regex, regex:
         .unicode(false)
         .case_insensitive(!case_sensitive)
         .build()
+}
+
+fn wrap_char(regex: &mut String, c: char) {
+    regex.push('[');
+    regex.push(c);
+    regex.push(']');
 }
