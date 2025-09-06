@@ -149,14 +149,14 @@ impl QuickMatch for String {
 /// <https://research.swtch.com/glob> written by Russ Cox and was further improved here.
 ///
 /// The improved version uses generally about 2-5x less instructions. For "normal" and short
-/// patterns the speedup can be even more, up to 6-7x.
+/// patterns the speedup can be even higher.
 #[must_use]
 pub fn dowild<P, H>(pattern: P, haystack: H) -> bool
 where
-    P: AsRef<str>,
-    H: AsRef<str>,
+    P: AsRef<[u8]>,
+    H: AsRef<[u8]>,
 {
-    dowild_bytes(pattern.as_ref().as_bytes(), haystack.as_ref().as_bytes())
+    dowild_bytes(pattern.as_ref(), haystack.as_ref())
 }
 
 #[must_use]
