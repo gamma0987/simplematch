@@ -21,7 +21,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v5
-      - uses: dtolnay/rust-toolchain@1.60.0
+      - uses: dtolnay/rust-toolchain@1.62.0
       - name: Cache/Restore cargo registry
         uses: actions/cache@v4
         with:
@@ -92,7 +92,7 @@ jobs:
       fail-fast: false
       matrix:
         toolchain:
-          - "1.60.0" # MSRV
+          - "1.62.0" # MSRV
           - stable
           - nightly
         include:
@@ -110,7 +110,7 @@ jobs:
         run: |
           rustup toolchain install stable --no-self-update --component clippy
       - name: Lock msrv dependencies
-        if: matrix.toolchain == '1.60.0'
+        if: matrix.toolchain == '1.62.0'
         run: cargo +stable generate-lockfile
         env:
           CARGO_RESOLVER_INCOMPATIBLE_RUST_VERSIONS: fallback
@@ -130,7 +130,7 @@ jobs:
           rustup component list --installed
           printenv
       - name: Set cargo registry protocol if the toolchain is MSRV
-        if: matrix.toolchain == '1.60.0'
+        if: matrix.toolchain == '1.62.0'
         run: |
           echo CARGO_REGISTRIES_CRATES_IO_PROTOCOL=git >> $GITHUB_ENV
       - name: Cache/Restore cargo registry
