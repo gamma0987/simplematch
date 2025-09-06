@@ -34,7 +34,7 @@ std = []
 arbitrary = { version = "1", optional = true, features = ["derive"] }
 
 [dev-dependencies]
-rstest = "0.18"
+rstest = "0.26"
 
 [package.metadata.docs.rs]
 all-features = true
