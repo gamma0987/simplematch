@@ -14,7 +14,7 @@ license = "Apache-2.0 OR MIT"
 name = "quickmatch"
 readme = "README.md"
 repository = "https://github.com/gamma0987/quickmatch"
-rust-version = "1.63.0"
+rust-version = "1.60.0"
 version = "0.1.0"
 
 [profile.release]
