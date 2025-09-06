@@ -78,11 +78,11 @@ jobs:
           components: rustfmt
       - uses: taiki-e/install-action@cargo-binstall
       - uses: taiki-e/install-action@just
-      - run: cargo binstall --no-confirm --no-symlinks taplo-cli
       # Using the rust-cache action here to also cache the binaries. Especially
       # taplo-cli is slow to build
       - name: Cache/Restore rust cache
         uses: Swatinem/rust-cache@v2
+      - run: cargo binstall --no-confirm --no-symlinks taplo-cli
       - run: just check-fmt-all
 
   base:
@@ -146,3 +146,42 @@ jobs:
         run: just build-hack
       - name: Run tests
         run: just test-hack
+
+  fuzz:
+    name: Fuzzy testing
+    needs: [deny, minimal_versions, format]
+    runs-on: ubuntu-latest
+    env:
+      FUZZ_TIME: 300
+
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - fuzz_target: dowild
+          - fuzz_target: dowild_with
+
+    steps:
+      - uses: actions/checkout@v5
+      - uses: dtolnay/rust-toolchain@nightly
+        with:
+          targets: "x86_64-unknown-linux-musl"
+      - uses: taiki-e/install-action@just
+      - name: Cache/Restore rust cache
+        uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: |
+            . -> target
+            fuzz -> target
+          cache-directories: |
+            fuzz/corpus
+      - run: cargo install cargo-fuzz --locked
+      # Run the fuzz target
+      - run: just args='-- -max_total_time=${{ env.FUZZ_TIME }}' fuzz ${{ matrix.fuzz_target }}
+
+      # Upload fuzzing artifacts on failure for post-mortem debugging.
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: fuzzing-artifacts-${{ matrix.fuzz_target }}-${{ github.sha }}
+          path: fuzz/artifacts

@@ -105,11 +105,11 @@ build-and-test-docs: build-docs test-doc
 
 [group('test')]
 test-hack:
-    cargo hack --workspace --feature-powerset test
+    cargo hack --workspace --feature-powerset --exclude-features _fuzz test
 
 [group('test')]
 fuzz target:
-     RUSTFLAGS='-C target-feature=-crt-static' cargo +nightly fuzz run {{ target }}
+     RUSTFLAGS='-C target-feature=-crt-static' cargo +nightly fuzz run {{ target }} {{ if args != '' { args } else { '' } }}
 
 # Generate the coverage of tests (Uses: 'cargo', 'grcov')
 [group('coverage')]
