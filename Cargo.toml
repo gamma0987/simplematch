@@ -5,7 +5,7 @@ members = ["benchmarks"]
 authors = ["gamma0987 <gamma0987@posteo.de>"]
 categories = ["Algorithms", "No standard library", "Text processing"]
 description = """
-Fast wildcard matching made easy
+Fast wildcard pattern matching made easy
 """
 edition = "2021"
 homepage = "https://github.com/gamma0987/quickmatch"
@@ -26,12 +26,8 @@ overflow-checks = false
 debug = true
 
 [features]
-_fuzz = ["dep:arbitrary", "std"]
 default = ["std"]
 std = []
-
-[dependencies]
-arbitrary = { version = "1", optional = true, features = ["derive"] }
 
 [dev-dependencies]
 rstest = "0.18"

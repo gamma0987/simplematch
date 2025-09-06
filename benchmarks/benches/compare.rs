@@ -28,13 +28,13 @@ const LOREM_PATTERN: &str = "Ve*ve*Aenean??acc*ac****ipsum?ut*?ur ???????????*ac
 #[bench::a_max_star(format!("{}b", "a*".repeat(50)).as_str())]
 #[bench::a_stars(format!("a{}b", "*".repeat(100)).as_str())]
 fn bench_quickmatch(pattern: &str) -> bool {
-    black_box(dowild(pattern, black_box(HAYSTACK)))
+    black_box(dowild(pattern.as_bytes(), black_box(HAYSTACK.as_bytes())))
 }
 
 #[library_benchmark]
 #[bench::lorem(LOREM_PATTERN, LOREM_PARAGRAPH)]
 fn bench_quickmatch_lorem(pattern: &str, input: &str) -> bool {
-    black_box(dowild(pattern, input))
+    black_box(dowild(pattern.as_bytes(), input.as_bytes()))
 }
 
 #[library_benchmark]
@@ -43,8 +43,8 @@ fn bench_quickmatch_lorem(pattern: &str, input: &str) -> bool {
 #[bench::a_stars(format!("a{}b", "*".repeat(100)).as_str())]
 fn bench_quickmatch_dowild_with_default(pattern: &str) -> bool {
     black_box(dowild_with(
-        pattern,
-        black_box(HAYSTACK),
+        pattern.as_bytes(),
+        black_box(HAYSTACK.as_bytes()),
         black_box(Options::default()),
     ))
 }
@@ -52,7 +52,11 @@ fn bench_quickmatch_dowild_with_default(pattern: &str) -> bool {
 #[library_benchmark]
 #[bench::lorem(LOREM_PATTERN, LOREM_PARAGRAPH)]
 fn bench_quickmatch_dowild_with_default_lorem(pattern: &str, input: &str) -> bool {
-    black_box(dowild_with(pattern, input, black_box(Options::default())))
+    black_box(dowild_with(
+        pattern.as_bytes(),
+        input.as_bytes(),
+        black_box(Options::default()),
+    ))
 }
 
 #[library_benchmark]

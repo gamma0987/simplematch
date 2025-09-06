@@ -14,8 +14,9 @@ members = ["."]
 debug = true
 
 [dependencies]
+arbitrary = { version = "1.4", features = ["derive"] }
 libfuzzer-sys = "0.4"
-quickmatch = { path = "..", features = ["_fuzz"] }
+quickmatch = { path = ".." }
 regex = "1"
 
 [[bin]]

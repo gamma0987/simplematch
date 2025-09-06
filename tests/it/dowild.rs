@@ -27,34 +27,34 @@ use rstest::rstest;
 #[case::star_x("*x", "xxx", true)]
 // cspell: enable
 fn simple_dowild(#[case] pattern: String, #[case] haystack: String, #[case] expected: bool) {
-    assert_eq!(dowild(pattern.as_str(), haystack.as_str()), expected);
+    assert_eq!(dowild(pattern.as_bytes(), haystack.as_bytes()), expected);
     assert_eq!(
         dowild_with(
-            pattern.as_str(),
-            haystack.as_str(),
-            Options::new().enable_escape(DEFAULT_ESCAPE)
+            pattern.as_bytes(),
+            haystack.as_bytes(),
+            Options::new().enable_escape_with(DEFAULT_ESCAPE)
         ),
         expected
     );
     assert_eq!(
         dowild_with(
-            pattern.as_str(),
-            haystack.as_str(),
+            pattern.as_bytes(),
+            haystack.as_bytes(),
             Options::new()
-                .case_insensitive()
-                .enable_escape(DEFAULT_ESCAPE)
+                .case_insensitive(true)
+                .enable_escape_with(DEFAULT_ESCAPE)
         ),
         expected
     );
     assert_eq!(
-        dowild_with(pattern.as_str(), haystack.as_str(), Options::new()),
+        dowild_with(pattern.as_bytes(), haystack.as_bytes(), Options::new()),
         expected
     );
     assert_eq!(
         dowild_with(
-            pattern.as_str(),
-            haystack.as_str(),
-            Options::new().case_insensitive()
+            pattern.as_bytes(),
+            haystack.as_bytes(),
+            Options::new().case_insensitive(true)
         ),
         expected
     );
@@ -64,16 +64,18 @@ fn simple_dowild(#[case] pattern: String, #[case] haystack: String, #[case] expe
 fn impl_for_str() {
     assert_eq!("abc".dowild("a*c"), true);
     assert_eq!(
-        "abc".dowild_with("a*c", Options::new().enable_escape(DEFAULT_ESCAPE)),
+        "abc".dowild_with("a*c", Options::new().enable_escape_with(DEFAULT_ESCAPE)),
         true
     );
 }
 
 #[test]
 fn impl_for_string() {
-    assert_eq!(String::from("abc").dowild("a*c"), true);
+    assert_eq!(String::from("abc").as_str().dowild("a*c"), true);
     assert_eq!(
-        String::from("abc").dowild_with("a*c", Options::new().enable_escape(DEFAULT_ESCAPE)),
+        String::from("abc")
+            .as_str()
+            .dowild_with("a*c", Options::new().enable_escape_with(DEFAULT_ESCAPE)),
         true
     );
 }
@@ -92,9 +94,9 @@ fn dowild_with_default_escape(
     #[case] haystack: String,
     #[case] expected: bool,
 ) {
-    let options = Options::new().enable_escape(DEFAULT_ESCAPE);
+    let options = Options::new().enable_escape_with(DEFAULT_ESCAPE);
     assert_eq!(
-        dowild_with(pattern.as_str(), haystack.as_str(), options),
+        dowild_with(pattern.as_bytes(), haystack.as_bytes(), options),
         expected
     );
 }
@@ -107,9 +109,9 @@ fn dowild_with_custom_escape(
     #[case] haystack: String,
     #[case] expected: bool,
 ) {
-    let options = Options::new().enable_escape(b'\0');
+    let options = Options::new().enable_escape_with(b'\0');
     assert_eq!(
-        dowild_with(pattern.as_str(), haystack.as_str(), options),
+        dowild_with(pattern.as_bytes(), haystack.as_bytes(), options),
         expected
     );
 }

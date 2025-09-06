@@ -5,108 +5,182 @@
 // TODO: Remove
 #![allow(missing_docs)]
 
+macro_rules! impl_quickmatch {
+    ( $type:ty: $for:ty ) => {
+        impl QuickMatch<$type> for $for {
+            fn dowild(&self, pattern: Self) -> bool {
+                dowild(pattern, self)
+            }
+
+            fn dowild_with(&self, pattern: Self, options: Options<$type>) -> bool {
+                dowild_with(pattern, self, options)
+            }
+        }
+    };
+    ( $type:ty: $for:ty => $( $tail:tt )* ) => {
+        impl QuickMatch<$type> for $for {
+            fn dowild(&self, pattern: Self) -> bool {
+                dowild(pattern $( $tail )*, self $( $tail )* )
+            }
+
+            fn dowild_with(&self, pattern: Self, options: Options<$type>) -> bool {
+                dowild_with(pattern $( $tail )*, self $( $tail )*, options)
+            }
+        }
+    };
+}
+
+#[cfg(not(feature = "std"))]
+extern crate alloc;
+
+#[cfg(not(feature = "std"))]
+use alloc::string::String;
+#[cfg(not(feature = "std"))]
+use alloc::vec::Vec;
+#[cfg(feature = "std")]
+use std::string::String;
+#[cfg(feature = "std")]
+use std::vec::Vec;
+
 pub const DEFAULT_ESCAPE: u8 = b'\\';
 pub const DEFAULT_WILDCARD_ANY: u8 = b'*';
 pub const DEFAULT_WILDCARD_ONE: u8 = b'?';
 
-pub trait QuickMatch {
+pub trait QuickMatch<T>
+where
+    T: Wildcard,
+{
     #[must_use]
-    fn dowild(&self, pattern: &str) -> bool;
+    fn dowild(&self, pattern: Self) -> bool;
     #[must_use]
-    fn dowild_with(&self, pattern: &str, options: Options) -> bool;
+    fn dowild_with(&self, pattern: Self, options: Options<T>) -> bool;
 }
 
-pub trait QuickMatchBytes {
-    #[must_use]
-    fn dowild(&self, pattern: &[u8]) -> bool;
-    #[must_use]
-    fn dowild_with(&self, pattern: &[u8], options: Options) -> bool;
+pub trait Wildcard: Eq + Copy {
+    const DEFAULT_ANY: Self;
+    const DEFAULT_ESCAPE: Self;
+    const DEFAULT_ONE: Self;
+
+    fn match_case(first: Self, second: Self, case_sensitive: bool) -> bool;
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
-#[cfg_attr(feature = "_fuzz", derive(arbitrary::Arbitrary))]
-pub struct Options {
+pub struct Options<T>
+where
+    T: Wildcard,
+{
     pub case_sensitive: bool,
-    pub escape: Option<u8>,
-    pub wildcard_any: Option<u8>,
-    pub wildcard_one: Option<u8>,
+    pub escape: Option<T>,
+    pub wildcard_any: Option<T>,
+    pub wildcard_one: Option<T>,
 }
 
-impl Default for Options {
+impl<T> Default for Options<T>
+where
+    T: Wildcard,
+{
     fn default() -> Self {
         Self::new()
     }
 }
 
-impl Options {
+impl<T> Options<T>
+where
+    T: Wildcard,
+{
     #[must_use]
     pub const fn new() -> Self {
         Self {
             case_sensitive: true,
             escape: None,
-            wildcard_any: Some(b'*'),
-            wildcard_one: Some(b'?'),
+            wildcard_any: Some(T::DEFAULT_ANY),
+            wildcard_one: Some(T::DEFAULT_ONE),
         }
     }
 
     #[must_use]
-    pub const fn case_insensitive(self) -> Self {
+    pub const fn case_insensitive(self, yes: bool) -> Self {
         Self {
-            case_sensitive: false,
+            case_sensitive: !yes,
             ..self
         }
     }
 
     #[must_use]
-    pub const fn enable_escape(self, byte: u8) -> Self {
+    pub const fn enable_escape(self) -> Self {
         Self {
-            escape: Some(byte),
+            escape: Some(T::DEFAULT_ESCAPE),
+            ..self
+        }
+    }
+
+    #[must_use]
+    pub const fn enable_escape_with(self, token: T) -> Self {
+        Self {
+            escape: Some(token),
+            ..self
+        }
+    }
+
+    #[must_use]
+    pub const fn wildcard_any_with(self, token: T) -> Self {
+        Self {
+            wildcard_any: Some(token),
+            ..self
+        }
+    }
+
+    #[must_use]
+    pub const fn wildcard_one_with(self, token: T) -> Self {
+        Self {
+            wildcard_one: Some(token),
             ..self
         }
     }
 }
 
-impl QuickMatch for &str {
-    fn dowild(&self, pattern: &str) -> bool {
-        dowild(pattern, self)
-    }
+////////////////////////////////////////////////////////////////////////////////
+// Our trait implementations for the basic types
+////////////////////////////////////////////////////////////////////////////////
 
-    fn dowild_with(&self, pattern: &str, options: Options) -> bool {
-        dowild_with(pattern, self, options)
+impl_quickmatch!(u8: &[u8]);
+impl_quickmatch!(u8: &str => .as_bytes());
+impl_quickmatch!(u8: String => .as_bytes());
+impl_quickmatch!(u8: Vec<u8> => .as_slice());
+impl_quickmatch!(char: &[char]);
+impl_quickmatch!(char: Vec<char> => .as_slice());
+
+impl Wildcard for u8 {
+    const DEFAULT_ANY: Self = b'*';
+    const DEFAULT_ESCAPE: Self = b'\\';
+    const DEFAULT_ONE: Self = b'?';
+
+    fn match_case(first: Self, second: Self, case_sensitive: bool) -> bool {
+        if case_sensitive {
+            first == second
+        } else {
+            first.eq_ignore_ascii_case(&second)
+        }
     }
 }
 
-impl QuickMatchBytes for &[u8] {
-    fn dowild(&self, pattern: &[u8]) -> bool {
-        dowild_bytes(pattern, self)
-    }
+impl Wildcard for char {
+    const DEFAULT_ANY: Self = '*';
+    const DEFAULT_ESCAPE: Self = '\\';
+    const DEFAULT_ONE: Self = '?';
 
-    fn dowild_with(&self, pattern: &[u8], options: Options) -> bool {
-        dowild_bytes_with(pattern, self, options)
+    fn match_case(first: Self, second: Self, case_sensitive: bool) -> bool {
+        if case_sensitive {
+            first == second
+        } else {
+            first.to_lowercase().eq(second.to_lowercase())
+        }
     }
 }
 
-#[cfg(feature = "std")]
-impl QuickMatchBytes for Vec<u8> {
-    fn dowild(&self, pattern: &[u8]) -> bool {
-        dowild_bytes(pattern, self)
-    }
-
-    fn dowild_with(&self, pattern: &[u8], options: Options) -> bool {
-        dowild_bytes_with(pattern, self, options)
-    }
-}
-
-#[cfg(feature = "std")]
-impl QuickMatch for String {
-    fn dowild(&self, pattern: &str) -> bool {
-        self.as_str().dowild(pattern)
-    }
-
-    fn dowild_with(&self, pattern: &str, options: Options) -> bool {
-        self.as_str().dowild_with(pattern, options)
-    }
-}
+////////////////////////////////////////////////////////////////////////////////
+// The main dowild functions
+////////////////////////////////////////////////////////////////////////////////
 
 /// Return true if the wildcard pattern matches the `haystack`
 ///
@@ -125,32 +199,29 @@ impl QuickMatch for String {
 /// <https://research.swtch.com/glob> written by Russ Cox and was further improved here.
 ///
 /// The improved version uses generally about 2-5x less instructions. For "normal" and short
-/// patterns the speedup can be even more, up to 6-7x.
+/// patterns the speedup can be even higher.
 #[must_use]
-pub fn dowild<P, H>(pattern: P, haystack: H) -> bool
+pub fn dowild<T>(pattern: &[T], haystack: &[T]) -> bool
 where
-    P: AsRef<str>,
-    H: AsRef<str>,
+    T: Wildcard,
 {
-    dowild_bytes(pattern.as_ref().as_bytes(), haystack.as_ref().as_bytes())
-}
-
-#[must_use]
-pub const fn dowild_bytes(pattern: &[u8], haystack: &[u8]) -> bool {
     let mut p_idx = 0;
     let mut h_idx = 0;
 
     let mut next_p_idx = 0;
     let mut next_h_idx = 0;
 
+    let wildcard_any = T::DEFAULT_ANY;
+    let wildcard_one = T::DEFAULT_ONE;
+
     while p_idx < pattern.len() || h_idx < haystack.len() {
         if p_idx < pattern.len() {
             match pattern[p_idx] {
-                b'*' => {
+                c if c == wildcard_any => {
                     next_p_idx = p_idx;
                     p_idx += 1;
 
-                    while p_idx < pattern.len() && pattern[p_idx] == b'*' {
+                    while p_idx < pattern.len() && pattern[p_idx] == wildcard_any {
                         p_idx += 1;
                     }
                     if p_idx >= pattern.len() {
@@ -162,7 +233,7 @@ pub const fn dowild_bytes(pattern: &[u8], haystack: &[u8]) -> bool {
                     // In this special case, the compiler seems to optimize the else branch far
                     // better with both branches explicitly having the same increment at the end.
                     #[allow(clippy::branches_sharing_code)]
-                    if c == b'?' {
+                    if c == wildcard_one {
                         next_h_idx = h_idx + 1;
                     } else {
                         // Advancing the haystack to the first match significantly enhances the speed
@@ -175,7 +246,7 @@ pub const fn dowild_bytes(pattern: &[u8], haystack: &[u8]) -> bool {
 
                     continue;
                 }
-                b'?' => {
+                c if c == wildcard_one => {
                     if h_idx < haystack.len() {
                         p_idx += 1;
                         h_idx += 1;
@@ -202,16 +273,10 @@ pub const fn dowild_bytes(pattern: &[u8], haystack: &[u8]) -> bool {
 }
 
 #[must_use]
-pub fn dowild_with<P, H>(pattern: P, haystack: H, options: Options) -> bool
+pub fn dowild_with<T>(pattern: &[T], haystack: &[T], options: Options<T>) -> bool
 where
-    P: AsRef<[u8]>,
-    H: AsRef<[u8]>,
+    T: Wildcard,
 {
-    dowild_bytes_with(pattern.as_ref(), haystack.as_ref(), options)
-}
-
-#[must_use]
-pub const fn dowild_bytes_with(pattern: &[u8], haystack: &[u8], options: Options) -> bool {
     let Options {
         case_sensitive,
         escape,
@@ -219,19 +284,12 @@ pub const fn dowild_bytes_with(pattern: &[u8], haystack: &[u8], options: Options
         wildcard_one,
     } = options;
 
-    let wildcard_any = match wildcard_any {
-        Some(x) => x,
-        None => DEFAULT_WILDCARD_ANY,
-    };
-    let wildcard_one = match wildcard_one {
-        Some(x) => x,
-        None => DEFAULT_WILDCARD_ONE,
-    };
+    let wildcard_any = wildcard_any.unwrap_or(T::DEFAULT_ANY);
+    let wildcard_one = wildcard_one.unwrap_or(T::DEFAULT_ONE);
     let (is_escape_enabled, escape) = match escape {
         Some(x) => (true, x),
-        // although the `DEFAULT_ESCAPE` is not used but we need to assign
-        // some reasonable value
-        None => (false, DEFAULT_ESCAPE),
+        // although the value for `escape` is not used we need to assign some reasonable value
+        None => (false, T::DEFAULT_ESCAPE),
     };
 
     let mut p_idx = 0;
@@ -294,7 +352,7 @@ pub const fn dowild_bytes_with(pattern: &[u8], haystack: &[u8], options: Options
                     }
                 }
                 c => {
-                    if h_idx < haystack.len() && match_case(haystack[h_idx], c, case_sensitive) {
+                    if h_idx < haystack.len() && T::match_case(haystack[h_idx], c, case_sensitive) {
                         p_idx += 1;
                         h_idx += 1;
                         continue;
@@ -310,13 +368,4 @@ pub const fn dowild_bytes_with(pattern: &[u8], haystack: &[u8], options: Options
         return false;
     }
     true
-}
-
-#[inline]
-const fn match_case(byte: u8, other: u8, case_sensitive: bool) -> bool {
-    if case_sensitive {
-        byte == other
-    } else {
-        byte.eq_ignore_ascii_case(&other)
-    }
 }

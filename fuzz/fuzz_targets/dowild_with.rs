@@ -2,15 +2,23 @@
 
 use libfuzzer_sys::fuzz_target;
 use quickmatch::{dowild_with, Options};
-use quickmatch_fuzz::pattern_to_regex;
+use quickmatch_fuzz::{pattern_to_regex, FuzzOptions};
 
-fuzz_target!(|data: (&[u8], &[u8], Options)| {
-    if let (Ok(pattern), Ok(haystack)) = (std::str::from_utf8(data.0), std::str::from_utf8(data.1)) {
-        let options = data.2;
+fuzz_target!(|data: (&[u8], &[u8], FuzzOptions)| {
+    let (pattern, haystack, options) = (
+        std::str::from_utf8(data.0),
+        std::str::from_utf8(data.1),
+        data.2,
+    );
 
+    if let (Ok(pattern), Ok(haystack)) = (pattern, haystack) {
         if let Ok(regex) = pattern_to_regex(pattern, options) {
             assert_eq!(
-                dowild_with(pattern, haystack, options),
+                dowild_with(
+                    pattern.as_bytes(),
+                    haystack.as_bytes(),
+                    Options::from(options)
+                ),
                 regex.is_match(haystack),
                 "The following should match:\npattern: '{}'\nbytes: '{:?}'\nand regex: \
                  '{}'\nbytes: '{:?}'\nwith options: '{:?}'\nshould match haystack: '{}'\nbytes: \
