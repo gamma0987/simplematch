@@ -23,6 +23,27 @@ pub trait QuickMatchBytes {
     fn dowild_with(&self, pattern: &[u8], options: Options) -> bool;
 }
 
+pub trait Wildcard<T>
+where
+    T: Eq + Copy,
+{
+    const ANY: T;
+    const ESCAPE: T;
+    const ONE: T;
+
+    fn match_case(first: T, second: T, case_sensitive: bool) -> bool;
+}
+
+impl Wildcard<Self> for u8 {
+    const ANY: Self = b'*';
+    const ESCAPE: Self = b'\\';
+    const ONE: Self = b'?';
+
+    fn match_case(first: Self, second: Self, case_sensitive: bool) -> bool {
+        match_case(first, second, case_sensitive)
+    }
+}
+
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 #[cfg_attr(feature = "_fuzz", derive(arbitrary::Arbitrary))]
 pub struct Options {
@@ -200,6 +221,78 @@ pub const fn dowild_bytes(pattern: &[u8], haystack: &[u8]) -> bool {
                     continue;
                 }
                 b'?' => {
+                    if h_idx < haystack.len() {
+                        p_idx += 1;
+                        h_idx += 1;
+                        continue;
+                    }
+                }
+                c => {
+                    if h_idx < haystack.len() && haystack[h_idx] == c {
+                        p_idx += 1;
+                        h_idx += 1;
+                        continue;
+                    }
+                }
+            }
+        }
+        if 0 < next_h_idx && next_h_idx <= haystack.len() {
+            p_idx = next_p_idx;
+            h_idx = next_h_idx;
+            continue;
+        }
+        return false;
+    }
+    true
+}
+
+#[must_use]
+pub fn dowild_any<T>(pattern: &[T], haystack: &[T]) -> bool
+where
+    T: Wildcard<T> + Eq + Copy,
+{
+    let mut p_idx = 0;
+    let mut h_idx = 0;
+
+    let mut next_p_idx = 0;
+    let mut next_h_idx = 0;
+
+    let wildcard_any = T::ANY;
+    let wildcard_one = T::ONE;
+
+    while p_idx < pattern.len() || h_idx < haystack.len() {
+        if p_idx < pattern.len() {
+            match pattern[p_idx] {
+                c if c == wildcard_any => {
+                    next_p_idx = p_idx;
+                    p_idx += 1;
+
+                    while p_idx < pattern.len() && pattern[p_idx] == wildcard_any {
+                        p_idx += 1;
+                    }
+                    if p_idx >= pattern.len() {
+                        return true;
+                    }
+
+                    let c = pattern[p_idx];
+
+                    // In this special case, the compiler seems to optimize the else branch far
+                    // better with both branches explicitly having the same increment at the end.
+                    #[allow(clippy::branches_sharing_code)]
+                    if c == wildcard_one {
+                        next_h_idx = h_idx + 1;
+                    } else {
+                        // Advancing the haystack to the first match significantly enhances the speed
+                        // compared to the original algorithm.
+                        while h_idx < haystack.len() && haystack[h_idx] != c {
+                            h_idx += 1;
+                        }
+                        next_h_idx = h_idx + 1;
+                    }
+
+                    continue;
+                }
+                c if c == wildcard_one => {
                     if h_idx < haystack.len() {
                         p_idx += 1;
                         h_idx += 1;

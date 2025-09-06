@@ -5,7 +5,7 @@ use std::hint::black_box;
 use iai_callgrind::{
     library_benchmark, library_benchmark_group, main, Dhat, LibraryBenchmarkConfig,
 };
-use quickmatch::{dowild, dowild_with, Options};
+use quickmatch::{dowild, dowild_any, dowild_with, Options};
 use wildcard::Wildcard;
 use wildmatch::WildMatch;
 
@@ -28,7 +28,10 @@ const LOREM_PATTERN: &str = "Ve*ve*Aenean??acc*ac****ipsum?ut*?ur ???????????*ac
 #[bench::a_max_star(format!("{}b", "a*".repeat(50)).as_str())]
 #[bench::a_stars(format!("a{}b", "*".repeat(100)).as_str())]
 fn bench_quickmatch(pattern: &str) -> bool {
-    black_box(dowild(pattern, black_box(HAYSTACK)))
+    black_box(dowild_any(
+        pattern.as_bytes(),
+        black_box(HAYSTACK.as_bytes()),
+    ))
 }
 
 #[library_benchmark]
