@@ -14,7 +14,6 @@ members = ["."]
 debug = true
 
 [dependencies]
-arbitrary = "1"
 libfuzzer-sys = "0.4"
 quickmatch = { path = "..", features = ["_fuzz"] }
 regex = "1"

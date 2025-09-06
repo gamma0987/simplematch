@@ -86,6 +86,7 @@ impl QuickMatchBytes for &[u8] {
     }
 }
 
+#[cfg(feature = "std")]
 impl QuickMatchBytes for Vec<u8> {
     fn dowild(&self, pattern: &[u8]) -> bool {
         dowild_bytes(pattern, self)
@@ -96,6 +97,7 @@ impl QuickMatchBytes for Vec<u8> {
     }
 }
 
+#[cfg(feature = "std")]
 impl QuickMatch for String {
     fn dowild(&self, pattern: &str) -> bool {
         self.as_str().dowild(pattern)
