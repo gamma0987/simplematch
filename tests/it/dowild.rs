@@ -32,7 +32,7 @@ fn simple_dowild(#[case] pattern: String, #[case] haystack: String, #[case] expe
         dowild_with(
             pattern.as_str(),
             haystack.as_str(),
-            Options::new().enable_escape(DEFAULT_ESCAPE)
+            Options::new().enable_escape_with(DEFAULT_ESCAPE)
         ),
         expected
     );
@@ -41,8 +41,8 @@ fn simple_dowild(#[case] pattern: String, #[case] haystack: String, #[case] expe
             pattern.as_str(),
             haystack.as_str(),
             Options::new()
-                .case_insensitive()
-                .enable_escape(DEFAULT_ESCAPE)
+                .case_insensitive(true)
+                .enable_escape_with(DEFAULT_ESCAPE)
         ),
         expected
     );
@@ -54,7 +54,7 @@ fn simple_dowild(#[case] pattern: String, #[case] haystack: String, #[case] expe
         dowild_with(
             pattern.as_str(),
             haystack.as_str(),
-            Options::new().case_insensitive()
+            Options::new().case_insensitive(true)
         ),
         expected
     );
@@ -64,7 +64,7 @@ fn simple_dowild(#[case] pattern: String, #[case] haystack: String, #[case] expe
 fn impl_for_str() {
     assert_eq!("abc".dowild("a*c"), true);
     assert_eq!(
-        "abc".dowild_with("a*c", Options::new().enable_escape(DEFAULT_ESCAPE)),
+        "abc".dowild_with("a*c", Options::new().enable_escape_with(DEFAULT_ESCAPE)),
         true
     );
 }
@@ -73,7 +73,7 @@ fn impl_for_str() {
 fn impl_for_string() {
     assert_eq!(String::from("abc").dowild("a*c"), true);
     assert_eq!(
-        String::from("abc").dowild_with("a*c", Options::new().enable_escape(DEFAULT_ESCAPE)),
+        String::from("abc").dowild_with("a*c", Options::new().enable_escape_with(DEFAULT_ESCAPE)),
         true
     );
 }
@@ -92,7 +92,7 @@ fn dowild_with_default_escape(
     #[case] haystack: String,
     #[case] expected: bool,
 ) {
-    let options = Options::new().enable_escape(DEFAULT_ESCAPE);
+    let options = Options::new().enable_escape_with(DEFAULT_ESCAPE);
     assert_eq!(
         dowild_with(pattern.as_str(), haystack.as_str(), options),
         expected
@@ -107,7 +107,7 @@ fn dowild_with_custom_escape(
     #[case] haystack: String,
     #[case] expected: bool,
 ) {
-    let options = Options::new().enable_escape(b'\0');
+    let options = Options::new().enable_escape_with(b'\0');
     assert_eq!(
         dowild_with(pattern.as_str(), haystack.as_str(), options),
         expected

@@ -50,17 +50,41 @@ impl Options {
     }
 
     #[must_use]
-    pub const fn case_insensitive(self) -> Self {
+    pub const fn case_insensitive(self, yes: bool) -> Self {
         Self {
-            case_sensitive: false,
+            case_sensitive: !yes,
             ..self
         }
     }
 
     #[must_use]
-    pub const fn enable_escape(self, byte: u8) -> Self {
+    pub const fn enable_escape(self) -> Self {
+        Self {
+            escape: Some(DEFAULT_ESCAPE),
+            ..self
+        }
+    }
+
+    #[must_use]
+    pub const fn enable_escape_with(self, byte: u8) -> Self {
         Self {
             escape: Some(byte),
+            ..self
+        }
+    }
+
+    #[must_use]
+    pub const fn wildcard_any_with(self, byte: u8) -> Self {
+        Self {
+            wildcard_any: Some(byte),
+            ..self
+        }
+    }
+
+    #[must_use]
+    pub const fn wildcard_one_with(self, byte: u8) -> Self {
+        Self {
+            wildcard_one: Some(byte),
             ..self
         }
     }
