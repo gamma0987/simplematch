@@ -5,6 +5,7 @@ callgrind
 cicd
 clippy
 codegen
+complementation
 coreutils
 docsrs
 dotgraphs
@@ -27,6 +28,7 @@ quickmatch
 realpath
 repr
 reqwest
+rfind
 rfold
 rstest
 rustc

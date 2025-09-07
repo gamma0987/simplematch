@@ -25,6 +25,7 @@ use rstest::rstest;
 #[case::for_debug("a*?b", "aab", true)]
 #[case::multi_a_star("a*a*a*a*b", "a".repeat(100), false)]
 #[case::star_x("*x", "xxx", true)]
+#[case::multi_star("x******x", "xx", true)]
 // cspell: enable
 fn simple_dowild(#[case] pattern: String, #[case] haystack: String, #[case] expected: bool) {
     assert_eq!(dowild(pattern.as_bytes(), haystack.as_bytes()), expected);
@@ -114,4 +115,65 @@ fn dowild_with_custom_escape(
         dowild_with(pattern.as_bytes(), haystack.as_bytes(), options),
         expected
     );
+}
+
+#[rstest]
+#[case::empty("[]", &["[]"], true)]
+#[case::open_without_close("[abc", &["[abc"], true)]
+#[case::close_bracket_end("a]", &["a]"], true)]
+#[case::open_bracket_end("a[", &["a["], true)]
+#[case::just_a("[a]", &["a"], true)]
+#[case::multi_a("[aaaaaa]", &["a"], true)]
+#[case::just_negative("[!]", &["!"], true)]
+#[case::negative_a("[!a]", &["a"], false)]
+#[case::literal_negative("[a!]", &["a", "!"], true)]
+#[case::literal_star("[*]", &["*"], true)]
+#[case::literal_question_mark("[?]", &["?"], true)]
+#[case::literal_backslash(r"[\]", &[r"\"], true)]
+#[case::close_bracket_first("[]]", &["]"], true)]
+#[case::close_bracket_first_negative_open("[]![]", &["]", "!", "["], true)]
+#[case::negative_close_bracket("[!]]", &["]"], false)]
+#[case::multi_close_bracket("[]]]", &["]]"], true)]
+#[case::open_bracket_first("[[]", &["["], true)]
+#[case::multi_open_bracket("[[[]", &["["], true)]
+#[case::close_bracket_minus("[]-]", &["]", "-"], true)]
+#[case::minus_close_bracket("[-]]", &["-]"], true)]
+#[case::just_minus("[-]", &["-"], true)]
+#[case::negative_minus("[!-]", &["-"], false)]
+#[case::a_minus("[a-]", &["-", "a"], true)]
+#[case::minus_a("[-a]", &["-", "a"], true)]
+#[case::range_same("[a-a]", &["a"], true)]
+#[case::a_to_z("[a-z]", &["a", "m", "z"], true)]
+#[case::negative_a_to_z("[!a-z]", &["a", "m", "z"], false)]
+#[case::a_to_z_not_uppercase("[a-z]", &["A", "M", "Z"], false)]
+#[case::z_to_a("[z-a]", &["a", "m", "z"], true)]
+#[case::negative_z_to_a("[!z-a]", &["a", "m", "z"], false)]
+#[case::multi_range("[a-zA-Z]", &["a", "m", "z", "A", "M", "Z"], true)]
+#[case::negative_multi_range("[!a-zA-Z]", &["a", "m", "z", "A", "M", "Z"], false)]
+#[case::multi_range_at_the_end("a[a-zA-Z]", &["aa", "az", "aA", "aZ"], true)]
+#[case::multi_range_at_the_start("[a-zA-Z]z", &["az", "Az", "Zz"], true)]
+#[case::multi_range_in_the_middle("a[a-zA-Z]z", &["aaz", "azz", "aAz", "aZz"], true)]
+fn dowild_with_range_case_sensitive(
+    #[case] pattern: String,
+    #[case] haystacks: &[&str],
+    #[case] expected: bool,
+) {
+    let options = Options::new().enable_ranges();
+    let char_options = Options::new().enable_ranges();
+    for haystack in haystacks {
+        assert_eq!(
+            dowild_with(pattern.as_bytes(), haystack.as_bytes(), options),
+            expected,
+            "haystack was: {haystack}",
+        );
+        assert_eq!(
+            dowild_with(
+                &pattern.chars().collect::<Vec<char>>(),
+                &haystack.chars().collect::<Vec<char>>(),
+                char_options
+            ),
+            expected,
+            "char haystack was: {haystack}",
+        );
+    }
 }
