@@ -9,7 +9,7 @@ publish = false
 
 [dev-dependencies]
 iai-callgrind = "0.16.1"
-quickmatch = { version = "0.1.0", path = ".." }
+simplematch = { version = "0.1.0", path = ".." }
 wildcard = "0.3.0"
 wildmatch = "2.4.0"
 

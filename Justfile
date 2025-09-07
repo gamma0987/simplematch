@@ -177,7 +177,7 @@ bench:
 minimal-versions:
     cargo minimal-versions check --workspace --all-targets --ignore-private --direct
 
-# Bump the version of quickmatch or the MSRV (Uses: 'cargo', 'grep')
+# Bump the version of simplematch or the MSRV (Uses: 'cargo', 'grep')
 [group('chore')]
 bump config part:
     #!/usr/bin/env -S sh -e
@@ -185,5 +185,5 @@ bump config part:
     new_version=$(bump-my-version show-bump --config-file ".bumpversion/{{ config }}.toml" --ascii | grep -Po '(?<={{ part }} - )[0-9]+(\.[0-9]+\.[0-9]+)?')
 
     bump-my-version bump --no-commit --config-file ".bumpversion/{{ config }}.toml" {{ part }}
-    just args="--all-features --lib" build quickmatch
+    just args="--all-features --lib" build simplematch
 

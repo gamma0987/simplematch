@@ -1,8 +1,8 @@
 #![no_main]
 
 use libfuzzer_sys::fuzz_target;
-use quickmatch::{dowild_with, Options};
-use quickmatch_fuzz::{pattern_to_regex, FuzzOptions};
+use simplematch::{dowild_with, Options};
+use simplematch_fuzz::{pattern_to_regex, FuzzOptions};
 
 fuzz_target!(|data: (&[u8], &[u8], FuzzOptions)| {
     let (pattern, haystack, options) = (

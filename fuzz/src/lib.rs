@@ -1,13 +1,15 @@
 //! The fuzzing library
 
 use arbitrary::Arbitrary;
-use quickmatch::{Options, DEFAULT_ESCAPE, DEFAULT_WILDCARD_ANY, DEFAULT_WILDCARD_ONE};
 use regex::{Regex, RegexBuilder};
+use simplematch::{Options, DEFAULT_ESCAPE, DEFAULT_WILDCARD_ANY, DEFAULT_WILDCARD_ONE};
 
 #[derive(Debug, Clone, Copy, Arbitrary)]
 pub struct FuzzOptions {
     pub case_sensitive: bool,
     pub escape: Option<u8>,
+    pub is_ranges_enabled: bool,
+    pub range_negate: Option<u8>,
     pub wildcard_any: Option<u8>,
     pub wildcard_one: Option<u8>,
 }
@@ -18,6 +20,8 @@ impl Default for FuzzOptions {
         Self {
             case_sensitive: options.case_sensitive,
             escape: options.escape,
+            is_ranges_enabled: options.is_ranges_enabled,
+            range_negate: options.range_negate,
             wildcard_any: options.wildcard_any,
             wildcard_one: options.wildcard_one,
         }
@@ -29,6 +33,8 @@ impl From<FuzzOptions> for Options<u8> {
         Self {
             case_sensitive: value.case_sensitive,
             escape: value.escape,
+            is_ranges_enabled: value.is_ranges_enabled,
+            range_negate: value.range_negate,
             wildcard_any: value.wildcard_any,
             wildcard_one: value.wildcard_one,
         }
@@ -39,6 +45,8 @@ pub fn pattern_to_regex(pattern: &str, options: FuzzOptions) -> Result<Regex, re
     let FuzzOptions {
         case_sensitive,
         escape,
+        is_ranges_enabled,
+        range_negate,
         wildcard_any,
         wildcard_one,
     } = options;

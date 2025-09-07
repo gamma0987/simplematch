@@ -23,8 +23,8 @@ peekable
 pemfile
 powerset
 profraw
-quickmatch
-quickmatch
+simplematch
+simplematch
 realpath
 repr
 reqwest

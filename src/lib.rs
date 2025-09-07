@@ -5,9 +5,9 @@
 // TODO: Remove
 #![allow(missing_docs)]
 
-macro_rules! impl_quickmatch {
+macro_rules! impl_simplematch {
     ( $type:ty: $for:ty ) => {
-        impl QuickMatch<$type> for $for {
+        impl SimpleMatch<$type> for $for {
             fn dowild(&self, pattern: Self) -> bool {
                 dowild(pattern, self)
             }
@@ -18,7 +18,7 @@ macro_rules! impl_quickmatch {
         }
     };
     ( $type:ty: $for:ty => $( $tail:tt )* ) => {
-        impl QuickMatch<$type> for $for {
+        impl SimpleMatch<$type> for $for {
             fn dowild(&self, pattern: Self) -> bool {
                 dowild(pattern $( $tail )*, self $( $tail )* )
             }
@@ -52,7 +52,7 @@ pub const DEFAULT_ESCAPE: u8 = b'\\';
 pub const DEFAULT_WILDCARD_ANY: u8 = b'*';
 pub const DEFAULT_WILDCARD_ONE: u8 = b'?';
 
-pub trait QuickMatch<T>
+pub trait SimpleMatch<T>
 where
     T: Wildcard,
 {
@@ -106,10 +106,10 @@ where
         Self {
             case_sensitive: true,
             escape: None,
-            wildcard_any: Some(T::DEFAULT_ANY),
-            wildcard_one: Some(T::DEFAULT_ONE),
             is_ranges_enabled: false,
             range_negate: Some(T::DEFAULT_RANGE_NEGATE),
+            wildcard_any: Some(T::DEFAULT_ANY),
+            wildcard_one: Some(T::DEFAULT_ONE),
         }
     }
 
@@ -176,12 +176,12 @@ where
 // Our trait implementations for the basic types
 ////////////////////////////////////////////////////////////////////////////////
 
-impl_quickmatch!(u8: &[u8]);
-impl_quickmatch!(u8: &str => .as_bytes());
-impl_quickmatch!(u8: String => .as_bytes());
-impl_quickmatch!(u8: Vec<u8> => .as_slice());
-impl_quickmatch!(char: &[char]);
-impl_quickmatch!(char: Vec<char> => .as_slice());
+impl_simplematch!(u8: &[u8]);
+impl_simplematch!(u8: &str => .as_bytes());
+impl_simplematch!(u8: String => .as_bytes());
+impl_simplematch!(u8: Vec<u8> => .as_slice());
+impl_simplematch!(char: &[char]);
+impl_simplematch!(char: Vec<char> => .as_slice());
 
 impl Wildcard for u8 {
     const DEFAULT_ANY: Self = b'*';

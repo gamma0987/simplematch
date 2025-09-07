@@ -1,7 +1,7 @@
 //! The tests
 
-use quickmatch::{dowild, dowild_with, Options, QuickMatch, DEFAULT_ESCAPE};
 use rstest::rstest;
+use simplematch::{dowild, dowild_with, Options, SimpleMatch, DEFAULT_ESCAPE};
 
 // These are mostly the tests from the original algorithm
 // cspell: disable
