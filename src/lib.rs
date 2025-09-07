@@ -68,7 +68,6 @@ pub trait Wildcard: Eq + Copy + Clone {
     const DEFAULT_ONE: Self;
     const DEFAULT_RANGE_CLOSE: Self;
     const DEFAULT_RANGE_HYPHEN: Self;
-    // TODO: Make it adjustable in the Options. For example regex uses `^` for negation
     const DEFAULT_RANGE_NEGATE: Self;
     const DEFAULT_RANGE_OPEN: Self;
 
