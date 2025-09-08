@@ -2,7 +2,11 @@
 
 use arbitrary::Arbitrary;
 use regex::{Regex, RegexBuilder};
-use simplematch::{Options, DEFAULT_ESCAPE, DEFAULT_WILDCARD_ANY, DEFAULT_WILDCARD_ONE};
+use simplematch::Options;
+
+pub const DEFAULT_ESCAPE: u8 = b'\\';
+pub const DEFAULT_WILDCARD_ANY: u8 = b'*';
+pub const DEFAULT_WILDCARD_ONE: u8 = b'?';
 
 #[derive(Debug, Clone, Copy, Arbitrary)]
 pub struct FuzzOptions {
@@ -45,10 +49,10 @@ pub fn pattern_to_regex(pattern: &str, options: FuzzOptions) -> Result<Regex, re
     let FuzzOptions {
         case_sensitive,
         escape,
-        is_ranges_enabled,
-        range_negate,
         wildcard_any,
         wildcard_one,
+        // TODO: Use ranges
+        ..
     } = options;
 
     let wildcard_any = wildcard_any.unwrap_or(DEFAULT_WILDCARD_ANY) as char;

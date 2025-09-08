@@ -9,6 +9,8 @@ publish = false
 
 [dev-dependencies]
 iai-callgrind = "0.16.1"
+serde = "1"
+serde_json = "1"
 simplematch = { version = "0.1.0", path = ".." }
 wildcard = "0.3.0"
 wildmatch = "2.4.0"
@@ -17,3 +19,8 @@ wildmatch = "2.4.0"
 harness = false
 name = "compare"
 path = "benches/compare.rs"
+
+[[bench]]
+harness = false
+name = "bigdata"
+path = "benches/bigdata.rs"
