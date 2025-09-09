@@ -7,12 +7,6 @@ edition = "2021"
 [package.metadata]
 cargo-fuzz = true
 
-[workspace]
-members = ["."]
-
-[profile.release]
-debug = true
-
 [dependencies]
 arbitrary = { version = "1.4", features = ["derive"] }
 libfuzzer-sys = "0.4"

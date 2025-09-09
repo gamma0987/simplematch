@@ -89,10 +89,10 @@ where
     T: Wildcard,
 {
     pub case_sensitive: bool,
-    pub escape: Option<T>,
     pub is_ranges_enabled: bool,
     pub range_negate: Option<T>,
     pub wildcard_any: Option<T>,
+    pub wildcard_escape: Option<T>,
     pub wildcard_one: Option<T>,
 }
 
@@ -123,7 +123,7 @@ where
     pub const fn new() -> Self {
         Self {
             case_sensitive: true,
-            escape: None,
+            wildcard_escape: None,
             is_ranges_enabled: false,
             range_negate: Some(T::DEFAULT_RANGE_NEGATE),
             wildcard_any: Some(T::DEFAULT_ANY),
@@ -142,7 +142,7 @@ where
     #[must_use]
     pub const fn enable_escape(self) -> Self {
         Self {
-            escape: Some(T::DEFAULT_ESCAPE),
+            wildcard_escape: Some(T::DEFAULT_ESCAPE),
             ..self
         }
     }
@@ -150,12 +150,11 @@ where
     #[must_use]
     pub const fn enable_escape_with(self, token: T) -> Self {
         Self {
-            escape: Some(token),
+            wildcard_escape: Some(token),
             ..self
         }
     }
 
-    // TODO: Range with customizable negation char
     #[must_use]
     pub const fn enable_ranges(self) -> Self {
         Self {
@@ -592,7 +591,7 @@ where
             next_h_idx += 1;
 
             // We don't enter the `wildcard_any` match case in the big loop again, so we have to
-            // apply this optimization from above here again if applicable.
+            // apply this optimization from above here again, if applicable.
             if p_idx < pattern.len() {
                 while next_h_idx < haystack.len() && haystack[next_h_idx] != pattern[p_idx] {
                     next_h_idx += 1;
@@ -619,17 +618,17 @@ where
 {
     let Options {
         case_sensitive,
-        escape,
-        wildcard_any,
-        wildcard_one,
         is_ranges_enabled,
         range_negate,
+        wildcard_any,
+        wildcard_escape,
+        wildcard_one,
     } = options;
 
     let range_negate = range_negate.unwrap_or(T::DEFAULT_RANGE_NEGATE);
     let wildcard_any = wildcard_any.unwrap_or(T::DEFAULT_ANY);
     let wildcard_one = wildcard_one.unwrap_or(T::DEFAULT_ONE);
-    let (is_escape_enabled, escape) = match escape {
+    let (is_escape_enabled, wildcard_escape) = match wildcard_escape {
         Some(x) => (true, x),
         // although the value for `escape` is not used we need to assign some reasonable value
         None => (false, T::DEFAULT_ESCAPE),
@@ -660,12 +659,12 @@ where
 
                     next_p_idx = p_idx;
 
-                    let c = pattern[p_idx];
-                    if !(c == wildcard_one
-                        || (is_escape_enabled && c == escape)
-                        || (is_ranges_enabled && c == T::DEFAULT_RANGE_OPEN))
+                    let next_c = pattern[p_idx];
+                    if !(next_c == wildcard_one
+                        || (is_escape_enabled && next_c == wildcard_escape)
+                        || (is_ranges_enabled && next_c == T::DEFAULT_RANGE_OPEN))
                     {
-                        while h_idx < haystack.len() && haystack[h_idx] != c {
+                        while h_idx < haystack.len() && haystack[h_idx] != next_c {
                             h_idx += 1;
                         }
                     }
@@ -684,19 +683,20 @@ where
                         continue;
                     }
                 }
-                c if is_escape_enabled && c == escape && p_idx + 1 < pattern.len() => {
+                c if is_escape_enabled && c == wildcard_escape && p_idx + 1 < pattern.len() => {
                     if h_idx < haystack.len() {
-                        // TODO: Rename to next_c
-                        let c = pattern[p_idx + 1];
+                        let next_c = pattern[p_idx + 1];
                         let h = haystack[h_idx];
 
-                        let is_special = c == wildcard_any || c == wildcard_one || c == escape;
+                        let is_special = next_c == wildcard_any
+                            || next_c == wildcard_one
+                            || next_c == wildcard_escape;
                         #[allow(clippy::else_if_without_else)]
-                        if is_special && h == c {
+                        if is_special && h == next_c {
                             p_idx += 2;
                             h_idx += 1;
                             continue;
-                        } else if !is_special && h == escape {
+                        } else if !is_special && h == wildcard_escape {
                             p_idx += 1;
                             h_idx += 1;
                             continue;

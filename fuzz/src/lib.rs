@@ -11,10 +11,10 @@ pub const DEFAULT_WILDCARD_ONE: u8 = b'?';
 #[derive(Debug, Clone, Copy, Arbitrary)]
 pub struct FuzzOptions {
     pub case_sensitive: bool,
-    pub escape: Option<u8>,
     pub is_ranges_enabled: bool,
     pub range_negate: Option<u8>,
     pub wildcard_any: Option<u8>,
+    pub wildcard_escape: Option<u8>,
     pub wildcard_one: Option<u8>,
 }
 
@@ -23,7 +23,7 @@ impl Default for FuzzOptions {
         let options = Options::default();
         Self {
             case_sensitive: options.case_sensitive,
-            escape: options.escape,
+            wildcard_escape: options.wildcard_escape,
             is_ranges_enabled: options.is_ranges_enabled,
             range_negate: options.range_negate,
             wildcard_any: options.wildcard_any,
@@ -36,7 +36,7 @@ impl From<FuzzOptions> for Options<u8> {
     fn from(value: FuzzOptions) -> Self {
         Self {
             case_sensitive: value.case_sensitive,
-            escape: value.escape,
+            wildcard_escape: value.wildcard_escape,
             is_ranges_enabled: value.is_ranges_enabled,
             range_negate: value.range_negate,
             wildcard_any: value.wildcard_any,
@@ -48,7 +48,7 @@ impl From<FuzzOptions> for Options<u8> {
 pub fn pattern_to_regex(pattern: &str, options: FuzzOptions) -> Result<Regex, regex::Error> {
     let FuzzOptions {
         case_sensitive,
-        escape,
+        wildcard_escape,
         wildcard_any,
         wildcard_one,
         // TODO: Use ranges
@@ -57,7 +57,7 @@ pub fn pattern_to_regex(pattern: &str, options: FuzzOptions) -> Result<Regex, re
 
     let wildcard_any = wildcard_any.unwrap_or(DEFAULT_WILDCARD_ANY) as char;
     let wildcard_one = wildcard_one.unwrap_or(DEFAULT_WILDCARD_ONE) as char;
-    let (is_escape_enabled, escape) = match escape {
+    let (is_escape_enabled, wildcard_escape) = match wildcard_escape {
         Some(x) => (true, x as char),
         None => (false, DEFAULT_ESCAPE as char),
     };
@@ -74,12 +74,12 @@ pub fn pattern_to_regex(pattern: &str, options: FuzzOptions) -> Result<Regex, re
             c if !is_escape && c == wildcard_one => {
                 regex.push('.');
             }
-            c if !is_escape && is_escape_enabled && c == escape => {
+            c if !is_escape && is_escape_enabled && c == wildcard_escape => {
                 is_escape = true;
             }
             c if is_escape => {
-                if !(c == wildcard_any || c == wildcard_one || c == escape) {
-                    wrap_char(&mut regex, escape)
+                if !(c == wildcard_any || c == wildcard_one || c == wildcard_escape) {
+                    wrap_char(&mut regex, wildcard_escape)
                 }
                 wrap_char(&mut regex, c);
                 is_escape = false;
@@ -91,7 +91,7 @@ pub fn pattern_to_regex(pattern: &str, options: FuzzOptions) -> Result<Regex, re
     }
 
     if is_escape {
-        wrap_char(&mut regex, escape);
+        wrap_char(&mut regex, wildcard_escape);
     }
     regex.push('$');
 
