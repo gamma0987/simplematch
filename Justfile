@@ -147,6 +147,28 @@ coverage-lcov: (coverage 'lcov')
 [group('coverage')]
 coverage-lcov-fresh: (coverage-fresh 'lcov')
 
+[group('coverage')]
+coverage-fuzz target:
+    #!/usr/bin/env -S sh -e
+    export RUSTFLAGS='-Cinstrument-coverage -Ctarget-feature=-crt-static'
+    cargo +nightly fuzz run {{ target }} {{ if args != '' { args } else { '' } }}
+    cargo +nightly fuzz coverage {{ target }}
+
+    export LLVM_PROFILE_FILE='fuzz/coverage/{{ target }}/coverage.profdata'
+    grcov ./fuzz/coverage/{{ target }} \
+        --binary-path ./target/x86_64-unknown-linux-gnu/coverage/x86_64-unknown-linux-gnu/release/{{ target }} \
+        -s . \
+        -t lcov \
+        --branch \
+        --ignore-not-existing \
+        --ignore '../*' \
+        --ignore "/*" \
+        --ignore "tests/it/*" \
+        --excl-start 'cov:\s*excl-start' \
+        --excl-stop 'cov:\s*excl-stop' \
+        --excl-line '^\s*((debug_)?assert(_eq|_ne)?!|#\[derive\(|.*cov:\s*excl-line)|#\[inline\]' \
+        -o 'lcov-fuzz-{{ target }}.info'
+
 # Clean the workspace from all artifacts (Uses: other recipes)
 [group('clean')]
 clean-all: clean-coverage clean-benchmarks clean-cargo
