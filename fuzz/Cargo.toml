@@ -1,14 +1,18 @@
 [package]
 name = "simplematch-fuzz"
-version = "0.0.0"
+version = "0.1.0"
 publish = false
 edition = "2021"
 
 [package.metadata]
 cargo-fuzz = true
 
+# Prevents linking errors. Also don't add this package to the root workspace.
+[workspace]
+members = ["."]
+
 [dependencies]
-arbitrary = { version = "1.4", features = ["derive"] }
+common = { path = "../common" }
 libfuzzer-sys = "0.4"
 regex = "1"
 simplematch = { path = ".." }

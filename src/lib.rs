@@ -564,7 +564,7 @@ where
                     // Instead of pinning `next_p_idx` to the `wildcard_any` index and entering this
                     // match case in the big loop again after a reset to the `next` indices, it's
                     // more efficient to pin it to the first character after `wildcard_any` (or
-                    // `wildcard_one` if it is the character after `wildcard_any`).
+                    // after `wildcard_one` if it is the character after `wildcard_any`).
                     next_p_idx = p_idx;
                     next_h_idx = h_idx;
                     continue;

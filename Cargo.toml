@@ -1,5 +1,5 @@
 [workspace]
-members = ["benchmarks", "fuzz"]
+members = ["benchmarks", "common", "xtask"]
 
 [package]
 authors = ["gamma0987 <gamma0987@posteo.de>"]

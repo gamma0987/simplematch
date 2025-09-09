@@ -1,10 +1,10 @@
 #![no_main]
 
+use common::{pattern_to_regex, PatternOptions};
 use libfuzzer_sys::fuzz_target;
 use simplematch::{dowild_with, Options};
-use simplematch_fuzz::{pattern_to_regex, FuzzOptions};
 
-fuzz_target!(|data: (&[u8], &[u8], FuzzOptions)| {
+fuzz_target!(|data: (&[u8], &[u8], PatternOptions)| {
     let (pattern, haystack, options) = (
         std::str::from_utf8(data.0),
         std::str::from_utf8(data.1),
@@ -19,7 +19,7 @@ fuzz_target!(|data: (&[u8], &[u8], FuzzOptions)| {
                     haystack.as_bytes(),
                     Options::from(options)
                 ),
-                regex.is_match(haystack),
+                regex.is_match(haystack.as_bytes()),
                 "The following should match:\npattern: '{}'\nbytes: '{:?}'\nand regex: \
                  '{}'\nbytes: '{:?}'\nwith options: '{:?}'\nshould match haystack: '{}'\nbytes: \
                  '{:?}'",

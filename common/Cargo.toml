@@ -1,0 +1,10 @@
+[package]
+name = "common"
+version = "0.0.0"
+edition = "2021"
+publish = false
+
+[dependencies]
+arbitrary = { version = "1.4", features = ["derive"] }
+regex = "1"
+simplematch = { path = ".." }

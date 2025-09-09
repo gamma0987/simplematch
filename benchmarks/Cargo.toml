@@ -22,5 +22,5 @@ path = "benches/compare.rs"
 
 [[bench]]
 harness = false
-name = "bigdata"
-path = "benches/bigdata.rs"
+name = "random"
+path = "benches/random.rs"

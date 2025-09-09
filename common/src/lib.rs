@@ -1,7 +1,5 @@
-//! The fuzzing library
-
 use arbitrary::Arbitrary;
-use regex::{Regex, RegexBuilder};
+use regex::bytes::{Regex, RegexBuilder};
 use simplematch::Options;
 
 pub const DEFAULT_ESCAPE: u8 = b'\\';
@@ -9,7 +7,7 @@ pub const DEFAULT_WILDCARD_ANY: u8 = b'*';
 pub const DEFAULT_WILDCARD_ONE: u8 = b'?';
 
 #[derive(Debug, Clone, Copy, Arbitrary)]
-pub struct FuzzOptions {
+pub struct PatternOptions {
     pub case_sensitive: bool,
     pub is_ranges_enabled: bool,
     pub range_negate: Option<u8>,
@@ -18,7 +16,7 @@ pub struct FuzzOptions {
     pub wildcard_one: Option<u8>,
 }
 
-impl Default for FuzzOptions {
+impl Default for PatternOptions {
     fn default() -> Self {
         let options = Options::default();
         Self {
@@ -32,8 +30,8 @@ impl Default for FuzzOptions {
     }
 }
 
-impl From<FuzzOptions> for Options<u8> {
-    fn from(value: FuzzOptions) -> Self {
+impl From<PatternOptions> for Options<u8> {
+    fn from(value: PatternOptions) -> Self {
         Self {
             case_sensitive: value.case_sensitive,
             wildcard_escape: value.wildcard_escape,
@@ -45,8 +43,8 @@ impl From<FuzzOptions> for Options<u8> {
     }
 }
 
-pub fn pattern_to_regex(pattern: &str, options: FuzzOptions) -> Result<Regex, regex::Error> {
-    let FuzzOptions {
+pub fn pattern_to_regex(pattern: &str, options: PatternOptions) -> Result<Regex, regex::Error> {
+    let PatternOptions {
         case_sensitive,
         wildcard_escape,
         wildcard_any,
