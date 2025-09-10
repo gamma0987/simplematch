@@ -1,4 +1,162 @@
-//! The library
+//! # simplematch
+//!
+//! The `simplematch` library provides a fast and efficient way to match wildcard patterns on
+//! strings and bytes. It includes two primary functions, `dowild` and `dowild_with`, along
+//! with an `Options` struct to customize the behavior of the `dowild_with` function.
+//!
+//! ## Usage
+//!
+//! To use the `simplematch` library, include it in your `Cargo.toml`:
+//!
+//! ```toml
+//! [dependencies]
+//! simplematch = "0.1"
+//! ```
+//!
+//! ## Functions
+//!
+//! ### `dowild`
+//!
+//! This function is the most performant but has no customization options.
+//!
+//! ```rust, ignore
+//! pub fn dowild<T>(pattern: &[T], haystack: &[T]) -> bool
+//! where
+//!     T: Wildcard
+//! ```
+//!
+//! `Wildcard` is natively implemented for `u8` and `char`.
+//!
+//! Matches the given `haystack` against the specified `pattern` using simple wildcard rules.
+//! The `*` character matches any sequence of characters, while the `?` character matches
+//! a single character.
+//!
+//! **Parameters:**
+//! - `pattern`: A bytes or char slice representing the wildcard pattern to match against.
+//! - `haystack`: A bytes or char slice representing the text to be matched.
+//!
+//! **Returns:**
+//! - `true` if the `pattern` matches the `haystack`, otherwise `false`.
+//!
+//! #### Examples
+//!
+//! ```rust
+//! use simplematch::dowild;
+//!
+//! assert_eq!(dowild("foo*".as_bytes(), "foobar".as_bytes()), true);
+//! assert_eq!(dowild("foo?".as_bytes(), "fooa".as_bytes()), true)
+//! ```
+//!
+//! Or, bringing the trait [`SimpleMatch`] in scope allows for more convenient access to this
+//! function without performance loss:
+//!
+//! ```rust
+//! use simplematch::SimpleMatch;
+//!
+//! assert_eq!("foobar".dowild("foo*"), true);
+//! ```
+//!
+//! A possible usage with `char`:
+//!
+//! ```rust
+//! use simplematch::SimpleMatch;
+//!
+//! let pattern = "foo*".chars().collect::<Vec<char>>();
+//! let haystack = "foobar".chars().collect::<Vec<char>>();
+//!
+//! assert_eq!(haystack.dowild(pattern), true);
+//! ```
+//!
+//! ### `dowild_with`
+//!
+//! ```rust, ignore
+//! use simplematch::Options;
+//!
+//! pub fn dowild_with<T>(pattern: &[T], haystack: &[T], options: Options<T>) -> bool
+//! where
+//!    T: Wildcard + Ord,
+//! ```
+//!
+//! Matches the given `haystack` against the specified `pattern` with customizable options.
+//! This function allows for matching case insensitive, custom wildcard characters, escaping
+//! special characters and character classes including ranges.
+//!
+//! **Parameters:**
+//! - `pattern`: A bytes or char slice representing the wildcard pattern to match against.
+//! - `haystack`: A bytes or char slice representing the text to be matched.
+//! - `options`: An instance of the [`Options`] struct to customize the matching behavior.
+//!
+//! **Returns:**
+//! - `true` if the `pattern` matches the `haystack` according to the specified options,
+//!   otherwise `false`.
+//!
+//! #### Examples
+//!
+//! ```rust
+//! use simplematch::{dowild_with, Options};
+//!
+//! let options = Options::default()
+//!     .case_insensitive(true)
+//!     .wildcard_any_with(b'%');
+//!
+//! assert_eq!(
+//!     dowild_with("foo%".as_bytes(), "FOOBAR".as_bytes(), options),
+//!     true
+//! );
+//! ```
+//!
+//! With the [`SimpleMatch`] trait in scope, the [`dowild_with`] function can be accessed
+//! directly on the string or u8 slice, ...:
+//!
+//! ```rust
+//! use simplematch::{Options, SimpleMatch};
+//!
+//! assert_eq!(
+//!     "FOObar".dowild_with("foo*", Options::default().case_insensitive(true)),
+//!     true
+//! );
+//! ```
+//!
+//! ## Character classes
+//!
+//! An expression `[...]` matches a single character if the first character following the
+//! leading `[` is not an `!`. The contents of the brackets must not be empty otherwise the
+//! brackets are interpreted literally (the pattern `a[]c` matches `a[]c` exactly); however, a
+//! `]` can be included as the first character within the brackets. For example, `[][!]`
+//! matches the three characters `[`, `]`, and `!`.
+//!
+//! ## Ranges
+//!
+//! A special convention exists where two characters separated by `-` represent a range.
+//! For instance, `[A-Fa-f0-9]` is equivalent to `[ABCDEFabcdef0123456789]`.
+//! To include `-` as a literal character, it must be placed as the first or last character
+//! within the brackets. For example, `[]-]` matches the two characters `]` and `-`. As opposed
+//! to regex, it is possible to revert a range `[F-A]` which has the same meaning as `[A-F]`.
+//!
+//! ## Complementation
+//!
+//! An expression `[!...]` matches any single character that is not included in the expression
+//! formed by removing the first `!`. For example, `[!]a-]` matches any character except `]`,
+//! `a`, and `-`.
+//!
+//! To remove the special meanings of `?`, `*`, and `[`, you can precede them with the escape
+//! character (per default the backslash character `\`). Within brackets, these characters
+//! represent themselves. For instance, `[[?*\\]` matches the four characters `[`, `?`, `*`,
+//! and `\`.
+//!
+//! ## Credits
+//!
+//! This linear-time wildcard matching algorithm is derived from the one presented in Russ
+//! Cox's great article about simple and performant glob matching (<https://research.swtch.com/glob>).
+//! Furthermore, the optimizations for the `?` handling are based on the article [Matching
+//! Wildcards: An Improved Algorithm for Big
+//! Data](https://developforperformance.com/MatchingWildcards_AnImprovedAlgorithmForBigData.html)
+//! written by Kirk J. Krauss.
+//!
+//! The `simplematch` algorithm is an improved version which uses generally about 2-6x less
+//! instructions than the original algorithm for small and big data.
+
+// spell-checker: ignore aaabc fooa Krauss
 
 #![cfg_attr(not(feature = "std"), no_std)]
 #![cfg_attr(docsrs, feature(doc_auto_cfg))]
@@ -296,30 +454,6 @@ where
         self.end - self.start + 1
     }
 
-    /// If An expression `[...]` where the first character after the leading `[` is not an `!`
-    /// matches a single character, namely any of the characters enclosed by the brackets.  The
-    /// string enclosed by the brackets cannot be empty; therefore `]` can be allowed between
-    /// the brackets, provided that it is the first character.
-    // (Thus, `[][!]` matches the three characters `[`, `]`, and `!`.)
-    //
-    // # Ranges
-    //
-    // There  is  one special convention: two characters separated by `-` denote a range.  (Thus,
-    // `[A-Fa-f0-9]` is equivalent to `[ABCDEFabcdef0123456789]`.)  One may include `-` in its
-    // literal meaning by making it the first or last character between the brackets.  (Thus,
-    // `[]-]` matches just the two characters `]` and `-`, and `[--0]` matches the three
-    // characters `-`, `.`, and `0`, since `/` cannot be matched.)
-    //
-    // # Complementation
-    //
-    // An expression `[!...]` matches a single character, namely any character that is not matched
-    // by the expression obtained by removing the first `!` from it.  (Thus, `[!]a-]` matches any
-    // single character except `]`, `a`, and `-`.)
-    //
-    // One can remove the special meaning of `?`, `*`, and `[` by preceding them by a backslash,
-    // or, in case this is part of a shell command line, enclosing them in quotes.  Between
-    // brackets these characters stand for themselves.  Thus, `[[?*\]` matches the four characters
-    // `[`, `?`, `*`, and `\`.
     fn parse(start: usize, pattern: &[T], range_negate: T) -> Self {
         // The first character of a range is always the opening bracket
         let mut p_idx = start + 1;
@@ -500,19 +634,29 @@ impl Wildcard for char {
 /// Allowed wildcard characters are `*` to match any amount of characters and `?` to match
 /// exactly one character.
 ///
-/// TODO: Escaping is supported.
+/// This is the basic algorithm without customization options to provide the best performance.
+/// If you need more [`Options`] use [`dowild_with`].
+///
+/// Match directly on strings, u8 slices, ... without performance loss, if you bring the
+/// [`SimpleMatch`] trait in scope.
+///
+/// See also the [library documentation](crate) for more details.
 ///
 /// # Examples
 ///
-/// TODO: examples
+/// ```rust
+/// use simplematch::dowild;
 ///
-/// # Credits
+/// assert_eq!(dowild("*bc".as_bytes(), "aaabc".as_bytes()), true);
+/// ```
 ///
-/// This linear-time wildcard matching algorithm is derived from the one presented in Russ
-/// Cox's great article about simple and performant glob matching (<https://research.swtch.com/glob>).
+/// or more conveniently directly on a string
 ///
-/// This improved version uses generally about 2-6x less instructions. For "normal" and short
-/// patterns the speedup can be even higher.
+/// ```rust
+/// use simplematch::SimpleMatch;
+///
+/// assert_eq!("aaabc".dowild("*bc"), true);
+/// ```
 #[must_use]
 pub fn dowild<T>(pattern: &[T], haystack: &[T]) -> bool
 where
@@ -617,6 +761,49 @@ where
     true
 }
 
+/// Return true if the wildcard pattern matches the `haystack`. This method can be customized
+/// with [`Options`].
+///
+/// Don't use this method if you only need the default [`Options`]. The [`dowild`] function is
+/// more performant in such cases.
+///
+/// Like with [`dowild`], allowed wildcard characters are `*` to match any amount of characters
+/// and `?` to match exactly one character.
+///
+/// The [`Options`] structure allows for case-insensitive matching. You can customize the
+/// `wildcard_any` character (`*`) and the `wildcard_one` character (`?`). Escaping can also
+/// be enabled, allowing you to specify a custom escape character. Additionally, character
+/// classes and ranges, such as `[a-z]`, are supported, and the negation character can be
+/// customized to match all characters not included in a specified range, as in `[!a-z]`.
+///
+/// See also the [library documentation](crate) for more details.
+///
+/// # Examples
+///
+/// ```rust
+/// use simplematch::{dowild_with, Options};
+///
+/// assert_eq!(
+///     dowild_with(
+///         "*bc".as_bytes(),
+///         "AAabc".as_bytes(),
+///         Options::default().case_insensitive(true)
+///     ),
+///     true
+/// );
+/// ```
+///
+/// or more conveniently match directly on a string bringing the [`SimpleMatch`] trait in
+/// scope.
+///
+/// ```rust
+/// use simplematch::{Options, SimpleMatch};
+///
+/// assert_eq!(
+///     "aaabc".dowild_with("%bc", Options::default().wildcard_any_with(b'%')),
+///     true
+/// );
+/// ```
 #[must_use]
 #[allow(clippy::too_many_lines)]
 pub fn dowild_with<T>(pattern: &[T], haystack: &[T], options: Options<T>) -> bool
