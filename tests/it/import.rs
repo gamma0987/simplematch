@@ -129,7 +129,7 @@ fn test_dowild(#[case] pattern: String, #[case] haystack: String, #[case] expect
         dowild_with(
             pattern.as_bytes(),
             haystack.as_bytes(),
-            Options::new().enable_escape()
+            Options::new().enable_escape(true)
         ),
         expected
     );

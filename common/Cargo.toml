@@ -3,8 +3,12 @@ name = "common"
 version = "0.0.0"
 edition = "2021"
 publish = false
+rust-version = "1.87.0"
 
 [dependencies]
 arbitrary = { version = "1.4", features = ["derive"] }
 regex = "1"
 simplematch = { path = ".." }
+
+[dev-dependencies]
+rstest = "0.26.1"

@@ -76,11 +76,11 @@ enum Ranges<T> {
     Negative(Vec<RangeKind<T>>),
 }
 
-/// TODO: check derive for all structs enums, ...
 #[derive(Debug)]
 enum RangeKind<T> {
     Range(T, T),
     One(T),
+    OneRange(T),
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -140,9 +140,9 @@ where
     }
 
     #[must_use]
-    pub const fn enable_escape(self) -> Self {
+    pub const fn enable_escape(self, yes: bool) -> Self {
         Self {
-            wildcard_escape: Some(T::DEFAULT_ESCAPE),
+            wildcard_escape: if yes { Some(T::DEFAULT_ESCAPE) } else { None },
             ..self
         }
     }
@@ -156,9 +156,9 @@ where
     }
 
     #[must_use]
-    pub const fn enable_ranges(self) -> Self {
+    pub const fn enable_ranges(self, yes: bool) -> Self {
         Self {
-            is_ranges_enabled: true,
+            is_ranges_enabled: yes,
             ..self
         }
     }
@@ -193,21 +193,14 @@ impl<T> Ranges<T>
 where
     T: Wildcard + Ord,
 {
-    fn new_positive(kind: Option<RangeKind<T>>, index: usize, length: usize) -> Self {
-        let mut this = Self::Positive(Vec::with_capacity(length - index));
-        if let Some(kind) = kind {
-            this.push(kind);
-        }
-        this
+    #[inline]
+    fn new_positive(index: usize, length: usize) -> Self {
+        Self::Positive(Vec::with_capacity(length - index))
     }
 
-    // TODO: refactor with `new_positive`
-    fn new_negative(kind: Option<RangeKind<T>>, index: usize, length: usize) -> Self {
-        let mut this = Self::Negative(Vec::with_capacity(length - index));
-        if let Some(kind) = kind {
-            this.push(kind);
-        }
-        this
+    #[inline]
+    fn new_negative(index: usize, length: usize) -> Self {
+        Self::Negative(Vec::with_capacity(length - index))
     }
 
     #[inline]
@@ -217,6 +210,7 @@ where
         }
     }
 
+    #[inline]
     fn is_match(&self, token: T, case_sensitive: bool) -> bool {
         match self {
             Self::Positive(range_kinds) => range_kinds
@@ -237,7 +231,7 @@ where
     fn contains(&self, token: &T, case_sensitive: bool) -> bool {
         match self {
             Self::Range(low, high) => T::match_range(token, low, high, case_sensitive),
-            Self::One(c) => T::match_one(c, token, case_sensitive),
+            Self::One(c) | Self::OneRange(c) => T::match_one(c, token, case_sensitive),
         }
     }
 
@@ -261,7 +255,7 @@ where
             } else {
                 match first.cmp(&second) {
                     Ordering::Less => Self::Range(first, second),
-                    Ordering::Equal => Self::One(first),
+                    Ordering::Equal => Self::OneRange(first),
                     Ordering::Greater => Self::Range(second, first),
                 }
             }
@@ -273,7 +267,7 @@ where
     #[inline]
     const fn len(&self) -> usize {
         match self {
-            Self::Range(_, _) => 3,
+            Self::Range(_, _) | Self::OneRange(_) => 3,
             Self::One(_) => 1,
         }
     }
@@ -283,6 +277,20 @@ impl<T> RangePattern<T>
 where
     T: Wildcard + Ord,
 {
+    #[inline]
+    const fn new(brackets: Option<Ranges<T>>, start: usize, end: usize) -> Self {
+        Self {
+            ranges: brackets,
+            start,
+            end,
+        }
+    }
+
+    #[inline]
+    const fn new_invalid(start: usize, end: usize) -> Self {
+        Self::new(None, start, end)
+    }
+
     #[inline]
     const fn len(&self) -> usize {
         self.end - self.start + 1
@@ -313,35 +321,44 @@ where
     // brackets these characters stand for themselves.  Thus, `[[?*\]` matches the four characters
     // `[`, `?`, `*`, and `\`.
     fn parse(start: usize, pattern: &[T], range_negate: T) -> Self {
-        // The first character is always the opening bracket
+        // The first character of a range is always the opening bracket
         let mut p_idx = start + 1;
         if p_idx + 2 > pattern.len() {
+            // The pattern is too short to produce a valid range
             return Self::new_invalid(start, p_idx + 1);
         }
 
-        let c = pattern[p_idx];
-        let mut ranges = if c == range_negate {
+        let mut ranges = if pattern[p_idx] == range_negate {
             p_idx += 1;
-            Ranges::new_negative(None, p_idx, pattern.len())
+            Ranges::new_negative(p_idx, pattern.len())
         } else {
-            Ranges::new_positive(None, p_idx, pattern.len())
+            Ranges::new_positive(p_idx, pattern.len())
         };
 
-        if c == T::DEFAULT_RANGE_CLOSE {
+        // The `]` directly after the opening `[` (and possibly `!`) is special and matched literally
+        if pattern[p_idx] == T::DEFAULT_RANGE_CLOSE {
             let kind = RangeKind::parse_first(p_idx, pattern);
             p_idx += kind.len();
             ranges.push(kind);
         }
 
-        while let Some(kind) = RangeKind::parse(p_idx, pattern) {
-            p_idx += kind.len();
-            if p_idx >= pattern.len() {
-                return Self::new_invalid(start, p_idx);
+        if p_idx < pattern.len() {
+            // Parse until we reach either the end of the string or find a `]`
+            while let Some(kind) = RangeKind::parse(p_idx, pattern) {
+                p_idx += kind.len();
+                if p_idx >= pattern.len() {
+                    // The end of the string without a `]`
+                    return Self::new_invalid(start, p_idx);
+                }
+                ranges.push(kind);
             }
-            ranges.push(kind);
-        }
 
-        Self::new(Some(ranges), start, p_idx)
+            // The `None` case tells us we've found a `]` and a valid range
+            Self::new(Some(ranges), start, p_idx)
+        } else {
+            // We've reached the end of the string without a closing `]`
+            Self::new_invalid(start, p_idx)
+        }
     }
 
     #[inline]
@@ -349,20 +366,6 @@ where
         self.ranges
             .as_ref()
             .map(|ranges| ranges.is_match(token, case_sensitive))
-    }
-
-    #[inline]
-    const fn new_invalid(start: usize, end: usize) -> Self {
-        Self::new(None, start, end)
-    }
-
-    #[inline]
-    const fn new(brackets: Option<Ranges<T>>, start: usize, end: usize) -> Self {
-        Self {
-            ranges: brackets,
-            start,
-            end,
-        }
     }
 }
 
@@ -373,6 +376,11 @@ where
     #[inline]
     fn new() -> Self {
         Self(VecDeque::new())
+    }
+
+    #[inline]
+    fn get(&self, index: usize) -> Option<&RangePattern<T>> {
+        self.0.iter().find(|r| r.start == index)
     }
 
     fn get_or_add(&mut self, start: usize, pattern: &[T], range_negate: T) -> &RangePattern<T> {
@@ -388,11 +396,6 @@ where
         let pattern = RangePattern::parse(start, pattern, range_negate);
         self.0.push_back(pattern);
         self.0.back().unwrap()
-    }
-
-    #[inline]
-    fn get(&self, index: usize) -> Option<&RangePattern<T>> {
-        self.0.iter().find(|r| r.start == index)
     }
 
     #[inline]
@@ -442,8 +445,13 @@ impl Wildcard for u8 {
             low <= token && token <= high
         } else {
             let token_lowercase = token.to_ascii_lowercase();
-            low.to_ascii_lowercase() <= token_lowercase
-                && token_lowercase <= high.to_ascii_lowercase()
+            // The token is not alphabetic
+            if token_lowercase == *token {
+                low <= token && token <= high
+            } else {
+                low.to_ascii_lowercase() <= token_lowercase
+                    && token_lowercase <= high.to_ascii_lowercase()
+            }
         }
     }
 }
@@ -471,13 +479,13 @@ impl Wildcard for char {
         if case_sensitive {
             low <= token && token <= high
         } else {
-            let token_lowercase = token.to_lowercase();
-            match low.to_lowercase().cmp(token_lowercase.clone()) {
-                Ordering::Less | Ordering::Equal => match token_lowercase.cmp(high.to_lowercase()) {
-                    Ordering::Less | Ordering::Equal => true,
-                    Ordering::Greater => false,
-                },
-                Ordering::Greater => false,
+            let token_lowercase = token.to_ascii_lowercase();
+            // The token is not ascii alphabetic
+            if token_lowercase == *token {
+                low <= token && token <= high
+            } else {
+                low.to_ascii_lowercase() <= token_lowercase
+                    && token_lowercase <= high.to_ascii_lowercase()
             }
         }
     }
@@ -609,7 +617,6 @@ where
     true
 }
 
-// TODO: Adjust to `dowild`
 #[must_use]
 #[allow(clippy::too_many_lines)]
 pub fn dowild_with<T>(pattern: &[T], haystack: &[T], options: Options<T>) -> bool
@@ -648,8 +655,8 @@ where
             match pattern[p_idx] {
                 c if c == wildcard_any => {
                     has_seen_wildcard_any = true;
-
                     p_idx += 1;
+
                     while p_idx < pattern.len() && pattern[p_idx] == wildcard_any {
                         p_idx += 1;
                     }
@@ -657,23 +664,31 @@ where
                         return true;
                     }
 
-                    next_p_idx = p_idx;
-
                     let next_c = pattern[p_idx];
-                    if !(next_c == wildcard_one
-                        || (is_escape_enabled && next_c == wildcard_escape)
+                    #[allow(clippy::else_if_without_else)]
+                    if next_c == wildcard_one {
+                        while h_idx < haystack.len() {
+                            p_idx += 1;
+                            h_idx += 1;
+                            if !(p_idx < pattern.len() && pattern[p_idx] == next_c) {
+                                break;
+                            }
+                        }
+                    } else if !((is_escape_enabled && next_c == wildcard_escape)
                         || (is_ranges_enabled && next_c == T::DEFAULT_RANGE_OPEN))
                     {
-                        while h_idx < haystack.len() && haystack[h_idx] != next_c {
+                        while h_idx < haystack.len()
+                            && !T::match_one(&haystack[h_idx], &next_c, case_sensitive)
+                        {
                             h_idx += 1;
+                        }
+                        if h_idx >= haystack.len() {
+                            return false;
                         }
                     }
 
-                    if h_idx >= haystack.len() {
-                        return false;
-                    }
+                    next_p_idx = p_idx;
                     next_h_idx = h_idx;
-
                     continue;
                 }
                 c if c == wildcard_one => {
@@ -708,24 +723,25 @@ where
                     && p_idx + 1 < pattern.len() =>
                 {
                     if h_idx < haystack.len() {
-                        if 0 < next_p_idx {
+                        if has_seen_wildcard_any {
                             ranges.prune(next_p_idx);
                         }
 
                         let range = ranges.get_or_add(p_idx, pattern, range_negate);
+                        #[allow(clippy::else_if_without_else)]
                         if let Some(is_match) = range.try_match(haystack[h_idx], case_sensitive) {
                             p_idx += range.len();
                             if is_match {
                                 h_idx += 1;
                                 continue;
                             }
-                        } else {
-                            if h_idx < haystack.len()
-                                && T::match_one(&haystack[h_idx], &c, case_sensitive)
-                            {
-                                p_idx += 1;
-                                h_idx += 1;
-                            }
+                        } else if T::match_one(
+                            &haystack[h_idx],
+                            &T::DEFAULT_RANGE_OPEN,
+                            case_sensitive,
+                        ) {
+                            p_idx += 1;
+                            h_idx += 1;
                             continue;
                         }
                     }
@@ -740,16 +756,16 @@ where
             }
         }
         if has_seen_wildcard_any && next_h_idx < haystack.len() {
-            while next_p_idx < pattern.len() && pattern[next_p_idx] == wildcard_one {
-                next_p_idx += 1;
-                next_h_idx += 1;
-            }
-
             p_idx = next_p_idx;
             next_h_idx += 1;
 
-            if p_idx < pattern.len() {
-                while next_h_idx < haystack.len() && haystack[next_h_idx] != pattern[p_idx] {
+            if p_idx < pattern.len()
+                && !(is_ranges_enabled && pattern[p_idx] == T::DEFAULT_RANGE_OPEN)
+                && !(is_escape_enabled && pattern[p_idx] == wildcard_escape)
+            {
+                while next_h_idx < haystack.len()
+                    && !T::match_one(&haystack[next_h_idx], &pattern[p_idx], case_sensitive)
+                {
                     next_h_idx += 1;
                 }
             }
@@ -757,7 +773,85 @@ where
             h_idx = next_h_idx;
             continue;
         }
+
         return false;
     }
     true
+}
+
+#[cfg(test)]
+mod tests {
+    use rstest::rstest;
+
+    use super::*;
+
+    #[rstest]
+    #[case::same_case_sensitive(b'j', b'j', true, true)]
+    #[case::different_case_case_sensitive(b'j', b'J', true, false)]
+    #[case::different_char_case_sensitive(b'a', b'b', true, false)]
+    #[case::same_case_insensitive(b'j', b'j', false, true)]
+    #[case::different_case_insensitive(b'j', b'J', false, true)]
+    #[case::different_char_case_insensitive(b'a', b'B', false, false)]
+    fn impl_wildcard_match_one(
+        #[case] first: u8,
+        #[case] second: u8,
+        #[case] case_sensitive: bool,
+        #[case] expected: bool,
+    ) {
+        assert_eq!(
+            Wildcard::match_one(&first, &second, case_sensitive),
+            expected
+        );
+        assert_eq!(
+            Wildcard::match_one(&(first as char), &(second as char), case_sensitive),
+            expected
+        );
+    }
+
+    #[rstest]
+    #[case::all_the_same(b'j', b'j', b'j', true)]
+    #[case::low_is_higher_high_is_same(b'j', b'k', b'j', false)]
+    #[case::low_is_lower_high_is_same(b'j', b'i', b'j', true)]
+    #[case::high_is_lower_low_is_same(b'j', b'k', b'i', false)]
+    #[case::high_is_higher_low_is_same(b'j', b'j', b'k', true)]
+    fn impl_wildcard_match_range_when_case_sensitive(
+        #[case] token: u8,
+        #[case] low: u8,
+        #[case] high: u8,
+        #[case] expected: bool,
+    ) {
+        assert_eq!(Wildcard::match_range(&token, &low, &high, true), expected);
+        assert_eq!(
+            Wildcard::match_range(&(token as char), &(low as char), &(high as char), true),
+            expected
+        );
+    }
+
+    #[rstest]
+    #[case::all_the_same_small(b'j', b'j', b'j', true)]
+    #[case::all_the_same_big(b'J', b'J', b'J', true)]
+    // This token is one of the characters between `Z` and `a`
+    #[case::no_alpha_low_is_big(b'[', b'A', b'z', true)]
+    #[case::no_alpha_both_big(b'[', b'A', b'Z', false)]
+    #[case::no_alpha_low_is_small(b'[', b'a', b'z', false)]
+    #[case::no_alpha_both_small(b'[', b'a', b'z', false)]
+    #[case::all_small_middle(b'j', b'a', b'z', true)]
+    #[case::all_small_low_is_higher(b'j', b'k', b'z', false)]
+    #[case::all_small_high_is_lower(b'j', b'a', b'i', false)]
+    #[case::all_big_middle(b'J', b'A', b'Z', true)]
+    #[case::all_big_low_is_higher(b'J', b'K', b'Z', false)]
+    #[case::all_big_high_is_lower(b'J', b'A', b'I', false)]
+    #[case::fuzz(b']', b'/', b'A', false)]
+    fn impl_wildcard_match_range_when_case_insensitive(
+        #[case] token: u8,
+        #[case] low: u8,
+        #[case] high: u8,
+        #[case] expected: bool,
+    ) {
+        assert_eq!(Wildcard::match_range(&token, &low, &high, false), expected);
+        assert_eq!(
+            Wildcard::match_range(&(token as char), &(low as char), &(high as char), false),
+            expected
+        );
+    }
 }

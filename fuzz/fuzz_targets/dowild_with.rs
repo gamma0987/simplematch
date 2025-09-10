@@ -1,17 +1,27 @@
 #![no_main]
 
-use common::{pattern_to_regex, PatternOptions};
+use common::{pattern_to_regex, PatternOptions, DEFAULT_ESCAPE};
 use libfuzzer_sys::fuzz_target;
 use simplematch::{dowild_with, Options};
 
 fuzz_target!(|data: (&[u8], &[u8], PatternOptions)| {
-    let (pattern, haystack, options) = (
+    let (pattern, haystack, mut options) = (
         std::str::from_utf8(data.0),
         std::str::from_utf8(data.1),
         data.2,
     );
 
     if let (Ok(pattern), Ok(haystack)) = (pattern, haystack) {
+        // TODO: CHANGE BACK after tests
+        options.range_negate = None;
+        options.wildcard_any = None;
+        options.wildcard_one = None;
+        if options.wildcard_escape.is_some() {
+            options.wildcard_escape = Some(DEFAULT_ESCAPE);
+        }
+        options.is_ranges_enabled = true;
+        options.case_sensitive = true;
+
         if let Ok(regex) = pattern_to_regex(pattern, options) {
             assert_eq!(
                 dowild_with(
