@@ -28,8 +28,8 @@ impl Default for PatternOptions {
         Self {
             case_sensitive: options.case_sensitive,
             wildcard_escape: options.wildcard_escape,
-            is_ranges_enabled: options.is_ranges_enabled,
-            range_negate: options.range_negate,
+            is_ranges_enabled: options.is_classes_enabled,
+            range_negate: options.class_negate,
             wildcard_any: options.wildcard_any,
             wildcard_one: options.wildcard_one,
         }
@@ -41,8 +41,8 @@ impl From<PatternOptions> for Options<u8> {
         Self {
             case_sensitive: value.case_sensitive,
             wildcard_escape: value.wildcard_escape,
-            is_ranges_enabled: value.is_ranges_enabled,
-            range_negate: value.range_negate,
+            is_classes_enabled: value.is_ranges_enabled,
+            class_negate: value.range_negate,
             wildcard_any: value.wildcard_any,
             wildcard_one: value.wildcard_one,
         }

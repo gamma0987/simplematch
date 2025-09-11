@@ -155,7 +155,7 @@ fn test_dowild(#[case] pattern: String, #[case] haystack: String, #[case] expect
         dowild_with(
             pattern.as_bytes(),
             haystack.as_bytes(),
-            Options::new().enable_ranges(true)
+            Options::new().enable_classes(true)
         ),
         expected,
         "Assert dowild_with and enable_ranges"
@@ -164,7 +164,7 @@ fn test_dowild(#[case] pattern: String, #[case] haystack: String, #[case] expect
         dowild_with(
             pattern.replace('!', "^").as_bytes(),
             haystack.as_bytes(),
-            Options::new().enable_ranges_with(b'^')
+            Options::new().enable_classes_with(b'^')
         ),
         expected,
         "Assert dowild_with and enable_ranges_with '^'"
@@ -260,7 +260,7 @@ fn basic_tests_dowild_and_dowild_options(
         dowild_with(
             pattern.as_bytes(),
             haystack.as_bytes(),
-            Options::new().enable_ranges(true)
+            Options::new().enable_classes(true)
         ),
         expected,
         "Assert dowild_with and enable_ranges"
@@ -269,7 +269,7 @@ fn basic_tests_dowild_and_dowild_options(
         dowild_with(
             pattern.replace('!', "^").as_bytes(),
             haystack.as_bytes(),
-            Options::new().enable_ranges_with(b'^')
+            Options::new().enable_classes_with(b'^')
         ),
         expected,
         "Assert dowild_with and enable_ranges_with '^'"

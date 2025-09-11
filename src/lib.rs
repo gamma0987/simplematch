@@ -217,28 +217,45 @@ where
 
 pub trait Wildcard: Eq + Copy + Clone {
     const DEFAULT_ANY: Self;
+    const DEFAULT_CLASS_CLOSE: Self;
+    const DEFAULT_CLASS_HYPHEN: Self;
+    const DEFAULT_CLASS_NEGATE: Self;
+    const DEFAULT_CLASS_OPEN: Self;
     const DEFAULT_ESCAPE: Self;
     const DEFAULT_ONE: Self;
-    const DEFAULT_RANGE_CLOSE: Self;
-    const DEFAULT_RANGE_HYPHEN: Self;
-    const DEFAULT_RANGE_NEGATE: Self;
-    const DEFAULT_RANGE_OPEN: Self;
 
     fn match_one(first: &Self, second: &Self, case_sensitive: bool) -> bool;
     fn match_range(token: &Self, low: &Self, high: &Self, case_sensitive: bool) -> bool;
 }
 
+// Represents a character class
 #[derive(Debug)]
-enum Ranges<T> {
-    Positive(Vec<RangeKind<T>>),
-    Negative(Vec<RangeKind<T>>),
+struct CharacterClass<T> {
+    /// If `None`, the character class is invalid.
+    class: Option<Class<T>>,
+    /// The end index in the pattern
+    end: usize,
+    /// The start index in the pattern
+    start: usize,
 }
 
 #[derive(Debug)]
-enum RangeKind<T> {
+struct CharacterClasses<T>(VecDeque<CharacterClass<T>>);
+
+#[derive(Debug)]
+enum Class<T> {
+    Positive(Vec<ClassKind<T>>),
+    Negative(Vec<ClassKind<T>>),
+}
+
+#[derive(Debug)]
+enum ClassKind<T> {
+    /// A range like `a-z`
     Range(T, T),
+    /// A single character
     One(T),
-    OneRange(T),
+    /// A range which has the same start and end character like `z-z`
+    RangeOne(T),
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -247,22 +264,201 @@ where
     T: Wildcard,
 {
     pub case_sensitive: bool,
-    pub is_ranges_enabled: bool,
-    pub range_negate: Option<T>,
+    pub class_negate: Option<T>,
+    pub is_classes_enabled: bool,
     pub wildcard_any: Option<T>,
     pub wildcard_escape: Option<T>,
     pub wildcard_one: Option<T>,
 }
 
-#[derive(Debug)]
-struct RangePattern<T> {
-    end: usize,
-    ranges: Option<Ranges<T>>,
-    start: usize,
+impl<T> CharacterClass<T>
+where
+    T: Wildcard + Ord,
+{
+    #[inline]
+    const fn new(class: Option<Class<T>>, start: usize, end: usize) -> Self {
+        Self { class, end, start }
+    }
+
+    #[inline]
+    const fn new_invalid(start: usize, end: usize) -> Self {
+        Self::new(None, start, end)
+    }
+
+    #[inline]
+    const fn len(&self) -> usize {
+        self.end - self.start + 1
+    }
+
+    fn parse(start: usize, pattern: &[T], class_negate: T) -> Self {
+        // The first character of a range is always the opening bracket
+        let mut p_idx = start + 1;
+        if p_idx + 2 > pattern.len() {
+            // The pattern is too short to produce a valid range
+            return Self::new_invalid(start, p_idx + 1);
+        }
+
+        let mut class = if pattern[p_idx] == class_negate {
+            p_idx += 1;
+            Class::new_negative(p_idx, pattern.len())
+        } else {
+            Class::new_positive(p_idx, pattern.len())
+        };
+
+        // The `]` directly after the opening `[` (and possibly `!`) is special and matched literally
+        if pattern[p_idx] == T::DEFAULT_CLASS_CLOSE {
+            let kind = ClassKind::parse_first(p_idx, pattern);
+            p_idx += kind.len();
+            class.push(kind);
+        }
+
+        if p_idx < pattern.len() {
+            // Parse until we reach either the end of the string or find a `]`
+            while let Some(kind) = ClassKind::parse(p_idx, pattern) {
+                p_idx += kind.len();
+                if p_idx >= pattern.len() {
+                    // The end of the string without a `]`
+                    return Self::new_invalid(start, p_idx);
+                }
+                class.push(kind);
+            }
+
+            // The `None` case tells us we've found a `]` and a valid range
+            Self::new(Some(class), start, p_idx)
+        } else {
+            // We've reached the end of the string without a closing `]`
+            Self::new_invalid(start, p_idx)
+        }
+    }
+
+    #[inline]
+    fn try_match(&self, token: T, case_sensitive: bool) -> Option<bool> {
+        self.class
+            .as_ref()
+            .map(|class| class.is_match(token, case_sensitive))
+    }
 }
 
-#[derive(Debug)]
-struct RangePatterns<T>(VecDeque<RangePattern<T>>);
+impl<T> CharacterClasses<T>
+where
+    T: Wildcard + Ord,
+{
+    #[inline]
+    fn new() -> Self {
+        Self(VecDeque::new())
+    }
+
+    #[inline]
+    fn get(&self, index: usize) -> Option<&CharacterClass<T>> {
+        self.0.iter().find(|r| r.start == index)
+    }
+
+    fn get_or_add(&mut self, start: usize, pattern: &[T], class_negate: T) -> &CharacterClass<T> {
+        if self.0.capacity() == 0 {
+            self.0.reserve(pattern.len() - start);
+        }
+        if let Some(last) = self.0.back() {
+            if last.start >= start {
+                return self.get(start).unwrap();
+            }
+        }
+
+        let class = CharacterClass::parse(start, pattern, class_negate);
+        self.0.push_back(class);
+        self.0.back().unwrap()
+    }
+
+    #[inline]
+    fn prune(&mut self, index: usize) {
+        while let Some(first) = self.0.front() {
+            if first.start < index {
+                self.0.pop_front();
+            } else {
+                break;
+            }
+        }
+    }
+}
+
+impl<T> Class<T>
+where
+    T: Wildcard + Ord,
+{
+    #[inline]
+    fn new_positive(index: usize, length: usize) -> Self {
+        Self::Positive(Vec::with_capacity(length - index))
+    }
+
+    #[inline]
+    fn new_negative(index: usize, length: usize) -> Self {
+        Self::Negative(Vec::with_capacity(length - index))
+    }
+
+    #[inline]
+    fn push(&mut self, kind: ClassKind<T>) {
+        match self {
+            Self::Positive(kinds) | Self::Negative(kinds) => kinds.push(kind),
+        }
+    }
+
+    #[inline]
+    fn is_match(&self, token: T, case_sensitive: bool) -> bool {
+        match self {
+            Self::Positive(kinds) => kinds.iter().any(|r| r.contains(&token, case_sensitive)),
+            Self::Negative(kinds) => !kinds.iter().any(|r| r.contains(&token, case_sensitive)),
+        }
+    }
+}
+
+impl<T> ClassKind<T>
+where
+    T: Wildcard + Ord,
+{
+    #[inline]
+    fn contains(&self, token: &T, case_sensitive: bool) -> bool {
+        match self {
+            Self::Range(low, high) => T::match_range(token, low, high, case_sensitive),
+            Self::One(c) | Self::RangeOne(c) => T::match_one(c, token, case_sensitive),
+        }
+    }
+
+    /// Does no out of bounds check for the first character
+    #[inline]
+    fn parse(index: usize, pattern: &[T]) -> Option<Self> {
+        if pattern[index] == T::DEFAULT_CLASS_CLOSE {
+            None
+        } else {
+            Some(Self::parse_first(index, pattern))
+        }
+    }
+
+    /// Does no out of bounds and `]` check for the first character
+    fn parse_first(index: usize, pattern: &[T]) -> Self {
+        let first = pattern[index];
+        if index + 2 < pattern.len() && pattern[index + 1] == T::DEFAULT_CLASS_HYPHEN {
+            let second = pattern[index + 2];
+            if second == T::DEFAULT_CLASS_CLOSE {
+                Self::One(first)
+            } else {
+                match first.cmp(&second) {
+                    Ordering::Less => Self::Range(first, second),
+                    Ordering::Equal => Self::RangeOne(first),
+                    Ordering::Greater => Self::Range(second, first),
+                }
+            }
+        } else {
+            Self::One(first)
+        }
+    }
+
+    #[inline]
+    const fn len(&self) -> usize {
+        match self {
+            Self::Range(_, _) | Self::RangeOne(_) => 3,
+            Self::One(_) => 1,
+        }
+    }
+}
 
 impl<T> Default for Options<T>
 where
@@ -282,8 +478,8 @@ where
         Self {
             case_sensitive: true,
             wildcard_escape: None,
-            is_ranges_enabled: false,
-            range_negate: Some(T::DEFAULT_RANGE_NEGATE),
+            is_classes_enabled: false,
+            class_negate: Some(T::DEFAULT_CLASS_NEGATE),
             wildcard_any: Some(T::DEFAULT_ANY),
             wildcard_one: Some(T::DEFAULT_ONE),
         }
@@ -314,18 +510,18 @@ where
     }
 
     #[must_use]
-    pub const fn enable_ranges(self, yes: bool) -> Self {
+    pub const fn enable_classes(self, yes: bool) -> Self {
         Self {
-            is_ranges_enabled: yes,
+            is_classes_enabled: yes,
             ..self
         }
     }
 
     #[must_use]
-    pub const fn enable_ranges_with(self, negation: T) -> Self {
+    pub const fn enable_classes_with(self, negation: T) -> Self {
         Self {
-            is_ranges_enabled: true,
-            range_negate: Some(negation),
+            is_classes_enabled: true,
+            class_negate: Some(negation),
             ..self
         }
     }
@@ -347,203 +543,6 @@ where
     }
 }
 
-impl<T> Ranges<T>
-where
-    T: Wildcard + Ord,
-{
-    #[inline]
-    fn new_positive(index: usize, length: usize) -> Self {
-        Self::Positive(Vec::with_capacity(length - index))
-    }
-
-    #[inline]
-    fn new_negative(index: usize, length: usize) -> Self {
-        Self::Negative(Vec::with_capacity(length - index))
-    }
-
-    #[inline]
-    fn push(&mut self, kind: RangeKind<T>) {
-        match self {
-            Self::Positive(range_kinds) | Self::Negative(range_kinds) => range_kinds.push(kind),
-        }
-    }
-
-    #[inline]
-    fn is_match(&self, token: T, case_sensitive: bool) -> bool {
-        match self {
-            Self::Positive(range_kinds) => range_kinds
-                .iter()
-                .any(|r| r.contains(&token, case_sensitive)),
-            Self::Negative(range_kinds) => !range_kinds
-                .iter()
-                .any(|r| r.contains(&token, case_sensitive)),
-        }
-    }
-}
-
-impl<T> RangeKind<T>
-where
-    T: Wildcard + Ord,
-{
-    #[inline]
-    fn contains(&self, token: &T, case_sensitive: bool) -> bool {
-        match self {
-            Self::Range(low, high) => T::match_range(token, low, high, case_sensitive),
-            Self::One(c) | Self::OneRange(c) => T::match_one(c, token, case_sensitive),
-        }
-    }
-
-    /// Does no out of bounds check for the first character
-    #[inline]
-    fn parse(index: usize, pattern: &[T]) -> Option<Self> {
-        if pattern[index] == T::DEFAULT_RANGE_CLOSE {
-            None
-        } else {
-            Some(Self::parse_first(index, pattern))
-        }
-    }
-
-    /// Does no out of bounds and `]` check for the first character
-    fn parse_first(index: usize, pattern: &[T]) -> Self {
-        let first = pattern[index];
-        if index + 2 < pattern.len() && pattern[index + 1] == T::DEFAULT_RANGE_HYPHEN {
-            let second = pattern[index + 2];
-            if second == T::DEFAULT_RANGE_CLOSE {
-                Self::One(first)
-            } else {
-                match first.cmp(&second) {
-                    Ordering::Less => Self::Range(first, second),
-                    Ordering::Equal => Self::OneRange(first),
-                    Ordering::Greater => Self::Range(second, first),
-                }
-            }
-        } else {
-            Self::One(first)
-        }
-    }
-
-    #[inline]
-    const fn len(&self) -> usize {
-        match self {
-            Self::Range(_, _) | Self::OneRange(_) => 3,
-            Self::One(_) => 1,
-        }
-    }
-}
-
-impl<T> RangePattern<T>
-where
-    T: Wildcard + Ord,
-{
-    #[inline]
-    const fn new(brackets: Option<Ranges<T>>, start: usize, end: usize) -> Self {
-        Self {
-            ranges: brackets,
-            start,
-            end,
-        }
-    }
-
-    #[inline]
-    const fn new_invalid(start: usize, end: usize) -> Self {
-        Self::new(None, start, end)
-    }
-
-    #[inline]
-    const fn len(&self) -> usize {
-        self.end - self.start + 1
-    }
-
-    fn parse(start: usize, pattern: &[T], range_negate: T) -> Self {
-        // The first character of a range is always the opening bracket
-        let mut p_idx = start + 1;
-        if p_idx + 2 > pattern.len() {
-            // The pattern is too short to produce a valid range
-            return Self::new_invalid(start, p_idx + 1);
-        }
-
-        let mut ranges = if pattern[p_idx] == range_negate {
-            p_idx += 1;
-            Ranges::new_negative(p_idx, pattern.len())
-        } else {
-            Ranges::new_positive(p_idx, pattern.len())
-        };
-
-        // The `]` directly after the opening `[` (and possibly `!`) is special and matched literally
-        if pattern[p_idx] == T::DEFAULT_RANGE_CLOSE {
-            let kind = RangeKind::parse_first(p_idx, pattern);
-            p_idx += kind.len();
-            ranges.push(kind);
-        }
-
-        if p_idx < pattern.len() {
-            // Parse until we reach either the end of the string or find a `]`
-            while let Some(kind) = RangeKind::parse(p_idx, pattern) {
-                p_idx += kind.len();
-                if p_idx >= pattern.len() {
-                    // The end of the string without a `]`
-                    return Self::new_invalid(start, p_idx);
-                }
-                ranges.push(kind);
-            }
-
-            // The `None` case tells us we've found a `]` and a valid range
-            Self::new(Some(ranges), start, p_idx)
-        } else {
-            // We've reached the end of the string without a closing `]`
-            Self::new_invalid(start, p_idx)
-        }
-    }
-
-    #[inline]
-    fn try_match(&self, token: T, case_sensitive: bool) -> Option<bool> {
-        self.ranges
-            .as_ref()
-            .map(|ranges| ranges.is_match(token, case_sensitive))
-    }
-}
-
-impl<T> RangePatterns<T>
-where
-    T: Wildcard + Ord,
-{
-    #[inline]
-    fn new() -> Self {
-        Self(VecDeque::new())
-    }
-
-    #[inline]
-    fn get(&self, index: usize) -> Option<&RangePattern<T>> {
-        self.0.iter().find(|r| r.start == index)
-    }
-
-    fn get_or_add(&mut self, start: usize, pattern: &[T], range_negate: T) -> &RangePattern<T> {
-        if self.0.capacity() == 0 {
-            self.0.reserve(pattern.len() - start);
-        }
-        if let Some(last) = self.0.back() {
-            if last.start >= start {
-                return self.get(start).unwrap();
-            }
-        }
-
-        let pattern = RangePattern::parse(start, pattern, range_negate);
-        self.0.push_back(pattern);
-        self.0.back().unwrap()
-    }
-
-    #[inline]
-    fn prune(&mut self, index: usize) {
-        while let Some(first) = self.0.front() {
-            if first.start < index {
-                self.0.pop_front();
-            } else {
-                break;
-            }
-        }
-    }
-}
-
 ////////////////////////////////////////////////////////////////////////////////
 // Our trait implementations for the basic types
 ////////////////////////////////////////////////////////////////////////////////
@@ -559,10 +558,10 @@ impl Wildcard for u8 {
     const DEFAULT_ANY: Self = b'*';
     const DEFAULT_ESCAPE: Self = b'\\';
     const DEFAULT_ONE: Self = b'?';
-    const DEFAULT_RANGE_CLOSE: Self = b']';
-    const DEFAULT_RANGE_HYPHEN: Self = b'-';
-    const DEFAULT_RANGE_NEGATE: Self = b'!';
-    const DEFAULT_RANGE_OPEN: Self = b'[';
+    const DEFAULT_CLASS_CLOSE: Self = b']';
+    const DEFAULT_CLASS_HYPHEN: Self = b'-';
+    const DEFAULT_CLASS_NEGATE: Self = b'!';
+    const DEFAULT_CLASS_OPEN: Self = b'[';
 
     #[inline]
     fn match_one(first: &Self, second: &Self, case_sensitive: bool) -> bool {
@@ -596,10 +595,10 @@ impl Wildcard for char {
     const DEFAULT_ANY: Self = '*';
     const DEFAULT_ESCAPE: Self = '\\';
     const DEFAULT_ONE: Self = '?';
-    const DEFAULT_RANGE_CLOSE: Self = ']';
-    const DEFAULT_RANGE_HYPHEN: Self = '-';
-    const DEFAULT_RANGE_NEGATE: Self = '!';
-    const DEFAULT_RANGE_OPEN: Self = '[';
+    const DEFAULT_CLASS_CLOSE: Self = ']';
+    const DEFAULT_CLASS_HYPHEN: Self = '-';
+    const DEFAULT_CLASS_NEGATE: Self = '!';
+    const DEFAULT_CLASS_OPEN: Self = '[';
 
     #[inline]
     fn match_one(first: &Self, second: &Self, case_sensitive: bool) -> bool {
@@ -816,14 +815,14 @@ where
 {
     let Options {
         case_sensitive,
-        is_ranges_enabled,
-        range_negate,
+        is_classes_enabled,
+        class_negate,
         wildcard_any,
         wildcard_escape,
         wildcard_one,
     } = options;
 
-    let range_negate = range_negate.unwrap_or(T::DEFAULT_RANGE_NEGATE);
+    let class_negate = class_negate.unwrap_or(T::DEFAULT_CLASS_NEGATE);
     let wildcard_any = wildcard_any.unwrap_or(T::DEFAULT_ANY);
     let wildcard_one = wildcard_one.unwrap_or(T::DEFAULT_ONE);
     let (is_escape_enabled, wildcard_escape) = match wildcard_escape {
@@ -838,7 +837,7 @@ where
     let mut next_p_idx = 0;
     let mut next_h_idx = 0;
 
-    let mut ranges = RangePatterns::new();
+    let mut classes = CharacterClasses::new();
 
     let mut has_seen_wildcard_any = false;
     while p_idx < pattern.len() || h_idx < haystack.len() {
@@ -866,7 +865,7 @@ where
                             }
                         }
                     } else if !((is_escape_enabled && next_c == wildcard_escape)
-                        || (is_ranges_enabled && next_c == T::DEFAULT_RANGE_OPEN))
+                        || (is_classes_enabled && next_c == T::DEFAULT_CLASS_OPEN))
                     {
                         while h_idx < haystack.len()
                             && !T::match_one(&haystack[h_idx], &next_c, case_sensitive)
@@ -897,7 +896,7 @@ where
                         let is_special = next_c == wildcard_any
                             || next_c == wildcard_one
                             || next_c == wildcard_escape
-                            || (is_ranges_enabled && next_c == T::DEFAULT_RANGE_OPEN);
+                            || (is_classes_enabled && next_c == T::DEFAULT_CLASS_OPEN);
                         #[allow(clippy::else_if_without_else)]
                         if is_special && h == next_c {
                             p_idx += 2;
@@ -910,26 +909,26 @@ where
                         }
                     }
                 }
-                c if is_ranges_enabled
-                    && c == T::DEFAULT_RANGE_OPEN
+                c if is_classes_enabled
+                    && c == T::DEFAULT_CLASS_OPEN
                     && p_idx + 1 < pattern.len() =>
                 {
                     if h_idx < haystack.len() {
                         if has_seen_wildcard_any {
-                            ranges.prune(next_p_idx);
+                            classes.prune(next_p_idx);
                         }
 
-                        let range = ranges.get_or_add(p_idx, pattern, range_negate);
+                        let class = classes.get_or_add(p_idx, pattern, class_negate);
                         #[allow(clippy::else_if_without_else)]
-                        if let Some(is_match) = range.try_match(haystack[h_idx], case_sensitive) {
-                            p_idx += range.len();
+                        if let Some(is_match) = class.try_match(haystack[h_idx], case_sensitive) {
+                            p_idx += class.len();
                             if is_match {
                                 h_idx += 1;
                                 continue;
                             }
                         } else if T::match_one(
                             &haystack[h_idx],
-                            &T::DEFAULT_RANGE_OPEN,
+                            &T::DEFAULT_CLASS_OPEN,
                             case_sensitive,
                         ) {
                             p_idx += 1;
@@ -952,7 +951,7 @@ where
             next_h_idx += 1;
 
             if p_idx < pattern.len()
-                && !(is_ranges_enabled && pattern[p_idx] == T::DEFAULT_RANGE_OPEN)
+                && !(is_classes_enabled && pattern[p_idx] == T::DEFAULT_CLASS_OPEN)
                 && !(is_escape_enabled && pattern[p_idx] == wildcard_escape)
             {
                 while next_h_idx < haystack.len()

@@ -147,7 +147,7 @@ fn dowild_with_escape_and_ranges(
     #[case] haystack: String,
     #[case] expected: bool,
 ) {
-    let options = Options::new().enable_escape(true).enable_ranges(true);
+    let options = Options::new().enable_escape(true).enable_classes(true);
 
     assert_eq!(
         dowild_with(pattern.as_bytes(), haystack.as_bytes(), options),
@@ -202,8 +202,8 @@ fn dowild_with_escape_and_ranges(
 #[case::multi_range_at_the_start("[a-zA-Z]z", &["az", "Az", "Zz"], true)]
 #[case::multi_range_in_the_middle("a[a-zA-Z]z", &["aaz", "azz", "aAz", "aZz"], true)]
 fn dowild_with_range(#[case] pattern: String, #[case] haystacks: &[&str], #[case] expected: bool) {
-    let options = Options::new().enable_ranges(true);
-    let char_options = Options::new().enable_ranges(true);
+    let options = Options::new().enable_classes(true);
+    let char_options = Options::new().enable_classes(true);
 
     for (index, haystack) in haystacks.iter().enumerate() {
         assert_eq!(
@@ -215,7 +215,7 @@ fn dowild_with_range(#[case] pattern: String, #[case] haystacks: &[&str], #[case
             dowild_with(
                 pattern.replace('!', "^").as_bytes(),
                 haystack.replace('!', "^").as_bytes(),
-                options.enable_ranges_with(b'^')
+                options.enable_classes_with(b'^')
             ),
             expected,
             "Assert enable_ranges_with '^': haystack at '{index}' was: '{haystack}'",
@@ -241,7 +241,7 @@ fn dowild_with_range_and_wildcards(
     #[case] haystacks: &[&str],
     #[case] expected: bool,
 ) {
-    let options = Options::new().enable_ranges(true);
+    let options = Options::new().enable_classes(true);
 
     for (index, haystack) in haystacks.iter().enumerate() {
         assert_eq!(
@@ -253,7 +253,7 @@ fn dowild_with_range_and_wildcards(
             dowild_with(
                 pattern.replace('!', "^").as_bytes(),
                 haystack.replace('!', "^").as_bytes(),
-                options.enable_ranges_with(b'^')
+                options.enable_classes_with(b'^')
             ),
             expected,
             "Assert enable_ranges_with '^': haystack at '{index}' was: '{haystack}'",
@@ -287,10 +287,10 @@ fn dowild_with_from_fuzzy_tests(
 ) {
     let options = Options::new()
         .case_insensitive(!case_sensitive)
-        .enable_ranges(true);
+        .enable_classes(true);
     let char_options = Options::new()
         .case_insensitive(!case_sensitive)
-        .enable_ranges(true);
+        .enable_classes(true);
 
     for haystack in haystacks {
         assert_eq!(
