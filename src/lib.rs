@@ -892,7 +892,8 @@ where
 
                         let is_special = next_c == wildcard_any
                             || next_c == wildcard_one
-                            || next_c == wildcard_escape;
+                            || next_c == wildcard_escape
+                            || (is_ranges_enabled && next_c == T::DEFAULT_RANGE_OPEN);
                         #[allow(clippy::else_if_without_else)]
                         if is_special && h == next_c {
                             p_idx += 2;

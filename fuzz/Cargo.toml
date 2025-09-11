@@ -12,6 +12,7 @@ cargo-fuzz = true
 members = ["."]
 
 [dependencies]
+arbitrary = { version = "1", features = ["derive"] }
 common = { path = "../common" }
 libfuzzer-sys = "0.4"
 regex = "1"

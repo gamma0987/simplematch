@@ -1,63 +1,7 @@
 //! The tests
 
 use rstest::rstest;
-use simplematch::{dowild, dowild_with, Options, SimpleMatch};
-
-// These are mostly tests from https://research.swtch.com/glob
-// cspell: disable
-#[rstest]
-#[case::empty("", "", true)]
-#[case::one_and_empty("x", "", false)]
-#[case::empty_and_one("", "x", false)]
-#[case::simple("abc", "abc", true)]
-#[case::star("*", "abc", true)]
-#[case::star_c("*c", "abc", true)]
-#[case::star_b("*b", "abc", false)]
-#[case::a_star("a*", "abc", true)]
-#[case::b_star("b*", "abc", false)]
-#[case::a_star_single("a*", "a", true)]
-#[case::star_a_single("*a", "a", true)]
-#[case::multi_star_no_end("a*b*c*d*e*", "axbxcxdxe", true)]
-#[case::multi_star_end("a*b*c*d*e*", "axbxcxdxexxx", true)]
-#[case::star_and_question_mark_0("a*b?c*x", "abxbbxdbxebxczzx", true)]
-#[case::star_and_question_mark_1("a*b?c*x", "abxbbxdbxebxczzy", false)]
-#[case::for_debug_0("a*?b", format!("{}b", "a".repeat(100)), true)]
-#[case::for_debug_1("a*?b", "aaab", true)]
-#[case::multi_a_star("a*a*a*a*b", "a".repeat(100), false)]
-#[case::star_x("*x", "xxx", true)]
-#[case::multi_star("x******x", "xx", true)]
-// cspell: enable
-fn basic_test_dowild(#[case] pattern: String, #[case] haystack: String, #[case] expected: bool) {
-    assert_eq!(dowild(pattern.as_bytes(), haystack.as_bytes()), expected);
-    assert_eq!(
-        dowild_with(
-            pattern.as_bytes(),
-            haystack.as_bytes(),
-            Options::new().enable_escape(true)
-        ),
-        expected
-    );
-    assert_eq!(
-        dowild_with(
-            pattern.as_bytes(),
-            haystack.as_bytes(),
-            Options::new().case_insensitive(true).enable_escape(true)
-        ),
-        expected
-    );
-    assert_eq!(
-        dowild_with(pattern.as_bytes(), haystack.as_bytes(), Options::new()),
-        expected
-    );
-    assert_eq!(
-        dowild_with(
-            pattern.as_bytes(),
-            haystack.as_bytes(),
-            Options::new().case_insensitive(true)
-        ),
-        expected
-    );
-}
+use simplematch::{dowild_with, Options, SimpleMatch};
 
 #[test]
 fn impl_for_str() {
@@ -136,11 +80,7 @@ fn impl_for_char_vec() {
 #[case::escape_match_self("\\", "\\", true)]
 #[case::double_escape_match_self("\\\\", "\\", true)]
 #[case::triple_escape_match_self("\\\\\\", "\\\\", true)]
-#[case::match_star("\\*", "*", true)]
-#[case::match_question_mark("\\?", "?", true)]
-#[case::a_star("a\\*", "a*", true)]
-#[case::a_star_star("a\\**", "a*xxx", true)]
-#[case::escape_non_escape("\\a", "\\a", true)]
+#[case::escape_non_special("\\a", "\\a", true)]
 fn dowild_with_default_escape(
     #[case] pattern: String,
     #[case] haystack: String,
@@ -149,22 +89,79 @@ fn dowild_with_default_escape(
     let options = Options::new().enable_escape(true);
     assert_eq!(
         dowild_with(pattern.as_bytes(), haystack.as_bytes(), options),
-        expected
+        expected,
     );
 }
 
 #[rstest]
-#[case::escape_true("\0\0\0*\0", "\0*\0", true)]
-#[case::escape_star_then_false("\0\0\0*\0", "\0*\0\0\0\0\0\0\0", false)]
-fn dowild_with_custom_escape(
+#[case::match_star("\\*", "*", true)]
+#[case::match_question_mark("\\?", "?", true)]
+#[case::a_star("a\\*", "a*", true)]
+#[case::a_question_mark("a\\?", "a?", true)]
+#[case::a_star_star("a\\**", "a*xxx", true)]
+#[case::a_double_question_mark("a\\??", "a?x", true)]
+fn dowild_with_escape(#[case] pattern: String, #[case] haystack: String, #[case] expected: bool) {
+    let options = Options::new().enable_escape(true);
+    assert_eq!(
+        dowild_with(pattern.as_bytes(), haystack.as_bytes(), options),
+        expected,
+        "Assert enable_escape"
+    );
+    assert_eq!(
+        dowild_with(
+            pattern.replace('\\', "&").as_bytes(),
+            haystack.as_bytes(),
+            options.enable_escape_with(b'&')
+        ),
+        expected,
+        "Assert enable_escape_with '&'"
+    );
+    assert_eq!(
+        dowild_with(
+            pattern.replace('*', "%").as_bytes(),
+            haystack.replace('*', "%").as_bytes(),
+            options.wildcard_any_with(b'%')
+        ),
+        expected,
+        "Assert enable_escape and wildcard_any_with '%'"
+    );
+    assert_eq!(
+        dowild_with(
+            pattern.replace('?', "_").as_bytes(),
+            haystack.replace('?', "_").as_bytes(),
+            options.wildcard_one_with(b'_')
+        ),
+        expected,
+        "Assert enable_escape and wildcard_one_with '_'"
+    );
+}
+
+#[rstest]
+#[case::match_open("\\[", "[", true)]
+#[case::close_no_escape("\\]", "]", false)]
+#[case::negate_no_escape("\\!", "!", false)]
+#[case::close_literally("\\]", "\\]", true)]
+#[case::negate_literally("\\!", "\\!", true)]
+fn dowild_with_escape_and_ranges(
     #[case] pattern: String,
     #[case] haystack: String,
     #[case] expected: bool,
 ) {
-    let options = Options::new().enable_escape_with(b'\0');
+    let options = Options::new().enable_escape(true).enable_ranges(true);
+
     assert_eq!(
         dowild_with(pattern.as_bytes(), haystack.as_bytes(), options),
-        expected
+        expected,
+        "Assert enable_escape and enable_ranges"
+    );
+    assert_eq!(
+        dowild_with(
+            pattern.replace('\\', "#").as_bytes(),
+            haystack.replace('\\', "#").as_bytes(),
+            options.enable_escape_with(b'#')
+        ),
+        expected,
+        "Assert enable_escape_with '#' and ranges"
     );
 }
 
@@ -204,18 +201,24 @@ fn dowild_with_custom_escape(
 #[case::multi_range_at_the_end("a[a-zA-Z]", &["aa", "az", "aA", "aZ"], true)]
 #[case::multi_range_at_the_start("[a-zA-Z]z", &["az", "Az", "Zz"], true)]
 #[case::multi_range_in_the_middle("a[a-zA-Z]z", &["aaz", "azz", "aAz", "aZz"], true)]
-fn dowild_with_range_case_sensitive(
-    #[case] pattern: String,
-    #[case] haystacks: &[&str],
-    #[case] expected: bool,
-) {
+fn dowild_with_range(#[case] pattern: String, #[case] haystacks: &[&str], #[case] expected: bool) {
     let options = Options::new().enable_ranges(true);
     let char_options = Options::new().enable_ranges(true);
-    for haystack in haystacks {
+
+    for (index, haystack) in haystacks.iter().enumerate() {
         assert_eq!(
             dowild_with(pattern.as_bytes(), haystack.as_bytes(), options),
             expected,
-            "haystack was: {haystack}",
+            "Assert enable_ranges: haystack at '{index}' was: '{haystack}'",
+        );
+        assert_eq!(
+            dowild_with(
+                pattern.replace('!', "^").as_bytes(),
+                haystack.replace('!', "^").as_bytes(),
+                options.enable_ranges_with(b'^')
+            ),
+            expected,
+            "Assert enable_ranges_with '^': haystack at '{index}' was: '{haystack}'",
         );
         assert_eq!(
             dowild_with(
@@ -224,7 +227,7 @@ fn dowild_with_range_case_sensitive(
                 char_options
             ),
             expected,
-            "char haystack was: {haystack}",
+            "Assert enable_ranges and char options: haystack at '{index}' was: '{haystack}'",
         );
     }
 }
@@ -234,26 +237,26 @@ fn dowild_with_range_case_sensitive(
 #[rstest]
 #[case::fuzz_0("*[a]", &["cba"], true, true)]
 #[case::fuzz_1("*[--$j-/]", &["*"], true, true)]
-#[case::fuzz_2("[n", &["\0"], false, true)]
+#[case::fuzz_2("[n", &["\0"], true, false)]
 #[case::fuzz_4("*[x", &[".[x"], true, true)]
 #[case::fuzz_5("[.$--.j-.\\/j.]", &["A"], true, true)]
 #[case::fuzz_6("[]G[a]", &["G"], true, true)]
 #[case::fuzz_7("[--$j\0-\0--\0-\0]", &["#"], true, true)]
 #[case::fuzz_8("*[--$j---\0\0\0\0]", &["/"], true, true)]
-#[case::fuzz_9("[\0\0-\0]", &["-"], false, true)]
-#[case::fuzz_10("[/-a]", &["]"], true, false)]
+#[case::fuzz_9("[\0\0-\0]", &["-"], true, false)]
+#[case::fuzz_10("[/-a]", &["]"], false, true)]
 #[case::fuzz_11("[/-A]", &["]"], false, false)]
 // the respective converted regex `is_match` was true, which is not correct!
 #[case::fuzz_12("[/-j]", &["z"], false, false)]
 #[case::fuzz_13("[]--]G", &["GG"], true, true)]
-#[case::fuzz_14("[]-\0", &["5"], false, true)]
+#[case::fuzz_14("[]-\0", &["5"], true, false)]
 #[case::fuzz_14("[!]a]", &[","], true, true)]
 // cspell: enable
 fn dowild_with_range_and_wildcards(
     #[case] pattern: String,
     #[case] haystacks: &[&str],
-    #[case] expected: bool,
     #[case] case_sensitive: bool,
+    #[case] expected: bool,
 ) {
     let options = Options::new()
         .case_insensitive(!case_sensitive)
@@ -261,6 +264,7 @@ fn dowild_with_range_and_wildcards(
     let char_options = Options::new()
         .case_insensitive(!case_sensitive)
         .enable_ranges(true);
+
     for haystack in haystacks {
         assert_eq!(
             dowild_with(pattern.as_bytes(), haystack.as_bytes(), options),

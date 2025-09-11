@@ -15,7 +15,8 @@
 //!
 //! Modifications by gamma0987. These tests originate from
 //! <https://developforperformance.com/MatchingWildcards_AnImprovedAlgorithmForBigData.html> and were
-//! ported to `Rust`
+//! ported to rust. Any additional tests in this file originate from
+//! <https://research.swtch.com/glob>.
 use rstest::rstest;
 use simplematch::{dowild, dowild_with, Options};
 
@@ -120,10 +121,17 @@ use simplematch::{dowild, dowild_with, Options};
 #[case::more_tests_3("", "a", false)]
 // spell-checker: enable
 fn test_dowild(#[case] pattern: String, #[case] haystack: String, #[case] expected: bool) {
-    assert_eq!(dowild(pattern.as_bytes(), haystack.as_bytes()), expected);
+    assert_eq!(
+        dowild(pattern.as_bytes(), haystack.as_bytes()),
+        expected,
+        "Assert dowild"
+    );
+
+    // case_insensitive matching is not included here
     assert_eq!(
         dowild_with(pattern.as_bytes(), haystack.as_bytes(), Options::new()),
-        expected
+        expected,
+        "Assert dowild_with and default options"
     );
     assert_eq!(
         dowild_with(
@@ -131,6 +139,157 @@ fn test_dowild(#[case] pattern: String, #[case] haystack: String, #[case] expect
             haystack.as_bytes(),
             Options::new().enable_escape(true)
         ),
-        expected
+        expected,
+        "Assert dowild_with and enable_escape"
+    );
+    assert_eq!(
+        dowild_with(
+            pattern.replace('\\', "&").as_bytes(),
+            haystack.as_bytes(),
+            Options::new().enable_escape_with(b'&')
+        ),
+        expected,
+        "Assert dowild_with and enable_escape_with '&'"
+    );
+    assert_eq!(
+        dowild_with(
+            pattern.as_bytes(),
+            haystack.as_bytes(),
+            Options::new().enable_ranges(true)
+        ),
+        expected,
+        "Assert dowild_with and enable_ranges"
+    );
+    assert_eq!(
+        dowild_with(
+            pattern.replace('!', "^").as_bytes(),
+            haystack.as_bytes(),
+            Options::new().enable_ranges_with(b'^')
+        ),
+        expected,
+        "Assert dowild_with and enable_ranges_with '^'"
+    );
+    assert_eq!(
+        dowild_with(
+            pattern.replace('*', "%").as_bytes(),
+            haystack.as_bytes(),
+            Options::new().wildcard_any_with(b'%')
+        ),
+        expected,
+        "Assert dowild_with and wildcard_any_with '%'"
+    );
+    assert_eq!(
+        dowild_with(
+            pattern.replace('?', "_").as_bytes(),
+            haystack.as_bytes(),
+            Options::new().wildcard_one_with(b'_')
+        ),
+        expected,
+        "Assert dowild_wild and wildcard_one_with '_'"
+    );
+}
+
+// These are mostly tests from https://research.swtch.com/glob
+// cspell: disable
+#[rstest]
+#[case::empty("", "", true)]
+#[case::one_and_empty("x", "", false)]
+#[case::empty_and_one("", "x", false)]
+#[case::simple("abc", "abc", true)]
+#[case::star("*", "abc", true)]
+#[case::star_c("*c", "abc", true)]
+#[case::star_b("*b", "abc", false)]
+#[case::a_star("a*", "abc", true)]
+#[case::b_star("b*", "abc", false)]
+#[case::a_star_single("a*", "a", true)]
+#[case::star_a_single("*a", "a", true)]
+#[case::multi_star_no_end("a*b*c*d*e*", "axbxcxdxe", true)]
+#[case::multi_star_end("a*b*c*d*e*", "axbxcxdxexxx", true)]
+#[case::star_and_question_mark_0("a*b?c*x", "abxbbxdbxebxczzx", true)]
+#[case::star_and_question_mark_1("a*b?c*x", "abxbbxdbxebxczzy", false)]
+#[case::for_debug_0("a*?b", format!("{}b", "a".repeat(100)), true)]
+#[case::for_debug_1("a*?b", "aaab", true)]
+#[case::multi_a_star("a*a*a*a*b", "a".repeat(100), false)]
+#[case::star_x("*x", "xxx", true)]
+#[case::multi_star("x******x", "xx", true)]
+// cspell: enable
+fn basic_tests_dowild_and_dowild_options(
+    #[case] pattern: String,
+    #[case] haystack: String,
+    #[case] expected: bool,
+) {
+    assert_eq!(
+        dowild(pattern.as_bytes(), haystack.as_bytes()),
+        expected,
+        "Assert dowild"
+    );
+
+    assert_eq!(
+        dowild_with(pattern.as_bytes(), haystack.as_bytes(), Options::new()),
+        expected,
+        "Assert dowild_with and default options"
+    );
+    assert_eq!(
+        dowild_with(
+            pattern.as_bytes(),
+            haystack.as_bytes(),
+            Options::new().case_insensitive(true)
+        ),
+        expected,
+        "Assert dowild_with and case_insensitive"
+    );
+    assert_eq!(
+        dowild_with(
+            pattern.as_bytes(),
+            haystack.as_bytes(),
+            Options::new().enable_escape(true)
+        ),
+        expected,
+        "Assert dowild_with and enable_escape"
+    );
+    assert_eq!(
+        dowild_with(
+            pattern.replace('\\', "&").as_bytes(),
+            haystack.as_bytes(),
+            Options::new().enable_escape_with(b'&')
+        ),
+        expected,
+        "Assert dowild_with and enable_escape_with '&'"
+    );
+    assert_eq!(
+        dowild_with(
+            pattern.as_bytes(),
+            haystack.as_bytes(),
+            Options::new().enable_ranges(true)
+        ),
+        expected,
+        "Assert dowild_with and enable_ranges"
+    );
+    assert_eq!(
+        dowild_with(
+            pattern.replace('!', "^").as_bytes(),
+            haystack.as_bytes(),
+            Options::new().enable_ranges_with(b'^')
+        ),
+        expected,
+        "Assert dowild_with and enable_ranges_with '^'"
+    );
+    assert_eq!(
+        dowild_with(
+            pattern.replace('*', "%").as_bytes(),
+            haystack.as_bytes(),
+            Options::new().wildcard_any_with(b'%')
+        ),
+        expected,
+        "Assert dowild_with and wildcard_any_with '%'"
+    );
+    assert_eq!(
+        dowild_with(
+            pattern.replace('?', "_").as_bytes(),
+            haystack.as_bytes(),
+            Options::new().wildcard_one_with(b'_')
+        ),
+        expected,
+        "Assert dowild_wild and wildcard_one_with '_'"
     );
 }
