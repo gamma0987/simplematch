@@ -232,7 +232,35 @@ fn dowild_with_range(#[case] pattern: String, #[case] haystacks: &[&str], #[case
     }
 }
 
-// From fuzzy tests
+#[rstest]
+#[case::any_and_range("*[a-z]", &["a", "z", "aa", "abz"], true)]
+#[case::range_and_any("[a-z]*", &["a", "z", "aa", "abz"], true)]
+#[case::multi_range("*[a-f][p-z]*[A-Z][a-z]*", &["apgAaa"], true)]
+fn dowild_with_range_and_wildcards(
+    #[case] pattern: String,
+    #[case] haystacks: &[&str],
+    #[case] expected: bool,
+) {
+    let options = Options::new().enable_ranges(true);
+
+    for (index, haystack) in haystacks.iter().enumerate() {
+        assert_eq!(
+            dowild_with(pattern.as_bytes(), haystack.as_bytes(), options),
+            expected,
+            "Assert enable_ranges: haystack at '{index}' was: '{haystack}'",
+        );
+        assert_eq!(
+            dowild_with(
+                pattern.replace('!', "^").as_bytes(),
+                haystack.replace('!', "^").as_bytes(),
+                options.enable_ranges_with(b'^')
+            ),
+            expected,
+            "Assert enable_ranges_with '^': haystack at '{index}' was: '{haystack}'",
+        );
+    }
+}
+
 // cspell: disable
 #[rstest]
 #[case::fuzz_0("*[a]", &["cba"], true, true)]
@@ -246,13 +274,12 @@ fn dowild_with_range(#[case] pattern: String, #[case] haystacks: &[&str], #[case
 #[case::fuzz_9("[\0\0-\0]", &["-"], true, false)]
 #[case::fuzz_10("[/-a]", &["]"], false, true)]
 #[case::fuzz_11("[/-A]", &["]"], false, false)]
-// the respective converted regex `is_match` was true, which is not correct!
-#[case::fuzz_12("[/-j]", &["z"], false, false)]
+#[case::fuzz_12("[/-j]", &["z"], false, true)]
 #[case::fuzz_13("[]--]G", &["GG"], true, true)]
 #[case::fuzz_14("[]-\0", &["5"], true, false)]
 #[case::fuzz_14("[!]a]", &[","], true, true)]
 // cspell: enable
-fn dowild_with_range_and_wildcards(
+fn dowild_with_from_fuzzy_tests(
     #[case] pattern: String,
     #[case] haystacks: &[&str],
     #[case] case_sensitive: bool,

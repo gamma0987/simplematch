@@ -15,11 +15,7 @@ fuzz_target!(|data: (&[u8], &[u8], FuzzOptions)| {
     if let (Ok(pattern), Ok(haystack)) = (pattern, haystack) {
         let mut pattern_options = PatternOptions {
             case_sensitive: fuzz_options.case_sensitive,
-            // We switch off character classes if using case-insensitive matching. This is a
-            // limitation of Regex. The case insensitive matching of regex seems to contain a bug
-            // when using character classes. For example `"^[A-j]$"` matches `"z"` when Regex is
-            // configured to match case-insensitive.
-            is_ranges_enabled: fuzz_options.case_sensitive && fuzz_options.use_ranges,
+            is_ranges_enabled: fuzz_options.use_ranges,
             ..Default::default()
         };
 

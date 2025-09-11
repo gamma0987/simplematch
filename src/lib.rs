@@ -575,17 +575,19 @@ impl Wildcard for u8 {
 
     #[inline]
     fn match_range(token: &Self, low: &Self, high: &Self, case_sensitive: bool) -> bool {
-        if case_sensitive {
-            low <= token && token <= high
+        #[allow(clippy::else_if_without_else)]
+        if low <= token && token <= high {
+            return true;
+        } else if case_sensitive {
+            return false;
+        }
+
+        if token.is_ascii_lowercase() {
+            let token_uppercase = token.to_ascii_uppercase();
+            *low <= token_uppercase && token_uppercase <= *high
         } else {
             let token_lowercase = token.to_ascii_lowercase();
-            // The token is not alphabetic
-            if token_lowercase == *token {
-                low <= token && token <= high
-            } else {
-                low.to_ascii_lowercase() <= token_lowercase
-                    && token_lowercase <= high.to_ascii_lowercase()
-            }
+            *low <= token_lowercase && token_lowercase <= *high
         }
     }
 }
@@ -604,23 +606,25 @@ impl Wildcard for char {
         if case_sensitive {
             first == second
         } else {
-            first.to_lowercase().eq(second.to_lowercase())
+            first.eq_ignore_ascii_case(second)
         }
     }
 
     #[inline]
     fn match_range(token: &Self, low: &Self, high: &Self, case_sensitive: bool) -> bool {
-        if case_sensitive {
-            low <= token && token <= high
+        #[allow(clippy::else_if_without_else)]
+        if low <= token && token <= high {
+            return true;
+        } else if case_sensitive || !(low.is_ascii() && high.is_ascii() && token.is_ascii()) {
+            return false;
+        }
+
+        if token.is_ascii_lowercase() {
+            let token_uppercase = token.to_ascii_uppercase();
+            *low <= token_uppercase && token_uppercase <= *high
         } else {
             let token_lowercase = token.to_ascii_lowercase();
-            // The token is not ascii alphabetic
-            if token_lowercase == *token {
-                low <= token && token <= high
-            } else {
-                low.to_ascii_lowercase() <= token_lowercase
-                    && token_lowercase <= high.to_ascii_lowercase()
-            }
+            *low <= token_lowercase && token_lowercase <= *high
         }
     }
 }
@@ -1029,7 +1033,7 @@ mod tests {
     #[case::all_big_middle(b'J', b'A', b'Z', true)]
     #[case::all_big_low_is_higher(b'J', b'K', b'Z', false)]
     #[case::all_big_high_is_lower(b'J', b'A', b'I', false)]
-    #[case::fuzz(b']', b'/', b'A', false)]
+    #[case::big_a_to_j(b'z', b'A', b'j', true)]
     fn impl_wildcard_match_range_when_case_insensitive(
         #[case] token: u8,
         #[case] low: u8,
