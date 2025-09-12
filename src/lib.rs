@@ -279,11 +279,15 @@ pub trait Wildcard: Eq + Copy + Clone {
     /// The default token match exactly one character, usually `?`.
     const DEFAULT_ONE: Self;
 
-    /// Returns `true` if `first` matches `second`, possibly `case_sensitive`.
-    fn match_one(first: &Self, second: &Self, case_sensitive: bool) -> bool;
-    /// Returns `true` if `token` is in the range between `low` and `high`, possibly
-    /// `case_sensitive`.
-    fn match_range(token: &Self, low: &Self, high: &Self, case_sensitive: bool) -> bool;
+    /// TODO: DOCS
+    fn match_one_case_insensitive(first: Self, second: Self) -> bool;
+    /// TODO: DOCS
+    fn match_one_case_sensitive(first: Self, second: Self) -> bool;
+
+    /// TODO: DOCS
+    fn match_range_case_insensitive(token: Self, low: Self, high: Self) -> bool;
+    /// TODO: DOCS
+    fn match_range_case_sensitive(token: Self, low: Self, high: Self) -> bool;
 }
 
 // Represents a character class
@@ -433,10 +437,14 @@ where
     }
 
     #[inline]
-    fn try_match(&self, token: T, case_sensitive: bool) -> Option<bool> {
+    fn try_match<F, G>(&self, token: T, match_one: F, match_range: G) -> Option<bool>
+    where
+        F: Fn(T, T) -> bool + Copy,
+        G: Fn(T, T, T) -> bool + Copy,
+    {
         self.class
             .as_ref()
-            .map(|class| class.is_match(token, case_sensitive))
+            .map(|class| class.is_match(token, match_one, match_range))
     }
 }
 
@@ -503,10 +511,18 @@ where
     }
 
     #[inline]
-    fn is_match(&self, token: T, case_sensitive: bool) -> bool {
+    fn is_match<F, G>(&self, token: T, match_one: F, match_range: G) -> bool
+    where
+        F: Fn(T, T) -> bool + Copy,
+        G: Fn(T, T, T) -> bool + Copy,
+    {
         match self {
-            Self::Positive(kinds) => kinds.iter().any(|r| r.contains(&token, case_sensitive)),
-            Self::Negative(kinds) => !kinds.iter().any(|r| r.contains(&token, case_sensitive)),
+            Self::Positive(kinds) => kinds
+                .iter()
+                .any(|r| r.contains(&token, match_one, match_range)),
+            Self::Negative(kinds) => !kinds
+                .iter()
+                .any(|r| r.contains(&token, match_one, match_range)),
         }
     }
 }
@@ -516,10 +532,14 @@ where
     T: Wildcard + Ord,
 {
     #[inline]
-    fn contains(&self, token: &T, case_sensitive: bool) -> bool {
+    fn contains<F, G>(&self, token: &T, match_one: F, match_range: G) -> bool
+    where
+        F: Fn(T, T) -> bool,
+        G: Fn(T, T, T) -> bool,
+    {
         match self {
-            Self::Range(low, high) => T::match_range(token, low, high, case_sensitive),
-            Self::One(c) | Self::RangeOne(c) => T::match_one(c, token, case_sensitive),
+            Self::Range(low, high) => match_range(*token, *low, *high),
+            Self::One(c) | Self::RangeOne(c) => match_one(*c, *token),
         }
     }
 
@@ -816,24 +836,30 @@ impl Wildcard for u8 {
     const DEFAULT_CLASS_OPEN: Self = b'[';
 
     #[inline]
-    fn match_one(first: &Self, second: &Self, case_sensitive: bool) -> bool {
-        if case_sensitive {
-            first == second
-        } else {
-            first.eq_ignore_ascii_case(second)
-        }
+    fn match_one_case_sensitive(first: Self, second: Self) -> bool {
+        first == second
     }
 
     #[inline]
-    fn match_range(token: &Self, low: &Self, high: &Self, case_sensitive: bool) -> bool {
-        #[allow(clippy::else_if_without_else)]
-        if low <= token && token <= high {
-            return true;
-        } else if case_sensitive || !token.is_ascii_alphabetic() {
-            return false;
-        }
+    fn match_one_case_insensitive(first: Self, second: Self) -> bool {
+        first.eq_ignore_ascii_case(&second)
+    }
 
-        is_in_ascii_range_case_insensitive(*token, *low, *high)
+    #[inline]
+    fn match_range_case_sensitive(token: Self, low: Self, high: Self) -> bool {
+        low <= token && token <= high
+    }
+
+    #[inline]
+    fn match_range_case_insensitive(token: Self, low: Self, high: Self) -> bool {
+        if low <= token && token <= high {
+            true
+        // TODO: Improve? also for char
+        } else if !token.is_ascii_alphabetic() {
+            false
+        } else {
+            is_in_ascii_range_case_insensitive(token, low, high)
+        }
     }
 }
 
@@ -847,26 +873,29 @@ impl Wildcard for char {
     const DEFAULT_CLASS_OPEN: Self = '[';
 
     #[inline]
-    fn match_one(first: &Self, second: &Self, case_sensitive: bool) -> bool {
-        if case_sensitive {
-            first == second
-        } else {
-            first.eq_ignore_ascii_case(second)
-        }
+    fn match_one_case_insensitive(first: Self, second: Self) -> bool {
+        first.eq_ignore_ascii_case(&second)
     }
 
     #[inline]
-    fn match_range(token: &Self, low: &Self, high: &Self, case_sensitive: bool) -> bool {
-        #[allow(clippy::else_if_without_else)]
-        if low <= token && token <= high {
-            return true;
-        } else if case_sensitive
-            || !(low.is_ascii() && high.is_ascii() && token.is_ascii_alphabetic())
-        {
-            return false;
-        }
+    fn match_one_case_sensitive(first: Self, second: Self) -> bool {
+        first == second
+    }
 
-        is_in_ascii_range_case_insensitive(*token as u8, *low as u8, *high as u8)
+    #[inline]
+    fn match_range_case_sensitive(token: Self, low: Self, high: Self) -> bool {
+        low <= token && token <= high
+    }
+
+    #[inline]
+    fn match_range_case_insensitive(token: Self, low: Self, high: Self) -> bool {
+        if low <= token && token <= high {
+            true
+        } else if !(low.is_ascii() && high.is_ascii() && token.is_ascii_alphabetic()) {
+            false
+        } else {
+            is_in_ascii_range_case_insensitive(token as u8, low as u8, high as u8)
+        }
     }
 }
 
@@ -1055,15 +1084,55 @@ pub fn dowild_with<T>(pattern: &[T], haystack: &[T], options: Options<T>) -> boo
 where
     T: Wildcard + Ord,
 {
+    if options.case_sensitive {
+        dowild_with_worker(
+            pattern,
+            haystack,
+            options,
+            T::match_one_case_sensitive,
+            T::match_range_case_sensitive,
+        )
+    } else {
+        dowild_with_worker(
+            pattern,
+            haystack,
+            options,
+            T::match_one_case_insensitive,
+            T::match_range_case_insensitive,
+        )
+    }
+}
+
+#[inline]
+#[allow(clippy::too_many_lines)]
+fn dowild_with_worker<F, G, T>(
+    pattern: &[T],
+    haystack: &[T],
+    options: Options<T>,
+    match_one: F,
+    match_range: G,
+) -> bool
+where
+    T: Wildcard + Ord,
+    F: Fn(T, T) -> bool + Copy,
+    G: Fn(T, T, T) -> bool + Copy,
+{
     let Options {
-        case_sensitive,
         is_classes_enabled,
         class_negate,
         wildcard_any,
         wildcard_escape,
         wildcard_one,
         is_escape_enabled,
+        ..
     } = options;
+
+    let is_special = |token: T| {
+        token == wildcard_any
+            || token == wildcard_one
+            || token == wildcard_escape
+            || (is_classes_enabled && token == T::DEFAULT_CLASS_OPEN)
+    };
 
     let mut p_idx = 0;
     let mut h_idx = 0;
@@ -1101,9 +1170,7 @@ where
                     } else if !((is_escape_enabled && next_c == wildcard_escape)
                         || (is_classes_enabled && next_c == T::DEFAULT_CLASS_OPEN))
                     {
-                        while h_idx < haystack.len()
-                            && !T::match_one(&haystack[h_idx], &next_c, case_sensitive)
-                        {
+                        while h_idx < haystack.len() && !match_one(haystack[h_idx], next_c) {
                             h_idx += 1;
                         }
                         if h_idx >= haystack.len() {
@@ -1127,16 +1194,12 @@ where
                         let next_c = pattern[p_idx + 1];
                         let h = haystack[h_idx];
 
-                        let is_special = next_c == wildcard_any
-                            || next_c == wildcard_one
-                            || next_c == wildcard_escape
-                            || (is_classes_enabled && next_c == T::DEFAULT_CLASS_OPEN);
                         #[allow(clippy::else_if_without_else)]
-                        if is_special && h == next_c {
+                        if is_special(next_c) && h == next_c {
                             p_idx += 2;
                             h_idx += 1;
                             continue;
-                        } else if !is_special && h == wildcard_escape {
+                        } else if !is_special(next_c) && h == wildcard_escape {
                             p_idx += 1;
                             h_idx += 1;
                             continue;
@@ -1154,17 +1217,15 @@ where
 
                         let class = classes.get_or_add(p_idx, pattern, class_negate);
                         #[allow(clippy::else_if_without_else)]
-                        if let Some(is_match) = class.try_match(haystack[h_idx], case_sensitive) {
+                        if let Some(is_match) =
+                            class.try_match(haystack[h_idx], match_one, match_range)
+                        {
                             p_idx += class.len();
                             if is_match {
                                 h_idx += 1;
                                 continue;
                             }
-                        } else if T::match_one(
-                            &haystack[h_idx],
-                            &T::DEFAULT_CLASS_OPEN,
-                            case_sensitive,
-                        ) {
+                        } else if match_one(haystack[h_idx], T::DEFAULT_CLASS_OPEN) {
                             p_idx += 1;
                             h_idx += 1;
                             continue;
@@ -1172,7 +1233,7 @@ where
                     }
                 }
                 c => {
-                    if h_idx < haystack.len() && T::match_one(&haystack[h_idx], &c, case_sensitive) {
+                    if h_idx < haystack.len() && match_one(haystack[h_idx], c) {
                         p_idx += 1;
                         h_idx += 1;
                         continue;
@@ -1188,8 +1249,7 @@ where
                 && !(is_classes_enabled && pattern[p_idx] == T::DEFAULT_CLASS_OPEN)
                 && !(is_escape_enabled && pattern[p_idx] == wildcard_escape)
             {
-                while next_h_idx < haystack.len()
-                    && !T::match_one(&haystack[next_h_idx], &pattern[p_idx], case_sensitive)
+                while next_h_idx < haystack.len() && !match_one(haystack[next_h_idx], pattern[p_idx])
                 {
                     next_h_idx += 1;
                 }
@@ -1244,14 +1304,22 @@ mod tests {
         #[case] case_sensitive: bool,
         #[case] expected: bool,
     ) {
-        assert_eq!(
-            Wildcard::match_one(&first, &second, case_sensitive),
-            expected
-        );
-        assert_eq!(
-            Wildcard::match_one(&(first as char), &(second as char), case_sensitive),
-            expected
-        );
+        if case_sensitive {
+            assert_eq!(Wildcard::match_one_case_sensitive(first, second), expected);
+            assert_eq!(
+                Wildcard::match_one_case_sensitive(first as char, second as char),
+                expected
+            );
+        } else {
+            assert_eq!(
+                Wildcard::match_one_case_insensitive(first, second),
+                expected
+            );
+            assert_eq!(
+                Wildcard::match_one_case_insensitive(first as char, second as char),
+                expected
+            );
+        }
     }
 
     #[rstest]
@@ -1271,9 +1339,12 @@ mod tests {
         #[case] high: u8,
         #[case] expected: bool,
     ) {
-        assert_eq!(Wildcard::match_range(&token, &low, &high, true), expected);
         assert_eq!(
-            Wildcard::match_range(&(token as char), &(low as char), &(high as char), true),
+            Wildcard::match_range_case_sensitive(token, low, high),
+            expected
+        );
+        assert_eq!(
+            Wildcard::match_range_case_sensitive(token as char, low as char, high as char),
             expected
         );
     }
@@ -1305,9 +1376,12 @@ mod tests {
         #[case] high: u8,
         #[case] expected: bool,
     ) {
-        assert_eq!(Wildcard::match_range(&token, &low, &high, false), expected);
         assert_eq!(
-            Wildcard::match_range(&(token as char), &(low as char), &(high as char), false),
+            Wildcard::match_range_case_insensitive(token, low, high),
+            expected
+        );
+        assert_eq!(
+            Wildcard::match_range_case_insensitive(token as char, low as char, high as char),
             expected
         );
     }
