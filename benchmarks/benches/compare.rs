@@ -21,6 +21,7 @@ const LOREM_PARAGRAPH: &str =
      felis nec nisl placerat accumsan non vitae dui. Cras ac ipsum ut tellus consectetur \
      ullamcorper sed ac tellus. Ut tincidunt eleifend arcu, id porttitor quam ullamcorper quis.";
 const LOREM_PATTERN: &str = "Ve*ve*Aenean??acc*ac****ipsum?ut*?ur ???????????*ac*ulla****?*.";
+const DEFAULT_OPTIONS: Options<u8> = Options::new();
 // spell-checker: enable
 
 #[library_benchmark]
@@ -48,7 +49,7 @@ fn bench_simplematch_dowild_with_default(pattern: &str) -> bool {
     black_box(dowild_with(
         black_box(pattern.as_bytes()),
         black_box(HAYSTACK.as_bytes()),
-        black_box(Options::default()),
+        black_box(DEFAULT_OPTIONS),
     ))
 }
 
@@ -58,7 +59,7 @@ fn bench_simplematch_dowild_with_default_lorem(pattern: &str, input: &str) -> bo
     black_box(dowild_with(
         black_box(pattern.as_bytes()),
         black_box(input.as_bytes()),
-        black_box(Options::default()),
+        black_box(DEFAULT_OPTIONS),
     ))
 }
 

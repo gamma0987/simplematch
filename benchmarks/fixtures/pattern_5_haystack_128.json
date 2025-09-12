@@ -1,23 +1,3 @@
-{"pattern":"a*a**","haystack":"baabbbbaabbaa**a*ba**aaab*b*ba*b*ababba******aa**b**a*a*ababba*babbba*babbbbb*aba*bbaaba**a*baaa**bbbb*bbb**ab*aaaabbaaabb**b**b","is_match":false}
-{"pattern":"*aaa*","haystack":"ababbbb**ab*a*aa*aaaa*baaba***b**b***aba*b***abaab**b*b*bbba**bb*b*aa*b*bb*babbabab*baaaa*abba**bb*abaaa*aaaa*ab*b**aa*bbbabbaa*","is_match":true}
-{"pattern":"aa***","haystack":"**a*aa*ba****ab**aaab*a*babbaa**a**a*a*aabaaaa*b**a*bb*b*bb****ab***abb*a*aaa*baabb*b*b*bba*b*a*aabbba*b**baba*a*b*aaabbab*ab**a","is_match":false}
-{"pattern":"aaaa*","haystack":"*bbabaab*aa*bba**aaa*bbb*aaabbbbbb*a*ab*ab*aaaa*a*a*aa*bbbab**aabbbaa**aab*baa**b*b*abbaaabb*a*bbb*aab**bbbaa*ab***b*baa***a***b","is_match":false}
-{"pattern":"*aa*a","haystack":"aaa**b*a*a*b**bbbaa*bbbabbaaa****bbba*a*abaa**aaa**bb*bbb***bbaab*****babbab*bb**ab*a*****bbab**a*b***baa**a*abaa**a*aa****b**ba","is_match":true}
-{"pattern":"?aa*?","haystack":"a*aab*aab**bb**b***a*bbaaabbaabbb**b*ab*a*aaabababbb*bbaaaa*bab**b*b*a***aa*ba*a*b*babbb****aaaaa*abaa*b**baa**b*ba*aa**bab*bb*a","is_match":false}
-{"pattern":"?a**a","haystack":"b***a*a*bbaab*ab**a*bab*a*ba*ababbbba*****a*****b*baaaaa*aa*aabaa*b***b**aba*bb**babaab*bb*a*b*a**babb*ab*a**aa*b*b**b*aa*b**a*a","is_match":false}
-{"pattern":"?**a*","haystack":"aabb*babb*a*ab***abb*****a***bb**abbb**aa*baab*aabaa**a*b**b*a**b*ab**b*a*baa*bbaaaa*aa**b*babbb**a*a**aab*babb**ab*baaa*aa*bbb*","is_match":true}
-{"pattern":"a*a*?","haystack":"a**a**aaaabab**aaba*a**a*ba*bab**baaa*abbb*b***ababbabaa*bbabbaa*a*a*a*aa*ababb*b*bba*b***ba*a*a*b*b*b*bababbbbb*a**bbaabaabb*a*","is_match":true}
-{"pattern":"?*?a*","haystack":"bba***bbaa****ba**baaba**aab**aa*****bb*aa*a*bbbbbbaa****a**bbbaa**b**a*b*b*b*bbb****ab*baab*bb***abbaaabbb*ab*b**aaa*a*b*babbb*","is_match":true}
-{"pattern":"Cg*BC","haystack":" ijQGaE?nolYYR eDBCGKoG cXikIKvRkdL \\RGJt atyH*qoGJMsOLqjWyPxPZArVavdcMIRktb yZv\\uu*xabvIlYSn*r KlbvEShkU vHg RTLPTeCd ca J fxbE","is_match":false}
-{"pattern":"EgD*F","haystack":"wQIeyMYJ JqTbpgARM C vosK itjKezRFj GLyAi  cdTl PKnrbyPqW PX SnBzaTkGU\\yiiqlVrlVxZT?U ikJEV*hajv*ZiFhXfWzjMVZgrygjklSVBErManOcfB","is_match":false}
-{"pattern":"*GBbd","haystack":"vDETwGgVNBxGpn*DN?mEI  w HaVIc U\\oa  He?DqmB gdQjI St vvnbicDuor GXR DzeislgjvCvqvh eOhDhIVu? PnllQTuq* RK*mjLj\\*QLy\\ XL pMtQKvO","is_match":false}
-{"pattern":"FaE*a","haystack":"JPnhzQnoZwYE q  J?JeEMauEK nQjOe?kVVnciveMNqEuLrsF *itQFnGKT obeDDo P*HdgtNwlw  FmnBTQqtUAbP MooJWgllRFdXjZBPKlldlSagxRH  X y Eh","is_match":false}
-{"pattern":"*D*b*","haystack":"\\* IFmp sr? IwOccWjK d cL LcygOUcrbQbgSPomTAGNLgQtRaur KXLyIL iDUcWFxF  O JhKpiEsThc VbGg\\PeLNtw  JFGxstgKIsxScg YgWR*i NlUuFVrg","is_match":true}
-{"pattern":"?gGA*","haystack":"*asQspc* dijiN PFuZQv Fv y*hiHRKDqLlWEerrdzxdM\\*L  QSx*UoBypHdrQebgfrQMXIXhJzy aSJAsNLRQm IhR?LwdqCEMy ZKQwJAonmrbRMdFWNmJVY  Cg","is_match":false}
-{"pattern":"?*g?A","haystack":" E Ze b*?huaHhAIdGttZymt uZ psSlvwuyKbwcKLJopwRHUoyuGszkdkiUKW kzDKXFEgrOzEzKu rzMeqOCXCzhaiMocaaLZoJxtTeyLswu lsOxG? gMknlTpGDa","is_match":false}
-{"pattern":"?*eFG","haystack":"jwZxnmOsE j TxOG qRUujIAt nWMbXynKLwqPeDRTji?hpukkzdUOuaDTwCRhRkYmjM?XZV QZqmqBX V\\loLp  PqGIP XLvdW zRfem LNA*mfVKQvzbNagKs BRI","is_match":false}
-{"pattern":"*cg?*","haystack":"arqNYAsLTexwYaLUD FnvIEbUYAqGqbFxjOrD hD UzWRYFSwmgaxg MmPH\\q xt q*OB CHWw KRg?wMrNHecVt\\aNR?hAcgRKQohO\\pB kHaGiKMlFWxlmzU*xNsVO","is_match":true}
-{"pattern":"g*?g*","haystack":"gddPuCC XAebtwRvXtTynqsq uUCwnyaLTXqvSBr*anL BEMUuxoOxoA UaIkZbK*rWmZVozORGc CwgZCoZQiQ RjCkubMgOffYVU?gmOHdTaqX*AGilCBh h\\ikBmo","is_match":true}
 {"pattern":"***a*","haystack":"b**aabaa*a***aa*****aaa*abbab*bbaa**bb**abbaaba*b**bbb**bbbaba**aa*bbaaba**b**b*ba*ba*b***ab*baab*baba*ba*bbaa*abab**aabb*bb***b","is_match":true}
 {"pattern":"**a*a","haystack":"bb*abbab*ab***babb*b*bb*a**babaaababa**aa****ab**babbbbab**ba*bbabb***abaaabba***b*ab**aabaab**b*ab*a***b*abbaaabaa*abbb*bbabba*","is_match":false}
 {"pattern":"*a*a*","haystack":"bbababbab*ba**b*b*ba*b*a*a*bba*b*bba****bba*aabbaa*b**babababab*ba**b**ab***bb*aa*abb*bbba**ababa*ab*a*a***ba*bbb*abbbb*a***aa**","is_match":true}
