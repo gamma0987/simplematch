@@ -1,6 +1,6 @@
 use arbitrary::Arbitrary;
 use regex::bytes::{Regex, RegexBuilder};
-use simplematch::Options;
+use simplematch::{Options, Wildcard};
 
 pub const DEFAULT_ESCAPE: u8 = b'\\';
 pub const DEFAULT_WILDCARD_ANY: u8 = b'*';
@@ -15,6 +15,7 @@ pub const DEFAULT_RANGE_NEGATE: u8 = b'!';
 #[derive(Debug, Clone, Copy, Arbitrary)]
 pub struct PatternOptions {
     pub case_sensitive: bool,
+    pub is_escape_enabled: bool,
     pub is_ranges_enabled: bool,
     pub range_negate: Option<u8>,
     pub wildcard_any: Option<u8>,
@@ -24,28 +25,31 @@ pub struct PatternOptions {
 
 impl Default for PatternOptions {
     fn default() -> Self {
-        let options = Options::default();
+        let options = Options::<u8>::default();
         Self {
             case_sensitive: options.case_sensitive,
-            wildcard_escape: options.wildcard_escape,
+            is_escape_enabled: options.is_escape_enabled,
             is_ranges_enabled: options.is_classes_enabled,
-            range_negate: options.class_negate,
-            wildcard_any: options.wildcard_any,
-            wildcard_one: options.wildcard_one,
+            range_negate: Some(options.class_negate),
+            wildcard_any: Some(options.wildcard_any),
+            wildcard_escape: Some(options.wildcard_escape),
+            wildcard_one: Some(options.wildcard_one),
         }
     }
 }
 
 impl From<PatternOptions> for Options<u8> {
     fn from(value: PatternOptions) -> Self {
-        Self {
-            case_sensitive: value.case_sensitive,
-            wildcard_escape: value.wildcard_escape,
-            is_classes_enabled: value.is_ranges_enabled,
-            class_negate: value.range_negate,
-            wildcard_any: value.wildcard_any,
-            wildcard_one: value.wildcard_one,
-        }
+        let mut this = Self::default();
+        this.case_sensitive = value.case_sensitive;
+        this.wildcard_escape = value.wildcard_escape.unwrap_or(u8::DEFAULT_ESCAPE);
+        this.is_classes_enabled = value.is_ranges_enabled;
+        this.class_negate = value.range_negate.unwrap_or(u8::DEFAULT_CLASS_NEGATE);
+        this.wildcard_any = value.wildcard_any.unwrap_or(u8::DEFAULT_ANY);
+        this.wildcard_one = value.wildcard_one.unwrap_or(u8::DEFAULT_ONE);
+        this.is_escape_enabled = value.is_escape_enabled;
+
+        this
     }
 }
 
@@ -58,14 +62,12 @@ pub fn pattern_to_regex(pattern: &str, options: PatternOptions) -> Result<Regex,
         wildcard_any,
         wildcard_escape,
         wildcard_one,
+        is_escape_enabled,
     } = options;
 
     let wildcard_any = wildcard_any.unwrap_or(DEFAULT_WILDCARD_ANY) as char;
     let wildcard_one = wildcard_one.unwrap_or(DEFAULT_WILDCARD_ONE) as char;
-    let (is_escape_enabled, wildcard_escape) = match wildcard_escape {
-        Some(x) => (true, x as char),
-        None => (false, DEFAULT_ESCAPE as char),
-    };
+    let wildcard_escape = wildcard_escape.unwrap_or(DEFAULT_ESCAPE) as char;
     let range_open = DEFAULT_RANGE_OPEN as char;
     let range_negate = range_negate.unwrap_or(DEFAULT_RANGE_NEGATE) as char;
 
@@ -127,17 +129,38 @@ pub fn pattern_to_regex(pattern: &str, options: PatternOptions) -> Result<Regex,
 
                             let start = c;
                             let end = chars[index + 2];
+
+                            let is_special = |c| {
+                                c == '-'
+                                    || c == '['
+                                    || c == ']'
+                                    || c == '^'
+                                    || c == '|'
+                                    || c == '\\'
+                                    || c == '.'
+                                    || c == '('
+                                    || c == ')'
+                                    || c == '?'
+                                    || c == '*'
+                                    || c == '&'
+                                    || c == '~'
+                                    || c == ':'
+                                    || c == '$'
+                                    || c == '{'
+                                    || c == '}'
+                            };
+
                             // In contrast to our patterns, the regex engine expects the start and
                             // end characters to be ordered from low to high. Also `-` and `]` need
                             // to be escaped properly.
                             if start <= end {
-                                escape_char_if(&mut range, start, |c| c == '-');
+                                escape_char_if(&mut range, start, is_special);
                                 range.push('-');
-                                escape_char_if(&mut range, end, |c| c == '-' || c == ']');
+                                escape_char_if(&mut range, end, is_special);
                             } else {
-                                escape_char_if(&mut range, end, |c| c == '-');
+                                escape_char_if(&mut range, end, is_special);
                                 range.push('-');
-                                escape_char_if(&mut range, start, |c| c == '-' || c == ']');
+                                escape_char_if(&mut range, start, is_special);
                             }
 
                             range.push(']');
@@ -246,11 +269,13 @@ mod tests {
     #[case::fuzz_8("*[--\nJ-\0\0-\0-+\0]", Regex::new("^.*?[[\n-\\-][\0-J][\0-\0]\\-\\+\\\0]$").unwrap())]
     #[case::fuzz_9("*[-$\0j-/\0a-]", Regex::new("^.*?[\\-\\$\\\0[/-j]\\\0a\\-]$").unwrap())]
     #[case::fuzz_10("[]--]G", Regex::new("^[[\\--\\]]][G]$").unwrap())]
+    #[case::fuzz_11("*[]-^\0\0l[]", Regex::new("^.*?[[\\]-^]\\\0\\\0l\\[]$").unwrap())]
     fn pattern_to_regex_when_range(#[case] pattern: &str, #[case] expected: Regex) {
         let actual = pattern_to_regex(
             pattern,
             PatternOptions {
                 case_sensitive: true,
+                is_escape_enabled: false,
                 is_ranges_enabled: true,
                 range_negate: None,
                 wildcard_any: None,

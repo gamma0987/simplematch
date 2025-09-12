@@ -77,7 +77,7 @@
 //!    T: Wildcard + Ord,
 //! ```
 //!
-//! Matches the given `haystack` against the specified `pattern` with customizable options.
+//! Matches the given `haystack` against the specified `pattern` with customizable [`Options`].
 //! This function allows for matching case insensitive, custom wildcard characters, escaping
 //! special characters and character classes including ranges.
 //!
@@ -154,14 +154,12 @@
 //! written by Kirk J. Krauss.
 //!
 //! The `simplematch` algorithm is an improved version which uses generally about 2-6x less
-//! instructions than the original algorithm for small and big data.
+//! instructions than the original algorithm tested for small and big data.
 
 // spell-checker: ignore aaabc fooa Krauss
 
 #![cfg_attr(not(feature = "std"), no_std)]
 #![cfg_attr(docsrs, feature(doc_auto_cfg))]
-// TODO: Remove
-#![allow(missing_docs)]
 
 macro_rules! impl_simplematch {
     ( $type:ty: $for:ty ) => {
@@ -199,32 +197,92 @@ use alloc::string::String;
 use alloc::vec::Vec;
 use core::cmp::Ordering;
 #[cfg(feature = "std")]
+use core::error::Error;
+use core::fmt::Display;
+#[cfg(feature = "std")]
 use std::collections::VecDeque;
 #[cfg(feature = "std")]
 use std::string::String;
 #[cfg(feature = "std")]
 use std::vec::Vec;
 
+/// A convenience trait to use [`dowild`] and [`dowild_with`] directly on the type `T`
+///
+/// This trait is natively implemented for
+///
+/// * &[u8]
+/// * &str
+/// * String
+/// * Vec<u8>
+/// * &[char]
+/// * Vec<char>
+///
+/// # Examples
+///
+/// Use [`dowild`] directly on a `&str`
+///
+/// ```rust
+/// use simplematch::SimpleMatch;
+///
+/// assert_eq!("foobar".dowild("foo*"), true);
+/// ```
 pub trait SimpleMatch<T>
 where
     T: Wildcard,
 {
+    /// Matches this `haystack` against the specified `pattern` using simple wildcard rules.
+    ///
+    /// See [`dowild`] for more details.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use simplematch::SimpleMatch;
+    ///
+    /// assert_eq!("foobar".dowild("foo*"), true);
+    /// ```
     #[must_use]
     fn dowild(&self, pattern: Self) -> bool;
+
+    /// Matches this haystack against the specified `pattern` with customizable [`Options`].
+    ///
+    /// See [`dowild_with`] for more details.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use simplematch::{Options, SimpleMatch};
+    ///
+    /// assert_eq!(
+    ///     "foobar".dowild_with("foo*", Options::default().case_insensitive(true)),
+    ///     true
+    /// );
+    /// ```
     #[must_use]
     fn dowild_with(&self, pattern: Self, options: Options<T>) -> bool;
 }
 
+/// The trait for types which should be able to be matched for a wildcard pattern
 pub trait Wildcard: Eq + Copy + Clone {
+    /// The default token to match any number of characters, usually `*`.
     const DEFAULT_ANY: Self;
+    /// The default token to close a character class pattern, usually `]`.
     const DEFAULT_CLASS_CLOSE: Self;
+    /// The default token to specify a range, usually `-`.
     const DEFAULT_CLASS_HYPHEN: Self;
+    /// The default token to negate a character class, usually `!`.
     const DEFAULT_CLASS_NEGATE: Self;
+    /// The default token to open a character class pattern, usually `[`.
     const DEFAULT_CLASS_OPEN: Self;
+    /// The default token to escape special characters, usually `\`.
     const DEFAULT_ESCAPE: Self;
+    /// The default token match exactly one character, usually `?`.
     const DEFAULT_ONE: Self;
 
+    /// Returns `true` if `first` matches `second`, possibly `case_sensitive`.
     fn match_one(first: &Self, second: &Self, case_sensitive: bool) -> bool;
+    /// Returns `true` if `token` is in the range between `low` and `high`, possibly
+    /// `case_sensitive`.
     fn match_range(token: &Self, low: &Self, high: &Self, case_sensitive: bool) -> bool;
 }
 
@@ -258,17 +316,60 @@ enum ClassKind<T> {
     RangeOne(T),
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+/// The `Error` of the simplematch crate
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
+pub enum SimpleMatchError {
+    /// A character in [`Options`] was assigned multiple times
+    DuplicateCharacterAssignment,
+}
+
+/// Customize the matching behavior of the [`dowild_with`] function
+#[derive(Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
+#[non_exhaustive]
 pub struct Options<T>
 where
     T: Wildcard,
 {
+    /// If `true` the patterns are matched case-sensitive
+    ///
+    /// The default is to match case-sensitive. Currently, only ascii characters are
+    /// considered.
     pub case_sensitive: bool,
-    pub class_negate: Option<T>,
+
+    /// The token to negate a character class.
+    ///
+    /// The default is `!`
+    pub class_negate: T,
+
+    /// Set to `true` to enable character classes `[...]`.
+    ///
+    /// The default is `false`.
     pub is_classes_enabled: bool,
-    pub wildcard_any: Option<T>,
-    pub wildcard_escape: Option<T>,
-    pub wildcard_one: Option<T>,
+
+    /// Set to `true` to enable escaping special characters in the pattern.
+    ///
+    /// The default is `false`.
+    ///
+    /// The default wildcard characters that can be escaped per default are `*`, `?`. These
+    /// characters are adjustable. If character classes are enabled, `[` can be escaped, too.
+    ///
+    /// If the escape character is not escaping a special character it is matched literally.
+    /// For example `"\\a"` matches the escape character and `a` literally.
+    pub is_escape_enabled: bool,
+
+    /// The token in the pattern to match zero or more occurrences of any character.
+    ///
+    /// The default token is `*`.
+    pub wildcard_any: T,
+
+    /// The token in the pattern to escape special characters as defined by the other fields.
+    ///
+    /// The default is the backslash character `\`.
+    pub wildcard_escape: T,
+    /// The token in the pattern to match exactly one occurrence of any character.
+    ///
+    /// The default token is `?`.
+    pub wildcard_one: T,
 }
 
 impl<T> CharacterClass<T>
@@ -473,72 +574,223 @@ impl<T> Options<T>
 where
     T: Wildcard,
 {
+    /// Create new `Options` for the [`dowild_with`] function.
     #[must_use]
     pub const fn new() -> Self {
         Self {
             case_sensitive: true,
-            wildcard_escape: None,
+            wildcard_escape: T::DEFAULT_ESCAPE,
             is_classes_enabled: false,
-            class_negate: Some(T::DEFAULT_CLASS_NEGATE),
-            wildcard_any: Some(T::DEFAULT_ANY),
-            wildcard_one: Some(T::DEFAULT_ONE),
+            class_negate: T::DEFAULT_CLASS_NEGATE,
+            wildcard_any: T::DEFAULT_ANY,
+            wildcard_one: T::DEFAULT_ONE,
+            is_escape_enabled: false,
         }
     }
 
+    /// If `true` match the pattern case-insensitive.
+    ///
+    /// The default is to match case-sensitive.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use simplematch::Options;
+    ///
+    /// let options = Options::default().case_insensitive(true);
+    /// ```
     #[must_use]
-    pub const fn case_insensitive(self, yes: bool) -> Self {
-        Self {
-            case_sensitive: !yes,
-            ..self
-        }
+    pub const fn case_insensitive(mut self, yes: bool) -> Self {
+        self.case_sensitive = !yes;
+        self
     }
 
+    /// If `true` enable escaping of special characters in the pattern.
+    ///
+    /// The default is `false` and the default escape character is backslash `\`.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use simplematch::Options;
+    ///
+    /// let options = Options::default().enable_escape(true);
+    /// ```
     #[must_use]
-    pub const fn enable_escape(self, yes: bool) -> Self {
-        Self {
-            wildcard_escape: if yes { Some(T::DEFAULT_ESCAPE) } else { None },
-            ..self
-        }
+    pub const fn enable_escape(mut self, yes: bool) -> Self {
+        self.is_escape_enabled = yes;
+        self
     }
 
+    /// Enable escaping of special characters but use this `token` instead of the default.
+    ///
+    /// The default is `false` and the default escape character is backslash `\`.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use simplematch::Options;
+    ///
+    /// let options = Options::default().enable_escape_with(b'#');
+    /// ```
     #[must_use]
-    pub const fn enable_escape_with(self, token: T) -> Self {
-        Self {
-            wildcard_escape: Some(token),
-            ..self
-        }
+    pub const fn enable_escape_with(mut self, token: T) -> Self {
+        self.is_escape_enabled = true;
+        self.wildcard_escape = token;
+        self
     }
 
+    /// If `true`, enable character classes `[...]`.
+    ///
+    /// The default is `false`.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use simplematch::Options;
+    ///
+    /// let options = Options::default().enable_classes(true);
+    /// ```
     #[must_use]
-    pub const fn enable_classes(self, yes: bool) -> Self {
-        Self {
-            is_classes_enabled: yes,
-            ..self
-        }
+    pub const fn enable_classes(mut self, yes: bool) -> Self {
+        self.is_classes_enabled = yes;
+        self
     }
 
+    /// If `true`, enable character classes `[...]` but use this `token` for the negation.
+    ///
+    /// The default is `false` and the default negation character is exclamation mark `!`.
+    ///
+    /// # Examples
+    ///
+    /// Set the negation character to the same character as regex uses it.
+    ///
+    /// ```rust
+    /// use simplematch::Options;
+    ///
+    /// let options = Options::default().enable_classes_with("^");
+    /// ```
     #[must_use]
-    pub const fn enable_classes_with(self, negation: T) -> Self {
-        Self {
-            is_classes_enabled: true,
-            class_negate: Some(negation),
-            ..self
-        }
+    pub const fn enable_classes_with(mut self, negation: T) -> Self {
+        self.is_classes_enabled = true;
+        self.class_negate = negation;
+        self
     }
 
+    /// Use this `token` instead of the default `*` to match any occurrences of a characters.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use simplematch::Options;
+    ///
+    /// let options = Options::default().wildcard_any_with(b'%');
+    /// ```
     #[must_use]
-    pub const fn wildcard_any_with(self, token: T) -> Self {
-        Self {
-            wildcard_any: Some(token),
-            ..self
-        }
+    pub const fn wildcard_any_with(mut self, token: T) -> Self {
+        self.wildcard_any = token;
+        self
     }
 
+    /// Use this `token` instead of the default `?` to match exactly one character.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use simplematch::Options;
+    ///
+    /// let options = Options::default().wildcard_any_with(b'_');
     #[must_use]
-    pub const fn wildcard_one_with(self, token: T) -> Self {
-        Self {
-            wildcard_one: Some(token),
-            ..self
+    pub const fn wildcard_one_with(mut self, token: T) -> Self {
+        self.wildcard_one = token;
+        self
+    }
+
+    /// Check `Options` for errors
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if these `Options` are invalid.
+    ///
+    /// # Examples
+    ///
+    /// Assigning `?` with [`wildcard_any_with`](Options::wildcard_any_with) fails this method.
+    ///
+    /// ```rust
+    /// use simplematch::{Options, SimpleMatchError};
+    ///
+    /// assert_eq!(
+    ///     Options::default().wildcard_any_with(b'?').verified(),
+    ///     SimpleMatchError::DuplicateCharacterAssignment
+    /// );
+    /// ```
+    pub fn verify(&self) -> Result<(), SimpleMatchError> {
+        if self.wildcard_any == self.wildcard_one
+            || self.wildcard_any == self.wildcard_escape
+            || self.wildcard_any == self.class_negate
+            || self.wildcard_one == self.wildcard_escape
+            || self.wildcard_one == self.class_negate
+            || self.wildcard_escape == self.class_negate
+        {
+            return Err(SimpleMatchError::DuplicateCharacterAssignment);
+        }
+
+        Ok(())
+    }
+
+    /// Return these `Options` if [`verify`] succeeds.
+    ///
+    /// The only difference to [`verify`] is, that this method consumes the [`Options`]
+    /// returning it on success.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if `Options` are invalid.
+    ///
+    /// # Examples
+    ///
+    /// If the configuration is valid, this method returns these `Options`.
+    ///
+    /// ```rust
+    /// use simplematch::{Options, SimpleMatchError};
+    ///
+    /// let options: Options = Options::default()
+    ///     .wildcard_any_with(b'%')
+    ///     .verified()
+    ///     .unwrap();
+    /// ```
+    ///
+    /// Otherwise, for example assigning `?` with
+    /// [`wildcard_any_with`](Options::wildcard_any_with) fails.
+    ///
+    /// ```rust
+    /// use simplematch::{Options, SimpleMatchError};
+    ///
+    /// assert_eq!(
+    ///     Options::default().wildcard_any_with(b'?').verified(),
+    ///     SimpleMatchError::DuplicateCharacterAssignment
+    /// );
+    /// ```
+    ///
+    /// [`verify`]: Options::verify
+    pub fn verified(self) -> Result<Self, SimpleMatchError> {
+        self.verify().map(|()| self)
+    }
+}
+
+#[cfg(feature = "std")]
+impl Error for SimpleMatchError {}
+
+impl Display for SimpleMatchError {
+    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
+        match self {
+            Self::DuplicateCharacterAssignment => {
+                write!(
+                    f,
+                    "Verifying options failed: The options contain a duplicate character \
+                     assignment."
+                )
+            }
         }
     }
 }
@@ -577,17 +829,11 @@ impl Wildcard for u8 {
         #[allow(clippy::else_if_without_else)]
         if low <= token && token <= high {
             return true;
-        } else if case_sensitive {
+        } else if case_sensitive || !token.is_ascii_alphabetic() {
             return false;
         }
 
-        if token.is_ascii_lowercase() {
-            let token_uppercase = token.to_ascii_uppercase();
-            *low <= token_uppercase && token_uppercase <= *high
-        } else {
-            let token_lowercase = token.to_ascii_lowercase();
-            *low <= token_lowercase && token_lowercase <= *high
-        }
+        is_in_ascii_range_case_insensitive(*token, *low, *high)
     }
 }
 
@@ -614,17 +860,13 @@ impl Wildcard for char {
         #[allow(clippy::else_if_without_else)]
         if low <= token && token <= high {
             return true;
-        } else if case_sensitive || !(low.is_ascii() && high.is_ascii() && token.is_ascii()) {
+        } else if case_sensitive
+            || !(low.is_ascii() && high.is_ascii() && token.is_ascii_alphabetic())
+        {
             return false;
         }
 
-        if token.is_ascii_lowercase() {
-            let token_uppercase = token.to_ascii_uppercase();
-            *low <= token_uppercase && token_uppercase <= *high
-        } else {
-            let token_lowercase = token.to_ascii_lowercase();
-            *low <= token_lowercase && token_lowercase <= *high
-        }
+        is_in_ascii_range_case_insensitive(*token as u8, *low as u8, *high as u8)
     }
 }
 
@@ -820,16 +1062,8 @@ where
         wildcard_any,
         wildcard_escape,
         wildcard_one,
+        is_escape_enabled,
     } = options;
-
-    let class_negate = class_negate.unwrap_or(T::DEFAULT_CLASS_NEGATE);
-    let wildcard_any = wildcard_any.unwrap_or(T::DEFAULT_ANY);
-    let wildcard_one = wildcard_one.unwrap_or(T::DEFAULT_ONE);
-    let (is_escape_enabled, wildcard_escape) = match wildcard_escape {
-        Some(x) => (true, x),
-        // although the value for `escape` is not used we need to assign some reasonable value
-        None => (false, T::DEFAULT_ESCAPE),
-    };
 
     let mut p_idx = 0;
     let mut h_idx = 0;
@@ -970,6 +1204,27 @@ where
     true
 }
 
+/// Returns true if the `token` is in the case insensitive inclusive range from `low` to `high`
+///
+/// `token` has to be ascii alphabetic character.
+///
+/// This function can be counter-intuitive, for example for `A-j` and the token `z`, this
+/// function returns `true`. However, this is how regex engines (tested with python, go, the
+/// regex crate, ...) usually evaluate it.
+#[inline]
+const fn is_in_ascii_range_case_insensitive(token: u8, low: u8, high: u8) -> bool {
+    const ASCII_CASE_MASK: u8 = 0b0010_0000;
+
+    if token.is_ascii_lowercase() {
+        let token_uppercase = token ^ ASCII_CASE_MASK;
+        low <= token_uppercase && token_uppercase <= high
+    // Since token is alphabetic it is an uppercase character
+    } else {
+        let token_lowercase = token | ASCII_CASE_MASK;
+        low <= token_lowercase && token_lowercase <= high
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use rstest::rstest;
@@ -1005,6 +1260,11 @@ mod tests {
     #[case::low_is_lower_high_is_same(b'j', b'i', b'j', true)]
     #[case::high_is_lower_low_is_same(b'j', b'k', b'i', false)]
     #[case::high_is_higher_low_is_same(b'j', b'j', b'k', true)]
+    #[case::non_alpha_when_false(b'#', b'*', b']', false)]
+    #[case::non_alpha_when_true(b'+', b'*', b']', true)]
+    #[case::only_token_alpha(b'a', b'*', b']', false)]
+    #[case::only_token_big_alpha(b'A', b'*', b']', true)]
+    #[case::between_alphabetic(b']', b'*', b'B', false)]
     fn impl_wildcard_match_range_when_case_sensitive(
         #[case] token: u8,
         #[case] low: u8,
@@ -1033,6 +1293,12 @@ mod tests {
     #[case::all_big_low_is_higher(b'J', b'K', b'Z', false)]
     #[case::all_big_high_is_lower(b'J', b'A', b'I', false)]
     #[case::big_a_to_j(b'z', b'A', b'j', true)]
+    #[case::non_alpha_when_false(b'#', b'*', b']', false)]
+    #[case::control_when_false(b'\x1f', b'*', b']', false)]
+    #[case::non_alpha_when_true(b'+', b'*', b']', true)]
+    #[case::only_token_alpha(b'a', b'*', b']', true)]
+    #[case::only_token_big_alpha(b'A', b'*', b']', true)]
+    #[case::between_alphabetic(b']', b'*', b'B', false)]
     fn impl_wildcard_match_range_when_case_insensitive(
         #[case] token: u8,
         #[case] low: u8,
