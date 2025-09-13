@@ -9,7 +9,7 @@ use serde::{Deserialize, Serialize};
 #[derive(Subcommand)]
 pub enum Commands {
     /// Generate the random data for the benchmarks. Output is one benchmark as json per line
-    GenerateRandom {
+    GenerateRandomBenchmark {
         #[arg(short = 'k', long)]
         pattern_length: usize,
         #[arg(short = 'l', long)]
@@ -25,6 +25,7 @@ pub enum Commands {
         #[arg(short = 'y', long)]
         haystack: String,
     },
+    ImportIaiCallgrindSchema,
 }
 
 #[derive(Parser)]
@@ -193,17 +194,15 @@ impl Distribution<char> for RandomString {
     }
 }
 
-pub fn generate_random(commands: Commands) {
-    let Commands::GenerateRandom {
-        pattern_length,
-        haystack_length,
-        amount,
-        wildcard_any,
-        wildcard_one,
-        pattern,
-        haystack,
-    } = commands;
-
+pub fn generate_random(
+    pattern_length: usize,
+    haystack_length: usize,
+    amount: usize,
+    wildcard_any: bool,
+    wildcard_one: bool,
+    pattern: String,
+    haystack: String,
+) {
     let mut generator = Generator::default();
     let mut generated = 0;
     let mut num_is_match = 0;
