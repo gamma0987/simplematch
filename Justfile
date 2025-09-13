@@ -25,6 +25,10 @@ msrv := '1.62.0'
 build-hack:
     cargo hack --workspace --feature-powerset build
 
+[group('build')]
+build-hack-simplematch:
+    cargo hack --package simplematch --feature-powerset build
+
 # Check and fix format of rust files (Uses: 'cargo +nightly')
 [group('formatting')]
 fmt:
@@ -88,11 +92,15 @@ build package:
 build-docs:
     DOCS_RS=1 cargo doc --all-features --no-deps --workspace
 
-
-# Run all tests in a package. (Uses: 'cargo')
+# Run tests for a package. (Uses: 'cargo')
 [group('test')]
-test:
-    cargo test --all-features --all-targets {{ if args != '' { args } else { '' } }}
+test package:
+    cargo test --package {{ package }} --all-features {{ if args != '' { args } else { '' } }}
+
+# Run all tests. (Uses: 'cargo')
+[group('test')]
+test-all:
+    cargo test --workspace --all-features {{ if args != '' { args } else { '' } }}
 
 # Run all doc tests (Uses: 'cargo')
 [group('test')]
@@ -106,6 +114,10 @@ build-and-test-docs: build-docs test-doc
 [group('test')]
 test-hack:
     cargo hack --workspace --feature-powerset test
+
+[group('test')]
+test-hack-simplematch:
+    cargo hack --package simplematch --feature-powerset test
 
 [group('test')]
 fuzz target:
@@ -147,6 +159,28 @@ coverage-lcov: (coverage 'lcov')
 [group('coverage')]
 coverage-lcov-fresh: (coverage-fresh 'lcov')
 
+[group('coverage')]
+coverage-fuzz target:
+    #!/usr/bin/env -S sh -e
+    export RUSTFLAGS='-Cinstrument-coverage -Ctarget-feature=-crt-static'
+    cargo +nightly fuzz run {{ target }} {{ if args != '' { args } else { '' } }}
+    cargo +nightly fuzz coverage {{ target }}
+
+    export LLVM_PROFILE_FILE='fuzz/coverage/{{ target }}/coverage.profdata'
+    grcov ./fuzz/coverage/{{ target }} \
+        --binary-path ./target/x86_64-unknown-linux-gnu/coverage/x86_64-unknown-linux-gnu/release/{{ target }} \
+        -s . \
+        -t lcov \
+        --branch \
+        --ignore-not-existing \
+        --ignore '../*' \
+        --ignore "/*" \
+        --ignore "tests/it/*" \
+        --excl-start 'cov:\s*excl-start' \
+        --excl-stop 'cov:\s*excl-stop' \
+        --excl-line '^\s*((debug_)?assert(_eq|_ne)?!|#\[derive\(|.*cov:\s*excl-line)|#\[inline\]' \
+        -o 'lcov-fuzz-{{ target }}.info'
+
 # Clean the workspace from all artifacts (Uses: other recipes)
 [group('clean')]
 clean-all: clean-coverage clean-benchmarks clean-cargo
@@ -177,7 +211,7 @@ bench:
 minimal-versions:
     cargo minimal-versions check --workspace --all-targets --ignore-private --direct
 
-# Bump the version of quickmatch or the MSRV (Uses: 'cargo', 'grep')
+# Bump the version of simplematch or the MSRV (Uses: 'cargo', 'grep')
 [group('chore')]
 bump config part:
     #!/usr/bin/env -S sh -e
@@ -185,5 +219,5 @@ bump config part:
     new_version=$(bump-my-version show-bump --config-file ".bumpversion/{{ config }}.toml" --ascii | grep -Po '(?<={{ part }} - )[0-9]+(\.[0-9]+\.[0-9]+)?')
 
     bump-my-version bump --no-commit --config-file ".bumpversion/{{ config }}.toml" {{ part }}
-    just args="--all-features --lib" build quickmatch
+    just args="--all-features --lib" build simplematch
 

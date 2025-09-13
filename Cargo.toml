@@ -1,5 +1,5 @@
 [workspace]
-members = ["benchmarks"]
+members = ["benchmarks", "common", "xtask"]
 
 [package]
 authors = ["gamma0987 <gamma0987@posteo.de>"]
@@ -8,12 +8,12 @@ description = """
 Fast wildcard pattern matching made easy
 """
 edition = "2021"
-homepage = "https://github.com/gamma0987/quickmatch"
+homepage = "https://github.com/gamma0987/simplematch"
 keywords = ["no_std", "text", "matching", "glob", "wildcard"]
 license = "Apache-2.0 OR MIT"
-name = "quickmatch"
+name = "simplematch"
 readme = "README.md"
-repository = "https://github.com/gamma0987/quickmatch"
+repository = "https://github.com/gamma0987/simplematch"
 rust-version = "1.62.0"
 version = "0.1.0"
 

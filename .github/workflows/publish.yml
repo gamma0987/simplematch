@@ -1,6 +1,6 @@
 # spell-checker: ignore dtolnay taiki Swatinem binstall taplo rustup
 
-name: Deploy quickmatch
+name: Deploy simplematch
 on:
   push:
     tags:
@@ -13,5 +13,5 @@ jobs:
     steps:
       - uses: actions/checkout@v5
       - uses: dtolnay/rust-toolchain@stable
-      - name: Publish quickmatch
-        run: cargo publish -p quickmatch --token ${{ secrets.CRATES_GITHUB_TOKEN }}
+      - name: Publish simplematch
+        run: cargo publish -p simplematch --token ${{ secrets.CRATES_GITHUB_TOKEN }}

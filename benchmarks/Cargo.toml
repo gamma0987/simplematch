@@ -8,12 +8,21 @@ version = "0.0.0"
 publish = false
 
 [dev-dependencies]
+common = { path = "../common" }
 iai-callgrind = "0.16.1"
-quickmatch = { version = "0.1.0", path = ".." }
+regex = "1"
+serde = "1"
+serde_json = "1"
+simplematch = { version = "0.1.0", path = ".." }
 wildcard = "0.3.0"
-wildmatch = "2.4.0"
+wildmatch = "2.5.0"
 
 [[bench]]
 harness = false
 name = "compare"
 path = "benches/compare.rs"
+
+[[bench]]
+harness = false
+name = "random"
+path = "benches/random.rs"

@@ -14,7 +14,7 @@
   "ignorePaths": [
     "**/.git/",
     "**/.gitignore",
-    "**/tests/fixtures/",
+    "**/benchmarks/fixtures/",
     "**/Cargo.lock",
     "*.stderr",
     "*.stdout",
