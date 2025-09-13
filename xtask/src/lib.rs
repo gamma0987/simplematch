@@ -1,7 +1,9 @@
 use clap::{Parser, Subcommand};
 use common::{pattern_to_regex, PatternOptions};
+use rand::distr::uniform::{UniformSampler, UniformUsize};
 use rand::distr::{Distribution, Uniform};
 use rand::rngs::ThreadRng;
+use rand::seq::SliceRandom;
 use serde::{Deserialize, Serialize};
 
 #[derive(Subcommand)]
@@ -65,6 +67,97 @@ impl Generator {
             .take(length)
             .collect::<String>()
     }
+
+    pub fn try_generate_non_matching_haystack(
+        &mut self,
+        pattern: &str,
+        length: usize,
+        allowed_chars: &str,
+    ) -> String {
+        let matching_haystack = self.generate_matching_haystack(pattern, length, allowed_chars);
+
+        let mut random_indices: Vec<usize> = (0..matching_haystack.len()).collect();
+        random_indices.shuffle(&mut self.0);
+        let (random_indices, _) = random_indices.split_at(matching_haystack.len() / 5);
+
+        let mut chars = matching_haystack.chars().collect::<Vec<char>>();
+
+        let sampler = RandomString::new(allowed_chars.to_owned(), false, false);
+        for index in random_indices {
+            chars[*index] = sampler.sample(&mut self.0)
+        }
+
+        chars.iter().collect()
+    }
+
+    pub fn generate_matching_haystack(
+        &mut self,
+        pattern: &str,
+        length: usize,
+        allowed_chars: &str,
+    ) -> String {
+        assert!(pattern.chars().count() <= length);
+
+        let is_wildcard_any = |c| c == '*';
+        let replace_wildcard_one = |s: &str| -> String {
+            s.chars()
+                .map(|c| {
+                    if c == '?' {
+                        RandomString::new(allowed_chars.to_owned(), false, false).sample(&mut self.0)
+                    } else {
+                        c
+                    }
+                })
+                .collect()
+        };
+
+        let (mut num_chars, mut splits) = pattern
+            .split(is_wildcard_any)
+            .map(replace_wildcard_one)
+            .fold((0, vec![]), |(num_chars, mut acc), elem| {
+                let elem_length = elem.chars().count();
+                acc.push(elem);
+
+                (num_chars + elem_length, acc)
+            });
+
+        let mut random_indices: Vec<usize> = (0..splits.len()).collect();
+        random_indices.shuffle(&mut self.0);
+
+        for random_index in random_indices {
+            if random_index != splits.len() - 1 {
+                let high = length - num_chars;
+                let random_length = if high > 0 {
+                    UniformUsize::new_inclusive(0, high)
+                        .unwrap()
+                        .sample(&mut self.0)
+                } else {
+                    break;
+                };
+
+                num_chars += random_length;
+
+                let split = splits.get_mut(random_index).unwrap();
+                let random_data: String = RandomString::new(allowed_chars.to_owned(), false, false)
+                    .sample_iter(&mut self.0)
+                    .take(random_length)
+                    .collect();
+
+                split.push_str(&random_data);
+            }
+        }
+
+        if num_chars < length {
+            let first = splits.first_mut().unwrap();
+            let random_data: String = RandomString::new(allowed_chars.to_owned(), false, false)
+                .sample_iter(&mut self.0)
+                .take(length - num_chars)
+                .collect();
+            first.push_str(&random_data);
+        }
+
+        splits.into_iter().collect()
+    }
 }
 
 impl Default for Generator {
@@ -114,9 +207,6 @@ pub fn generate_random(commands: Commands) {
     let mut generator = Generator::default();
     let mut generated = 0;
     let mut num_is_match = 0;
-    let mut num_not_match = 0;
-    let max_num_retries = 500;
-    let mut num_retries = 0;
     while generated < amount {
         let pattern =
             generator.generate_pattern(pattern_length, wildcard_any, wildcard_one, &pattern);
@@ -131,24 +221,29 @@ pub fn generate_random(commands: Commands) {
         let regex = pattern_to_regex(&pattern, PatternOptions::default())
             .expect("The pattern should be a valid regex");
 
-        let haystack = generator.generate_haystack(haystack_length, &haystack);
-        let is_match = regex.is_match(haystack.as_bytes());
-        // Generate an equal amount of non-matching and matching patterns
-        if is_match {
-            if num_is_match > amount / 2 && num_retries < max_num_retries {
-                num_retries += 1;
-                continue;
+        let (haystack, is_match) = loop {
+            if num_is_match <= amount / 2 {
+                let haystack =
+                    generator.generate_matching_haystack(&pattern, haystack_length, &haystack);
+                if regex.is_match(haystack.as_bytes()) {
+                    num_is_match += 1;
+                    break (haystack, true);
+                } else {
+                    continue;
+                }
+            } else {
+                let haystack = generator.try_generate_non_matching_haystack(
+                    &pattern,
+                    haystack_length,
+                    &haystack,
+                );
+                if regex.is_match(haystack.as_bytes()) {
+                    continue;
+                } else {
+                    break (haystack, false);
+                }
             }
-            num_retries = 0;
-            num_is_match += 1;
-        } else {
-            if num_not_match > amount / 2 && num_retries < max_num_retries {
-                num_retries += 1;
-                continue;
-            }
-            num_retries = 0;
-            num_not_match += 1;
-        }
+        };
 
         let benchmark = Benchmark {
             pattern,
