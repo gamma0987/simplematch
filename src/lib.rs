@@ -279,14 +279,14 @@ pub trait Wildcard: Eq + Copy + Clone {
     /// The default token match exactly one character, usually `?`.
     const DEFAULT_ONE: Self;
 
-    /// TODO: DOCS
+    /// Returns `true` if two character match case-insensitive
     fn match_one_case_insensitive(first: Self, second: Self) -> bool;
-    /// TODO: DOCS
+    /// Returns `true` if two character match case-sensitive
     fn match_one_case_sensitive(first: Self, second: Self) -> bool;
 
-    /// TODO: DOCS
+    /// Returns `true` if the `token` matches the range from `low` to `high` case-insensitive
     fn match_range_case_insensitive(token: Self, low: Self, high: Self) -> bool;
-    /// TODO: DOCS
+    /// Returns `true` if the `token` matches the range from `low` to `high` case-sensitive
     fn match_range_case_sensitive(token: Self, low: Self, high: Self) -> bool;
 }
 
@@ -854,7 +854,6 @@ impl Wildcard for u8 {
     fn match_range_case_insensitive(token: Self, low: Self, high: Self) -> bool {
         if low <= token && token <= high {
             true
-        // TODO: Improve? also for char
         } else if !token.is_ascii_alphabetic() {
             false
         } else {
