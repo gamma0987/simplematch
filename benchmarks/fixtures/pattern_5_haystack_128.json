@@ -1,20 +1,20 @@
-{"pattern":"***a*","haystack":"b**aabaa*a***aa*****aaa*abbab*bbaa**bb**abbaaba*b**bbb**bbbaba**aa*bbaaba**b**b*ba*ba*b***ab*baab*baba*ba*bbaa*abab**aabb*bb***b","is_match":true}
-{"pattern":"**a*a","haystack":"bb*abbab*ab***babb*b*bb*a**babaaababa**aa****ab**babbbbab**ba*bbabb***abaaabba***b*ab**aabaab**b*ab*a***b*abbaaabaa*abbb*bbabba*","is_match":false}
-{"pattern":"*a*a*","haystack":"bbababbab*ba**b*b*ba*b*a*a*bba*b*bba****bba*aabbaa*b**babababab*ba**b**ab***bb*aa*abb*bbba**ababa*ab*a*a***ba*bbb*abbbb*a***aa**","is_match":true}
-{"pattern":"a**a*","haystack":"abbba*b*abbab*ab*abb***bb**bbabbb*babb**abba***b**b*b*a*aa**baa**ba****ba**b**abbbb*babaaaa*abaa*baa*ab**a*aabbaa*aabb*baa*b**a*","is_match":true}
-{"pattern":"aa*a*","haystack":"*b*a**bb***bbb*aa*b*a*a*ba*aa*abba*bbbabbbbb***bababbabaaababbaa*b*abba***a*aa***a**babaabbb***b*b*abbbaa*b*abaa***bb*bba*abb*aa","is_match":false}
-{"pattern":"aaa?*","haystack":"**ab***b*baa**abbbbababab****a*b**ba*a*bbaaa**abaabbbaaa*bbb***aaaaaab*bbaab***abba**abbbaaa*aaba****a*ba*aaba*aaba***baba**a*bb","is_match":false}
-{"pattern":"***?*","haystack":"**aab***aba*bababba*a*aa*b***bbbbaaa*a*a*b*ba***bbbbb**baaba**bababbaaa*b***ab*bb*b***bba*b****bbb*aabba*****bbb****ab**b*a*a*bb","is_match":true}
-{"pattern":"?*a**","haystack":"aaab*aa*b*b*a*aa*bb*a**b*a**aba*a**aabaaaa*****abbb*bbabaa******a*****bab*aaaabaaa***abab**bb*baabb***b*a*a*a*a*b*a***aaa*b*a*ba","is_match":true}
-{"pattern":"?aaa*","haystack":"*b*b*aa**b**bbaab*****b*a*aaba*ab*a*****a*aabb**baba**aaaa*aaabbaba*abbaa*bb*bbbaabbbb*bbab**bb*b*a**abb*babaaaabbbabaa**b*bbb*b","is_match":false}
-{"pattern":"*a???","haystack":"a***aa*b*a***aba****baaab*bb**baab***b**b*b***b*babbb*a***bab**b***aaa**aaa*b***bb*aa****a*bbab**ababa*a****aabaabb*bab*b*aba*bb","is_match":true}
-{"pattern":"FAAB*","haystack":"hkCushWDy zJ VUt ?rARa*On GpdO cMuikdQCdNBwgAVtKy\\ hdfSlTEdGhS \\UeGKCtgPaFspXWDo\\DwUcP\\UGuGXKs?eu gOmupGklmf\\svbpDJuaJF APP IDwq","is_match":false}
-{"pattern":"eEbg*","haystack":"I?HfkuR    *VAa EYQCANsEMCRtqgKUt  \\d?*FVs?BSnMQHCXqaU hDrdd esBhT *gDvHp\\i VSdIdU na?GO?vViyo cfPOmNHBDJDUlLcdYfDFFgQLcSc KVBMd","is_match":false}
-{"pattern":"EE*Ab","haystack":" Ab*yQ k zkxiCWY jYaEtvpMoJHcVbdQ Vafm*PJKYlhAzKy*XNJkVHMuv POIKFffiuGVJjFiDvVaR\\LUApib PfOErEzFjic*ylXPMuAMJUBG\\zhaUpPOycYhqlyZ","is_match":false}
-{"pattern":"g*DgB","haystack":" yo eZHCWpR*?rrxMKjo Gr\\vKAjIcXF\\eQJFc t  ocQQsgRqQM spj?PlCBVjlF C DpVUHKSnz r \\LMKslrimaFJSu *JC dIGaiZrSFzyyRWRcdw zdVJXKC?bL","is_match":false}
-{"pattern":"*e*G*","haystack":"KezD awVBkKipzHPWnwtaLPspAmZLjSe rQlYElxaksb  Ljr*b*nePXEcFuUZ?NURiB?AH YJ xQT VViEGrz *dZzPlE IUTIirvABRfU*QwjJXebBKKKv\\D yvhzv","is_match":true}
-{"pattern":"*b?a?","haystack":" BjoCpELkMIQtcM?\\Gz\\fgwEdgD C  ufthoTdlAncRMltfYxtVlx ufqwM\\ UvseRURx  uunnIvOvhdS*bni zCfzWYclSEGQtrPWaQ QwyG JXlMDZblofqpKLF x","is_match":false}
-{"pattern":"??*GC","haystack":"D BIEnTMwNYabtAmD?ZS fgg jcb nUHz goPcbM\\GdZFENCIJqn?GySTfcGcmLtjJwjkMLzNOvu QPrWlkj*tPwMJ *cj  cGGmxMvC\\oGSLH GnvIh*nfyGY\\ VOCB","is_match":false}
-{"pattern":"?e*bE","haystack":"ipaxmqkZmrGqZYFMvOHKjHRcMIk BykCOHJp? P Fao\\pNxorVBtDNUDFIvA JL L G*i  swjJUsOOiVHq\\ v?wVwXqf*JlVZoxm ZNAqk XE\\NptthyyM pcQ ClKx","is_match":false}
-{"pattern":"?*a??","haystack":"tlmv RVrDO kIlX PNgDS xD tISJgBzyNAWsDhre lJawxjikThdfkp b\\BDoV lhTquSFDGqITCBwM XzOegdtrYIrwqFIdKZPrAFkcJun? He?AoL? A?rlT PaUP","is_match":true}
-{"pattern":"?**a*","haystack":"d nARyaIJ X?Y*aH\\JhISi\\ajhCMH  vqvw  wmbjGRRazVyTcTl a*xdzR hwEPQWbQr OhDff C Y TdGCHsgJT RKVKSCzNsF zsdhtOdlOKjCwogFqzHoBdUFC c","is_match":true}
+{"pattern":"*a**a","haystack":"ba**baabbbbb*a********baab**abaaa*aaaa**b**aabaaaaabba*b***baba*bbaabba*aab*aaabb*b***a*bb***aab*a****b*baab*a**a*bb**abbaa*a*ba","is_match":true}
+{"pattern":"*a*a*","haystack":"bbbabba*bababbb**b**b**ab***bb*a**b*a*abb*bbba**ba*b*a***ba*b*bab**aaab*a**bbbb**a*b*****aa*aab**ba*a**bb*bbba***a*b*b*baba*aab*","is_match":true}
+{"pattern":"****a","haystack":"*a**a*abbaabab*abbabab*bb*bb*a*ab**bbbabb*bbbaa*b*aa**b**abb**aba**bababbabbaba*b*a*aba**bbab**aaa*a*b***b*bb*bb*a*b*bbbb*babbaa","is_match":true}
+{"pattern":"a*a*a","haystack":"*a**abab*baa****aaba***b*abbb**a*bb**ba**aba*bbbaababbaba**aa*b*b**bbbba*ab***bbaba*baa**ba*a*aaba*aaabb**aa*bb*a*ab*b***bb*bab*","is_match":false}
+{"pattern":"****a","haystack":"aba**aaaabb***abab*ba*bbaab****aba*bbabb*b*a*ba**aaba*a*baa*bb*ba*a*baaa*ba*aaabbab*aaa****abbab*a***aaaabb*bb**abbbbbaaaababbb*","is_match":false}
+{"pattern":"?*a?a","haystack":"b**bba*aa*aba*abab*baa*bb*aa**babbb**bbaaaaa****babab*a**babaa**bbbbaa*ba****b***ba*****aaaaaab*aabaa*a**baa*bbabab*a*babbabaa*a","is_match":true}
+{"pattern":"?a*aa","haystack":"baabba*a*a*b*****a*ab*aba*aa*baaa*abb**b*b*ababa*baababbab**bbb*a*bb*aba*abb*aaba*b*aa*b**b**aaaababbbb*bb**b*a**aa*ab*a*aaab*aa","is_match":true}
+{"pattern":"?a*??","haystack":"*aa**a**b*aa*b*ba*ab***ba*aab*b**b*b**ba*a*ba*aab*bbb*ba*ba*b*bb*aa*bbb**b*aaa*bb***baabbbb*****abaa*aaababaaba*bbab*bbbab*ba*aa","is_match":true}
+{"pattern":"?a*a?","haystack":"baabbaaabb*a*aa**a*bbbb*ababbbaba*aba*a*baba*b*bb***aabaaba***abba**bba**aaa*bb*a*baaaba*abbabb*baabb**a*ba*bba*aaaabab*b**ab*b*","is_match":false}
+{"pattern":"*???a","haystack":"b**aa*aabb*ba**aaaabaaa*b*aaba*ab***a*abb**abbaa*b**baaab*bbaba*babb**ab**ba*aba*a*bb*babba**ba*ba*aa**b*a*aabbb*ba*a*b*a*a**aab","is_match":false}
+{"pattern":"*cGBB","haystack":"vmgBrllJ\\iBkpCcDnH hCemNTMGVEprRJpb  O*\\*ShdSAPuoNJqEkAzFfnY QjrrUp tsphpUPU\\TGIf\\SZqZN*UsxALbtZWbwCvwrOxRP eDZlREAdWVAqn eNcGBB","is_match":true}
+{"pattern":"b*fAf","haystack":"bdTMTitwfSdnuonpyXUsIBdCS VXBWu  TtmaXb tJ?axMODiK xTufI WqIn**qFHmpKWpZj fEzUCdjNtkvzhF VECERVZzCNNdOidWxgfz IXPc tF I M\\VfZfAf","is_match":true}
+{"pattern":"AbB*d","haystack":"AbBRAgWAxORvlvS *Mhb PsRoAV zwrTczVtwgjkyvCsqHErKQ lltiXjD\\Z?hCBq\\MOOUGQMuQynFzWE RAbwQbTjUPukQ*OXdBzR S oAxLNsNziVaSGBvyWc rLKd","is_match":true}
+{"pattern":"*BfG*","haystack":"IWjckNEGgv*bGUGxkBWsfQCTLmEBE JY U QQpoc\\Z\\bzHOCiQlRrlCbJMpVEsDYFgB jy KAAwjXxjv\\Ziy ZdMwJI baAu tmu Fft BkGn XBa\\?TIWtEXMFpBbWv","is_match":false}
+{"pattern":"gdc*A","haystack":"Adc*iDP ZVYZrmYlHo oblb T*r nIcm  NYaRQ fenBx   ??xcYykyHBbKgggJWruXsSQUgokIzGBdc\\cWw RVTBRAalnd Q*d lc j?XoSvKgQWZQ Np\\jyhH HGh","is_match":false}
+{"pattern":"C*Bc?","haystack":"CEKCeNZCQChWwBvU iZoWR zkHG rIl jriCa ET XfABwFLiu KF \\Dzzv wgjcSEYqN LFt gGaA  JW *FFWGBgIVCrjqLq e  ?pAtCEiljklxFTBv bC*GbiBcp","is_match":true}
+{"pattern":"CD*C?","haystack":"CDKLuWJTiq bnBqo  xT WnN*PhrElH XuPF\\dx MwSRnEBjwMa ?oUNUXgxgvS Nh*iCluZYuLM Aiicwn ? Bgm GaDdBVtOKwbyT BQyojmOLmPy G CZ?ozBG Cx","is_match":true}
+{"pattern":"bB*A?","haystack":"bB  N js D vj\\RUFLlfYDhxQDfVskPoolD??TiAyHRnmmdyGqrzhMDa imEHkzusE*jCSRpC?WtqM?CVLTvJ* o AWoa e KRTJulKEtIQOtJnL EevUe wvC* uzAT","is_match":true}
+{"pattern":"E*?ad","haystack":"E fdAgogGF woqJMsMlMERNzoe*ut qX*?p g\\YaKdtHTHlZGtqtEhgYeChRMuHhWa mSp*SwDe ILTHcz VdOjcnVyaVxpw *  YWN* ?GmsaIlNUvJeUv T kcH\\Dd","is_match":false}
+{"pattern":"*E?gb","haystack":"olPvAmuVWMmqXT\\VmzlQ\\H\\D?H?UF?SRgimo?X BMKO wfYO  Ko EDiZnqgEVIPCnlgAQ dVCndwDkcxMPxoVb CKR CetORFLwEXPsnEuCabgOn EQklA\\K?eJEfXb","is_match":false}

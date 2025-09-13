@@ -6,6 +6,8 @@ use rand::rngs::ThreadRng;
 use rand::seq::SliceRandom;
 use serde::{Deserialize, Serialize};
 
+pub mod iai_callgrind;
+
 #[derive(Subcommand)]
 pub enum Commands {
     /// Generate the random data for the benchmarks. Output is one benchmark as json per line
@@ -25,8 +27,19 @@ pub enum Commands {
         #[arg(short = 'y', long)]
         haystack: String,
     },
+    /// Import the iai-callgrind schema from json as rust library
     ImportIaiCallgrindSchema,
+    /// Summarize the random benchmarks as table (for the README)
+    ///
+    /// This option needs the iai-callgrind random benchmarks to be run with
+    /// `--save-summary=json`
+    SummarizeRandomBenchmarks,
 }
+
+// #[derive(Subcommand)]
+// pub enum Bench {
+//
+// }
 
 #[derive(Parser)]
 #[command(version, about, long_about = None)]
@@ -206,7 +219,9 @@ pub fn generate_random(
     let mut generator = Generator::default();
     let mut generated = 0;
     let mut num_is_match = 0;
-    while generated < amount {
+    let max_retries = 100;
+    let mut num_retries = 0;
+    'pattern: while generated < amount {
         let pattern =
             generator.generate_pattern(pattern_length, wildcard_any, wildcard_one, &pattern);
 
@@ -225,9 +240,14 @@ pub fn generate_random(
                 let haystack =
                     generator.generate_matching_haystack(&pattern, haystack_length, &haystack);
                 if regex.is_match(haystack.as_bytes()) {
+                    num_retries = 0;
                     num_is_match += 1;
                     break (haystack, true);
+                } else if num_retries > max_retries {
+                    num_retries = 0;
+                    continue 'pattern;
                 } else {
+                    num_retries += 1;
                     continue;
                 }
             } else {
@@ -236,10 +256,15 @@ pub fn generate_random(
                     haystack_length,
                     &haystack,
                 );
-                if regex.is_match(haystack.as_bytes()) {
-                    continue;
-                } else {
+                if !regex.is_match(haystack.as_bytes()) {
+                    num_retries = 0;
                     break (haystack, false);
+                } else if num_retries > max_retries {
+                    num_retries = 0;
+                    continue 'pattern;
+                } else {
+                    num_retries += 1;
+                    continue;
                 }
             }
         };

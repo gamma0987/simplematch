@@ -1,4 +1,3 @@
-replacen
 Dhat
 Justfile
 bumpversion
@@ -25,12 +24,15 @@ pemfile
 powerset
 profraw
 realpath
+replacen
 repr
 reqwest
 rfind
 rfold
 rng
 rngs
+rsplit
+rsplitn
 rstest
 rustc
 rustdoc

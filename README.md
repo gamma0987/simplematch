@@ -39,7 +39,8 @@ matching for strings and bytes with a simple and intuitive API.
 
 Supports the basic wildcards `*` (matches any sequence of characters), `?`
 (matches a single character). Optionally enable escaping `\` of special
-characters or enable character classes `[...]`.
+characters or enable character classes `[...]`. Character classes can be negated
+`[!...]` and contain ranges `[a-zA-Z]`.
 
 * Optimized for **performance**
 * **Intuitive** and **simple** API consisting of two functions `dowild` and
@@ -99,6 +100,24 @@ Or use [`cargo add`](https://github.com/killercup/cargo-edit):
 cargo add simplematch@0.1.0
 ```
 
+## Benchmarks
+
+The benchmarks below show the average instruction counts of each function for a
+given pattern and haystack. The haystacks and patterns are random valid utf-8
+strings each with variable length.
+
+| library/haystack length<br>(samples)           | `128`<br>`(100)` | `512`<br>`(100)` | `1000`<br>`(100)` | `10000`<br>`(100)` | `50000`<br>`(100)` | `100000`<br>`(100)` |
+|:-----------------------------------------------|-----------------:|-----------------:|------------------:|-------------------:|-------------------:|--------------------:|
+| simplematch::dowild                            |           `1748` |           `5068` |            `8227` |            `88000` |           `420132` |            `781949` |
+| simplematch::dowild_with                       |           `2440` |           `7426` |           `11951` |           `130723` |           `635673` |           `1173179` |
+| regex::bytes::Regex::is_match<br>(precompiled) |         `202749` |         `258994` |          `271740` |           `411166` |           `748247` |           `1066587` |
+| wildcard::Wildcard::is_match                   |           `2910` |           `6347` |           `13313` |           `134660` |           `530098` |           `1053973` |
+| wildmatch::Wildmatch::matches                  |           `4925` |          `13016` |           `22968` |           `232897` |          `1105721` |           `2122124` |
+
+To be able to run these benchmarks, you need
+[`iai-callgrind`](https://crates.io/crates/iai-callgrind) installed. Then run
+the benchmarks from above with `cargo bench -p benchmarks --bench random`.
+
 ## License
 
 `simplematch` is dual licensed under the Apache 2.0 license and the MIT license
@@ -107,5 +126,3 @@ at your option.
 Unless you explicitly state otherwise, any contribution intentionally submitted
 for inclusion in the work by you shall be dual licensed as in
 [License](#license), without any additional terms or conditions.
-
-[`glob`]: https://crates.io/crates/glob
