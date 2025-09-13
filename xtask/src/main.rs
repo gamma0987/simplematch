@@ -180,46 +180,46 @@ fn main() {
                 }
 
                 let mut headline = "| library/haystack length<br>(samples) |".to_string();
-                let mut separator = "|: --- |".to_string();
+                let mut separator = "|:--- |".to_string();
                 let mut table = String::new();
 
-                let mut line = "simplematch::dowild".to_string();
+                let mut line = "| simplematch::dowild |".to_string();
                 for (length, (num, sum)) in simplematch_dowild_stats {
                     write!(headline, "`{length}`<br>`({num})` |").unwrap();
                     write!(separator, " ---:|").unwrap();
 
-                    write!(line, "| `{}`", sum / (num as u64)).unwrap();
+                    write!(line, "`{}` |", sum / (num as u64)).unwrap();
                 }
 
                 writeln!(table, "{headline}").unwrap();
                 writeln!(table, "{separator}").unwrap();
                 writeln!(table, "{line}").unwrap();
 
-                line = "simplematch::dowild_with".to_string();
+                line = "| simplematch::dowild_with |".to_string();
                 for (_, (num, sum)) in simplematch_dowild_with_stats {
-                    write!(line, "| `{}`", sum / (num as u64)).unwrap();
+                    write!(line, "`{}` |", sum / (num as u64)).unwrap();
                 }
                 writeln!(table, "{line}").unwrap();
 
-                line = "regex::bytes::Regex::is_match<br>(precompiled)".to_string();
+                line = "| regex::bytes::Regex::is_match<br>(precompiled) |".to_string();
                 for (_, (num, sum)) in regex_stats {
-                    write!(line, "| `{}`", (sum / num as u64)).unwrap();
+                    write!(line, "`{}` |", (sum / num as u64)).unwrap();
                 }
                 writeln!(table, "{line}").unwrap();
 
-                line = "wildcard::Wildcard::is_match".to_string();
+                line = "| wildcard::Wildcard::is_match |".to_string();
                 for (_, (num, sum)) in wildcard_stats {
-                    write!(line, "| `{}`", (sum / num as u64)).unwrap();
+                    write!(line, "`{}` |", (sum / num as u64)).unwrap();
                 }
                 writeln!(table, "{line}").unwrap();
 
-                line = "wildmatch::Wildmatch::matches".to_string();
+                line = "| wildmatch::Wildmatch::matches |".to_string();
                 for (_, (num, sum)) in wildmatch_stats {
-                    write!(line, "| `{}`", (sum / num as u64)).unwrap();
+                    write!(line, "`{}` |", (sum / num as u64)).unwrap();
                 }
                 writeln!(table, "{line}").unwrap();
 
-                let final_table = mtf::process(&table).unwrap();
+                let final_table = markdown_table_formatter::format_tables(table);
                 println!("{}", final_table.trim());
             }
         }

@@ -10,12 +10,12 @@ publish = false
 [dev-dependencies]
 common = { path = "../common" }
 iai-callgrind = "0.16.1"
-regex = "1.11"
+regex = "1"
 serde = "1"
 serde_json = "1"
 simplematch = { version = "0.1.0", path = ".." }
 wildcard = "0.3.0"
-wildmatch = "2.4.0"
+wildmatch = "2.5.0"
 
 [[bench]]
 harness = false

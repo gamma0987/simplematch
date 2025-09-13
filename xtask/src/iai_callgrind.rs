@@ -3,9 +3,9 @@
 #![allow(clippy::match_single_binding)]
 #![allow(clippy::clone_on_copy)]
 
-#[doc = r" Error types."]
+/// Error types.
 pub mod error {
-    #[doc = r" Error from a `TryFrom` or `FromStr` implementation."]
+    /// Error from a `TryFrom` or `FromStr` implementation.
     pub struct ConversionError(::std::borrow::Cow<'static, str>);
     impl ::std::error::Error for ConversionError {}
     impl ::std::fmt::Display for ConversionError {
@@ -29,28 +29,29 @@ pub mod error {
         }
     }
 }
-#[doc = "The `BenchmarkKind`, differentiating between library and binary benchmarks"]
-#[doc = r""]
-#[doc = r" <details><summary>JSON schema</summary>"]
-#[doc = r""]
-#[doc = r" ```json"]
-#[doc = "{"]
-#[doc = "  \"description\": \"The `BenchmarkKind`, differentiating between library and binary benchmarks\","]
-#[doc = "  \"oneOf\": ["]
-#[doc = "    {"]
-#[doc = "      \"description\": \"A library benchmark\","]
-#[doc = "      \"type\": \"string\","]
-#[doc = "      \"const\": \"LibraryBenchmark\""]
-#[doc = "    },"]
-#[doc = "    {"]
-#[doc = "      \"description\": \"A binary benchmark\","]
-#[doc = "      \"type\": \"string\","]
-#[doc = "      \"const\": \"BinaryBenchmark\""]
-#[doc = "    }"]
-#[doc = "  ]"]
-#[doc = "}"]
-#[doc = r" ```"]
-#[doc = r" </details>"]
+///The `BenchmarkKind`, differentiating between library and binary benchmarks
+///
+/// <details><summary>JSON schema</summary>
+///
+/// ```json
+/// {
+///  "description": "The `BenchmarkKind`, differentiating between library and binary
+/// benchmarks",
+///  "oneOf": [
+///    {
+///      "description": "A library benchmark",
+///      "type": "string",
+///      "const": "LibraryBenchmark"
+///    },
+///    {
+///      "description": "A binary benchmark",
+///      "type": "string",
+///      "const": "BinaryBenchmark"
+///    }
+///  ]
+/// }
+/// ```
+/// </details>
 #[derive(
     :: serde :: Deserialize,
     :: serde :: Serialize,
@@ -64,9 +65,9 @@ pub mod error {
     PartialOrd,
 )]
 pub enum BenchmarkKind {
-    #[doc = "A library benchmark"]
+    ///A library benchmark
     LibraryBenchmark,
-    #[doc = "A binary benchmark"]
+    ///A binary benchmark
     BinaryBenchmark,
 }
 impl ::std::convert::From<&Self> for BenchmarkKind {
@@ -114,154 +115,167 @@ impl ::std::convert::TryFrom<::std::string::String> for BenchmarkKind {
         value.parse()
     }
 }
-#[doc = "The `BenchmarkSummary` containing all the information of a single benchmark run\n\nThis includes produced files, recorded callgrind events, performance regressions ..."]
-#[doc = r""]
-#[doc = r" <details><summary>JSON schema</summary>"]
-#[doc = r""]
-#[doc = r" ```json"]
-#[doc = "{"]
-#[doc = "  \"title\": \"BenchmarkSummary\","]
-#[doc = "  \"description\": \"The `BenchmarkSummary` containing all the information of a single benchmark run\\n\\nThis includes produced files, recorded callgrind events, performance regressions ...\","]
-#[doc = "  \"type\": \"object\","]
-#[doc = "  \"required\": ["]
-#[doc = "    \"baselines\","]
-#[doc = "    \"benchmark_exe\","]
-#[doc = "    \"benchmark_file\","]
-#[doc = "    \"function_name\","]
-#[doc = "    \"kind\","]
-#[doc = "    \"module_path\","]
-#[doc = "    \"package_dir\","]
-#[doc = "    \"profiles\","]
-#[doc = "    \"project_root\","]
-#[doc = "    \"version\""]
-#[doc = "  ],"]
-#[doc = "  \"properties\": {"]
-#[doc = "    \"baselines\": {"]
-#[doc = "      \"description\": \"The baselines if any. An absent first baseline indicates that new output was produced. An\\nabsent second baseline indicates the usage of the usual \\\"*.old\\\" output.\","]
-#[doc = "      \"type\": \"array\","]
-#[doc = "      \"items\": ["]
-#[doc = "        {"]
-#[doc = "          \"type\": ["]
-#[doc = "            \"string\","]
-#[doc = "            \"null\""]
-#[doc = "          ]"]
-#[doc = "        },"]
-#[doc = "        {"]
-#[doc = "          \"type\": ["]
-#[doc = "            \"string\","]
-#[doc = "            \"null\""]
-#[doc = "          ]"]
-#[doc = "        }"]
-#[doc = "      ],"]
-#[doc = "      \"maxItems\": 2,"]
-#[doc = "      \"minItems\": 2"]
-#[doc = "    },"]
-#[doc = "    \"benchmark_exe\": {"]
-#[doc = "      \"description\": \"The path to the binary which is executed by valgrind. In case of a library benchmark this\\nis the compiled benchmark file. In case of a binary benchmark this is the path to the\\ncommand.\","]
-#[doc = "      \"type\": \"string\""]
-#[doc = "    },"]
-#[doc = "    \"benchmark_file\": {"]
-#[doc = "      \"description\": \"The path to the benchmark file\","]
-#[doc = "      \"type\": \"string\""]
-#[doc = "    },"]
-#[doc = "    \"details\": {"]
-#[doc = "      \"description\": \"More details describing this benchmark run\","]
-#[doc = "      \"type\": ["]
-#[doc = "        \"string\","]
-#[doc = "        \"null\""]
-#[doc = "      ]"]
-#[doc = "    },"]
-#[doc = "    \"function_name\": {"]
-#[doc = "      \"description\": \"The name of the function under test\","]
-#[doc = "      \"type\": \"string\""]
-#[doc = "    },"]
-#[doc = "    \"id\": {"]
-#[doc = "      \"description\": \"The user provided id of this benchmark\","]
-#[doc = "      \"type\": ["]
-#[doc = "        \"string\","]
-#[doc = "        \"null\""]
-#[doc = "      ]"]
-#[doc = "    },"]
-#[doc = "    \"kind\": {"]
-#[doc = "      \"description\": \"Whether this summary describes a library or binary benchmark\","]
-#[doc = "      \"allOf\": ["]
-#[doc = "        {"]
-#[doc = "          \"$ref\": \"#/definitions/BenchmarkKind\""]
-#[doc = "        }"]
-#[doc = "      ]"]
-#[doc = "    },"]
-#[doc = "    \"module_path\": {"]
-#[doc = "      \"description\": \"The rust path in the form `bench_file::group::bench`\","]
-#[doc = "      \"type\": \"string\""]
-#[doc = "    },"]
-#[doc = "    \"package_dir\": {"]
-#[doc = "      \"description\": \"The directory of the package\","]
-#[doc = "      \"type\": \"string\""]
-#[doc = "    },"]
-#[doc = "    \"profiles\": {"]
-#[doc = "      \"description\": \"The summary of other valgrind tool runs\","]
-#[doc = "      \"allOf\": ["]
-#[doc = "        {"]
-#[doc = "          \"$ref\": \"#/definitions/Profiles\""]
-#[doc = "        }"]
-#[doc = "      ]"]
-#[doc = "    },"]
-#[doc = "    \"project_root\": {"]
-#[doc = "      \"description\": \"The project's root directory\","]
-#[doc = "      \"type\": \"string\""]
-#[doc = "    },"]
-#[doc = "    \"summary_output\": {"]
-#[doc = "      \"description\": \"The destination and kind of the summary file\","]
-#[doc = "      \"anyOf\": ["]
-#[doc = "        {"]
-#[doc = "          \"$ref\": \"#/definitions/SummaryOutput\""]
-#[doc = "        },"]
-#[doc = "        {"]
-#[doc = "          \"type\": \"null\""]
-#[doc = "        }"]
-#[doc = "      ]"]
-#[doc = "    },"]
-#[doc = "    \"version\": {"]
-#[doc = "      \"description\": \"The version of this format. Only backwards incompatible changes cause an increase of the\\nversion\","]
-#[doc = "      \"type\": \"string\""]
-#[doc = "    }"]
-#[doc = "  }"]
-#[doc = "}"]
-#[doc = r" ```"]
-#[doc = r" </details>"]
+///The `BenchmarkSummary` containing all the information of a single benchmark run
+///
+///This includes produced files, recorded callgrind events, performance regressions ...
+///
+/// <details><summary>JSON schema</summary>
+///
+/// ```json
+/// {
+///  "title": "BenchmarkSummary",
+///  "description": "The `BenchmarkSummary` containing all the information of a single
+/// benchmark run\n\nThis includes produced files, recorded callgrind events, performance
+/// regressions ...",
+///  "type": "object",
+///  "required": [
+///    "baselines",
+///    "benchmark_exe",
+///    "benchmark_file",
+///    "function_name",
+///    "kind",
+///    "module_path",
+///    "package_dir",
+///    "profiles",
+///    "project_root",
+///    "version"
+///  ],
+///  "properties": {
+///    "baselines": {
+///      "description": "The baselines if any. An absent first baseline indicates that new
+/// output was produced. An\nabsent second baseline indicates the usage of the usual \"*.old\"
+/// output.",
+///      "type": "array",
+///      "items": [
+///        {
+///          "type": [
+///            "string",
+///            "null"
+///          ]
+///        },
+///        {
+///          "type": [
+///            "string",
+///            "null"
+///          ]
+///        }
+///      ],
+///      "maxItems": 2,
+///      "minItems": 2
+///    },
+///    "benchmark_exe": {
+///      "description": "The path to the binary which is executed by valgrind. In case of a
+/// library benchmark this\nis the compiled benchmark file. In case of a binary benchmark this
+/// is the path to the\ncommand.",
+///      "type": "string"
+///    },
+///    "benchmark_file": {
+///      "description": "The path to the benchmark file",
+///      "type": "string"
+///    },
+///    "details": {
+///      "description": "More details describing this benchmark run",
+///      "type": [
+///        "string",
+///        "null"
+///      ]
+///    },
+///    "function_name": {
+///      "description": "The name of the function under test",
+///      "type": "string"
+///    },
+///    "id": {
+///      "description": "The user provided id of this benchmark",
+///      "type": [
+///        "string",
+///        "null"
+///      ]
+///    },
+///    "kind": {
+///      "description": "Whether this summary describes a library or binary benchmark",
+///      "allOf": [
+///        {
+///          "$ref": "#/definitions/BenchmarkKind"
+///        }
+///      ]
+///    },
+///    "module_path": {
+///      "description": "The rust path in the form `bench_file::group::bench`",
+///      "type": "string"
+///    },
+///    "package_dir": {
+///      "description": "The directory of the package",
+///      "type": "string"
+///    },
+///    "profiles": {
+///      "description": "The summary of other valgrind tool runs",
+///      "allOf": [
+///        {
+///          "$ref": "#/definitions/Profiles"
+///        }
+///      ]
+///    },
+///    "project_root": {
+///      "description": "The project's root directory",
+///      "type": "string"
+///    },
+///    "summary_output": {
+///      "description": "The destination and kind of the summary file",
+///      "anyOf": [
+///        {
+///          "$ref": "#/definitions/SummaryOutput"
+///        },
+///        {
+///          "type": "null"
+///        }
+///      ]
+///    },
+///    "version": {
+///      "description": "The version of this format. Only backwards incompatible changes cause
+/// an increase of the\nversion",
+///      "type": "string"
+///    }
+///  }
+/// }
+/// ```
+/// </details>
 #[derive(:: serde :: Deserialize, :: serde :: Serialize, Clone, Debug)]
 pub struct BenchmarkSummary {
-    #[doc = "The baselines if any. An absent first baseline indicates that new output was produced. An\nabsent second baseline indicates the usage of the usual \"*.old\" output."]
+    ///The baselines if any. An absent first baseline indicates that new output was produced.
+    /// An absent second baseline indicates the usage of the usual "*.old" output.
     pub baselines: (
         ::std::option::Option<::std::string::String>,
         ::std::option::Option<::std::string::String>,
     ),
-    #[doc = "The path to the binary which is executed by valgrind. In case of a library benchmark this\nis the compiled benchmark file. In case of a binary benchmark this is the path to the\ncommand."]
+    ///The path to the binary which is executed by valgrind. In case of a library benchmark
+    /// this is the compiled benchmark file. In case of a binary benchmark this is the path
+    /// to the command.
     pub benchmark_exe: ::std::string::String,
-    #[doc = "The path to the benchmark file"]
+    ///The path to the benchmark file
     pub benchmark_file: ::std::string::String,
-    #[doc = "More details describing this benchmark run"]
+    ///More details describing this benchmark run
     #[serde(default, skip_serializing_if = "::std::option::Option::is_none")]
     pub details: ::std::option::Option<::std::string::String>,
-    #[doc = "The name of the function under test"]
+    ///The name of the function under test
     pub function_name: ::std::string::String,
-    #[doc = "The user provided id of this benchmark"]
+    ///The user provided id of this benchmark
     #[serde(default, skip_serializing_if = "::std::option::Option::is_none")]
     pub id: ::std::option::Option<::std::string::String>,
-    #[doc = "Whether this summary describes a library or binary benchmark"]
+    ///Whether this summary describes a library or binary benchmark
     pub kind: BenchmarkKind,
-    #[doc = "The rust path in the form `bench_file::group::bench`"]
+    ///The rust path in the form `bench_file::group::bench`
     pub module_path: ::std::string::String,
-    #[doc = "The directory of the package"]
+    ///The directory of the package
     pub package_dir: ::std::string::String,
-    #[doc = "The summary of other valgrind tool runs"]
+    ///The summary of other valgrind tool runs
     pub profiles: Profiles,
-    #[doc = "The project's root directory"]
+    ///The project's root directory
     pub project_root: ::std::string::String,
-    #[doc = "The destination and kind of the summary file"]
+    ///The destination and kind of the summary file
     #[serde(default, skip_serializing_if = "::std::option::Option::is_none")]
     pub summary_output: ::std::option::Option<SummaryOutput>,
-    #[doc = "The version of this format. Only backwards incompatible changes cause an increase of the\nversion"]
+    ///The version of this format. Only backwards incompatible changes cause an increase of
+    /// the version
     pub version: ::std::string::String,
 }
 impl ::std::convert::From<&BenchmarkSummary> for BenchmarkSummary {
@@ -274,148 +288,156 @@ impl BenchmarkSummary {
         Default::default()
     }
 }
-#[doc = "All metrics which cachegrind produces and additionally some derived events\n\nDepending on the options passed to Cachegrind, these are the events that Cachegrind can produce.\nSee the [Cachegrind\ndocumentation](https://valgrind.org/docs/manual/cg-manual.html#cg-manual.cgopts) for details."]
-#[doc = r""]
-#[doc = r" <details><summary>JSON schema</summary>"]
-#[doc = r""]
-#[doc = r" ```json"]
-#[doc = "{"]
-#[doc = "  \"description\": \"All metrics which cachegrind produces and additionally some derived events\\n\\nDepending on the options passed to Cachegrind, these are the events that Cachegrind can produce.\\nSee the [Cachegrind\\ndocumentation](https://valgrind.org/docs/manual/cg-manual.html#cg-manual.cgopts) for details.\","]
-#[doc = "  \"oneOf\": ["]
-#[doc = "    {"]
-#[doc = "      \"description\": \"The default event. I cache reads (which equals the number of instructions executed)\","]
-#[doc = "      \"type\": \"string\","]
-#[doc = "      \"const\": \"Ir\""]
-#[doc = "    },"]
-#[doc = "    {"]
-#[doc = "      \"description\": \"D Cache reads (which equals the number of memory reads) (--cache-sim=yes)\","]
-#[doc = "      \"type\": \"string\","]
-#[doc = "      \"const\": \"Dr\""]
-#[doc = "    },"]
-#[doc = "    {"]
-#[doc = "      \"description\": \"D Cache writes (which equals the number of memory writes) (--cache-sim=yes)\","]
-#[doc = "      \"type\": \"string\","]
-#[doc = "      \"const\": \"Dw\""]
-#[doc = "    },"]
-#[doc = "    {"]
-#[doc = "      \"description\": \"I1 cache read misses (--cache-sim=yes)\","]
-#[doc = "      \"type\": \"string\","]
-#[doc = "      \"const\": \"I1mr\""]
-#[doc = "    },"]
-#[doc = "    {"]
-#[doc = "      \"description\": \"D1 cache read misses (--cache-sim=yes)\","]
-#[doc = "      \"type\": \"string\","]
-#[doc = "      \"const\": \"D1mr\""]
-#[doc = "    },"]
-#[doc = "    {"]
-#[doc = "      \"description\": \"D1 cache write misses (--cache-sim=yes)\","]
-#[doc = "      \"type\": \"string\","]
-#[doc = "      \"const\": \"D1mw\""]
-#[doc = "    },"]
-#[doc = "    {"]
-#[doc = "      \"description\": \"LL cache instruction read misses (--cache-sim=yes)\","]
-#[doc = "      \"type\": \"string\","]
-#[doc = "      \"const\": \"ILmr\""]
-#[doc = "    },"]
-#[doc = "    {"]
-#[doc = "      \"description\": \"LL cache data read misses (--cache-sim=yes)\","]
-#[doc = "      \"type\": \"string\","]
-#[doc = "      \"const\": \"DLmr\""]
-#[doc = "    },"]
-#[doc = "    {"]
-#[doc = "      \"description\": \"LL cache data write misses (--cache-sim=yes)\","]
-#[doc = "      \"type\": \"string\","]
-#[doc = "      \"const\": \"DLmw\""]
-#[doc = "    },"]
-#[doc = "    {"]
-#[doc = "      \"description\": \"I1 cache miss rate (--cache-sim=yes)\","]
-#[doc = "      \"type\": \"string\","]
-#[doc = "      \"const\": \"I1MissRate\""]
-#[doc = "    },"]
-#[doc = "    {"]
-#[doc = "      \"description\": \"LL/L2 instructions cache miss rate (--cache-sim=yes)\","]
-#[doc = "      \"type\": \"string\","]
-#[doc = "      \"const\": \"LLiMissRate\""]
-#[doc = "    },"]
-#[doc = "    {"]
-#[doc = "      \"description\": \"D1 cache miss rate (--cache-sim=yes)\","]
-#[doc = "      \"type\": \"string\","]
-#[doc = "      \"const\": \"D1MissRate\""]
-#[doc = "    },"]
-#[doc = "    {"]
-#[doc = "      \"description\": \"LL/L2 data cache miss rate (--cache-sim=yes)\","]
-#[doc = "      \"type\": \"string\","]
-#[doc = "      \"const\": \"LLdMissRate\""]
-#[doc = "    },"]
-#[doc = "    {"]
-#[doc = "      \"description\": \"LL/L2 cache miss rate (--cache-sim=yes)\","]
-#[doc = "      \"type\": \"string\","]
-#[doc = "      \"const\": \"LLMissRate\""]
-#[doc = "    },"]
-#[doc = "    {"]
-#[doc = "      \"description\": \"Derived event showing the L1 hits (--cache-sim=yes)\","]
-#[doc = "      \"type\": \"string\","]
-#[doc = "      \"const\": \"L1hits\""]
-#[doc = "    },"]
-#[doc = "    {"]
-#[doc = "      \"description\": \"Derived event showing the LL hits (--cache-sim=yes)\","]
-#[doc = "      \"type\": \"string\","]
-#[doc = "      \"const\": \"LLhits\""]
-#[doc = "    },"]
-#[doc = "    {"]
-#[doc = "      \"description\": \"Derived event showing the RAM hits (--cache-sim=yes)\","]
-#[doc = "      \"type\": \"string\","]
-#[doc = "      \"const\": \"RamHits\""]
-#[doc = "    },"]
-#[doc = "    {"]
-#[doc = "      \"description\": \"L1 cache hit rate (--cache-sim=yes)\","]
-#[doc = "      \"type\": \"string\","]
-#[doc = "      \"const\": \"L1HitRate\""]
-#[doc = "    },"]
-#[doc = "    {"]
-#[doc = "      \"description\": \"LL/L2 cache hit rate (--cache-sim=yes)\","]
-#[doc = "      \"type\": \"string\","]
-#[doc = "      \"const\": \"LLHitRate\""]
-#[doc = "    },"]
-#[doc = "    {"]
-#[doc = "      \"description\": \"RAM hit rate (--cache-sim=yes)\","]
-#[doc = "      \"type\": \"string\","]
-#[doc = "      \"const\": \"RamHitRate\""]
-#[doc = "    },"]
-#[doc = "    {"]
-#[doc = "      \"description\": \"Derived event showing the total amount of cache reads and writes (--cache-sim=yes)\","]
-#[doc = "      \"type\": \"string\","]
-#[doc = "      \"const\": \"TotalRW\""]
-#[doc = "    },"]
-#[doc = "    {"]
-#[doc = "      \"description\": \"Derived event showing estimated CPU cycles (--cache-sim=yes)\","]
-#[doc = "      \"type\": \"string\","]
-#[doc = "      \"const\": \"EstimatedCycles\""]
-#[doc = "    },"]
-#[doc = "    {"]
-#[doc = "      \"description\": \"Conditional branches executed (--branch-sim=yes)\","]
-#[doc = "      \"type\": \"string\","]
-#[doc = "      \"const\": \"Bc\""]
-#[doc = "    },"]
-#[doc = "    {"]
-#[doc = "      \"description\": \"Conditional branches mispredicted (--branch-sim=yes)\","]
-#[doc = "      \"type\": \"string\","]
-#[doc = "      \"const\": \"Bcm\""]
-#[doc = "    },"]
-#[doc = "    {"]
-#[doc = "      \"description\": \"Indirect branches executed (--branch-sim=yes)\","]
-#[doc = "      \"type\": \"string\","]
-#[doc = "      \"const\": \"Bi\""]
-#[doc = "    },"]
-#[doc = "    {"]
-#[doc = "      \"description\": \"Indirect branches mispredicted (--branch-sim=yes)\","]
-#[doc = "      \"type\": \"string\","]
-#[doc = "      \"const\": \"Bim\""]
-#[doc = "    }"]
-#[doc = "  ]"]
-#[doc = "}"]
-#[doc = r" ```"]
-#[doc = r" </details>"]
+///All metrics which cachegrind produces and additionally some derived events
+///
+///Depending on the options passed to Cachegrind, these are the events that Cachegrind can
+/// produce. See the [Cachegrind
+///documentation](https://valgrind.org/docs/manual/cg-manual.html#cg-manual.cgopts) for details.
+///
+/// <details><summary>JSON schema</summary>
+///
+/// ```json
+/// {
+///  "description": "All metrics which cachegrind produces and additionally some derived events\n\nDepending on the options passed to Cachegrind, these are the events that Cachegrind can produce.\nSee the [Cachegrind\ndocumentation](https://valgrind.org/docs/manual/cg-manual.html#cg-manual.cgopts) for details.",
+///  "oneOf": [
+///    {
+///      "description": "The default event. I cache reads (which equals the number of
+/// instructions executed)",
+///      "type": "string",
+///      "const": "Ir"
+///    },
+///    {
+///      "description": "D Cache reads (which equals the number of memory reads)
+/// (--cache-sim=yes)",
+///      "type": "string",
+///      "const": "Dr"
+///    },
+///    {
+///      "description": "D Cache writes (which equals the number of memory writes)
+/// (--cache-sim=yes)",
+///      "type": "string",
+///      "const": "Dw"
+///    },
+///    {
+///      "description": "I1 cache read misses (--cache-sim=yes)",
+///      "type": "string",
+///      "const": "I1mr"
+///    },
+///    {
+///      "description": "D1 cache read misses (--cache-sim=yes)",
+///      "type": "string",
+///      "const": "D1mr"
+///    },
+///    {
+///      "description": "D1 cache write misses (--cache-sim=yes)",
+///      "type": "string",
+///      "const": "D1mw"
+///    },
+///    {
+///      "description": "LL cache instruction read misses (--cache-sim=yes)",
+///      "type": "string",
+///      "const": "ILmr"
+///    },
+///    {
+///      "description": "LL cache data read misses (--cache-sim=yes)",
+///      "type": "string",
+///      "const": "DLmr"
+///    },
+///    {
+///      "description": "LL cache data write misses (--cache-sim=yes)",
+///      "type": "string",
+///      "const": "DLmw"
+///    },
+///    {
+///      "description": "I1 cache miss rate (--cache-sim=yes)",
+///      "type": "string",
+///      "const": "I1MissRate"
+///    },
+///    {
+///      "description": "LL/L2 instructions cache miss rate (--cache-sim=yes)",
+///      "type": "string",
+///      "const": "LLiMissRate"
+///    },
+///    {
+///      "description": "D1 cache miss rate (--cache-sim=yes)",
+///      "type": "string",
+///      "const": "D1MissRate"
+///    },
+///    {
+///      "description": "LL/L2 data cache miss rate (--cache-sim=yes)",
+///      "type": "string",
+///      "const": "LLdMissRate"
+///    },
+///    {
+///      "description": "LL/L2 cache miss rate (--cache-sim=yes)",
+///      "type": "string",
+///      "const": "LLMissRate"
+///    },
+///    {
+///      "description": "Derived event showing the L1 hits (--cache-sim=yes)",
+///      "type": "string",
+///      "const": "L1hits"
+///    },
+///    {
+///      "description": "Derived event showing the LL hits (--cache-sim=yes)",
+///      "type": "string",
+///      "const": "LLhits"
+///    },
+///    {
+///      "description": "Derived event showing the RAM hits (--cache-sim=yes)",
+///      "type": "string",
+///      "const": "RamHits"
+///    },
+///    {
+///      "description": "L1 cache hit rate (--cache-sim=yes)",
+///      "type": "string",
+///      "const": "L1HitRate"
+///    },
+///    {
+///      "description": "LL/L2 cache hit rate (--cache-sim=yes)",
+///      "type": "string",
+///      "const": "LLHitRate"
+///    },
+///    {
+///      "description": "RAM hit rate (--cache-sim=yes)",
+///      "type": "string",
+///      "const": "RamHitRate"
+///    },
+///    {
+///      "description": "Derived event showing the total amount of cache reads and writes
+/// (--cache-sim=yes)",
+///      "type": "string",
+///      "const": "TotalRW"
+///    },
+///    {
+///      "description": "Derived event showing estimated CPU cycles (--cache-sim=yes)",
+///      "type": "string",
+///      "const": "EstimatedCycles"
+///    },
+///    {
+///      "description": "Conditional branches executed (--branch-sim=yes)",
+///      "type": "string",
+///      "const": "Bc"
+///    },
+///    {
+///      "description": "Conditional branches mispredicted (--branch-sim=yes)",
+///      "type": "string",
+///      "const": "Bcm"
+///    },
+///    {
+///      "description": "Indirect branches executed (--branch-sim=yes)",
+///      "type": "string",
+///      "const": "Bi"
+///    },
+///    {
+///      "description": "Indirect branches mispredicted (--branch-sim=yes)",
+///      "type": "string",
+///      "const": "Bim"
+///    }
+///  ]
+/// }
+/// ```
+/// </details>
 #[derive(
     :: serde :: Deserialize,
     :: serde :: Serialize,
@@ -429,60 +451,60 @@ impl BenchmarkSummary {
     PartialOrd,
 )]
 pub enum CachegrindMetric {
-    #[doc = "The default event. I cache reads (which equals the number of instructions executed)"]
+    ///The default event. I cache reads (which equals the number of instructions executed)
     Ir,
-    #[doc = "D Cache reads (which equals the number of memory reads) (--cache-sim=yes)"]
+    ///D Cache reads (which equals the number of memory reads) (--cache-sim=yes)
     Dr,
-    #[doc = "D Cache writes (which equals the number of memory writes) (--cache-sim=yes)"]
+    ///D Cache writes (which equals the number of memory writes) (--cache-sim=yes)
     Dw,
-    #[doc = "I1 cache read misses (--cache-sim=yes)"]
+    ///I1 cache read misses (--cache-sim=yes)
     I1mr,
-    #[doc = "D1 cache read misses (--cache-sim=yes)"]
+    ///D1 cache read misses (--cache-sim=yes)
     D1mr,
-    #[doc = "D1 cache write misses (--cache-sim=yes)"]
+    ///D1 cache write misses (--cache-sim=yes)
     D1mw,
-    #[doc = "LL cache instruction read misses (--cache-sim=yes)"]
+    ///LL cache instruction read misses (--cache-sim=yes)
     ILmr,
-    #[doc = "LL cache data read misses (--cache-sim=yes)"]
+    ///LL cache data read misses (--cache-sim=yes)
     DLmr,
-    #[doc = "LL cache data write misses (--cache-sim=yes)"]
+    ///LL cache data write misses (--cache-sim=yes)
     DLmw,
-    #[doc = "I1 cache miss rate (--cache-sim=yes)"]
+    ///I1 cache miss rate (--cache-sim=yes)
     I1MissRate,
-    #[doc = "LL/L2 instructions cache miss rate (--cache-sim=yes)"]
+    ///LL/L2 instructions cache miss rate (--cache-sim=yes)
     LLiMissRate,
-    #[doc = "D1 cache miss rate (--cache-sim=yes)"]
+    ///D1 cache miss rate (--cache-sim=yes)
     D1MissRate,
-    #[doc = "LL/L2 data cache miss rate (--cache-sim=yes)"]
+    ///LL/L2 data cache miss rate (--cache-sim=yes)
     LLdMissRate,
-    #[doc = "LL/L2 cache miss rate (--cache-sim=yes)"]
+    ///LL/L2 cache miss rate (--cache-sim=yes)
     #[serde(rename = "LLMissRate")]
     LlMissRate,
-    #[doc = "Derived event showing the L1 hits (--cache-sim=yes)"]
+    ///Derived event showing the L1 hits (--cache-sim=yes)
     L1hits,
-    #[doc = "Derived event showing the LL hits (--cache-sim=yes)"]
+    ///Derived event showing the LL hits (--cache-sim=yes)
     LLhits,
-    #[doc = "Derived event showing the RAM hits (--cache-sim=yes)"]
+    ///Derived event showing the RAM hits (--cache-sim=yes)
     RamHits,
-    #[doc = "L1 cache hit rate (--cache-sim=yes)"]
+    ///L1 cache hit rate (--cache-sim=yes)
     L1HitRate,
-    #[doc = "LL/L2 cache hit rate (--cache-sim=yes)"]
+    ///LL/L2 cache hit rate (--cache-sim=yes)
     #[serde(rename = "LLHitRate")]
     LlHitRate,
-    #[doc = "RAM hit rate (--cache-sim=yes)"]
+    ///RAM hit rate (--cache-sim=yes)
     RamHitRate,
-    #[doc = "Derived event showing the total amount of cache reads and writes (--cache-sim=yes)"]
+    ///Derived event showing the total amount of cache reads and writes (--cache-sim=yes)
     #[serde(rename = "TotalRW")]
     TotalRw,
-    #[doc = "Derived event showing estimated CPU cycles (--cache-sim=yes)"]
+    ///Derived event showing estimated CPU cycles (--cache-sim=yes)
     EstimatedCycles,
-    #[doc = "Conditional branches executed (--branch-sim=yes)"]
+    ///Conditional branches executed (--branch-sim=yes)
     Bc,
-    #[doc = "Conditional branches mispredicted (--branch-sim=yes)"]
+    ///Conditional branches mispredicted (--branch-sim=yes)
     Bcm,
-    #[doc = "Indirect branches executed (--branch-sim=yes)"]
+    ///Indirect branches executed (--branch-sim=yes)
     Bi,
-    #[doc = "Indirect branches mispredicted (--branch-sim=yes)"]
+    ///Indirect branches mispredicted (--branch-sim=yes)
     Bim,
 }
 impl ::std::convert::From<&Self> for CachegrindMetric {
@@ -578,83 +600,86 @@ impl ::std::convert::TryFrom<::std::string::String> for CachegrindMetric {
         value.parse()
     }
 }
-#[doc = "The metrics collected by DHAT"]
-#[doc = r""]
-#[doc = r" <details><summary>JSON schema</summary>"]
-#[doc = r""]
-#[doc = r" ```json"]
-#[doc = "{"]
-#[doc = "  \"description\": \"The metrics collected by DHAT\","]
-#[doc = "  \"oneOf\": ["]
-#[doc = "    {"]
-#[doc = "      \"description\": \"In ad-hoc mode, Total units measured over the entire execution\","]
-#[doc = "      \"type\": \"string\","]
-#[doc = "      \"const\": \"TotalUnits\""]
-#[doc = "    },"]
-#[doc = "    {"]
-#[doc = "      \"description\": \"Total ad-hoc events over the entire execution\","]
-#[doc = "      \"type\": \"string\","]
-#[doc = "      \"const\": \"TotalEvents\""]
-#[doc = "    },"]
-#[doc = "    {"]
-#[doc = "      \"description\": \"Total bytes allocated over the entire execution\","]
-#[doc = "      \"type\": \"string\","]
-#[doc = "      \"const\": \"TotalBytes\""]
-#[doc = "    },"]
-#[doc = "    {"]
-#[doc = "      \"description\": \"Total heap blocks allocated over the entire execution\","]
-#[doc = "      \"type\": \"string\","]
-#[doc = "      \"const\": \"TotalBlocks\""]
-#[doc = "    },"]
-#[doc = "    {"]
-#[doc = "      \"description\": \"The bytes alive at t-gmax, the time when the heap size reached its global maximum\","]
-#[doc = "      \"type\": \"string\","]
-#[doc = "      \"const\": \"AtTGmaxBytes\""]
-#[doc = "    },"]
-#[doc = "    {"]
-#[doc = "      \"description\": \"The blocks alive at t-gmax\","]
-#[doc = "      \"type\": \"string\","]
-#[doc = "      \"const\": \"AtTGmaxBlocks\""]
-#[doc = "    },"]
-#[doc = "    {"]
-#[doc = "      \"description\": \"The amount of bytes at the end of the execution.\\n\\nThis is the amount of bytes which were not explicitly freed.\","]
-#[doc = "      \"type\": \"string\","]
-#[doc = "      \"const\": \"AtTEndBytes\""]
-#[doc = "    },"]
-#[doc = "    {"]
-#[doc = "      \"description\": \"The amount of blocks at the end of the execution.\\n\\nThis is the amount of heap blocks which were not explicitly freed.\","]
-#[doc = "      \"type\": \"string\","]
-#[doc = "      \"const\": \"AtTEndBlocks\""]
-#[doc = "    },"]
-#[doc = "    {"]
-#[doc = "      \"description\": \"The amount of bytes read during the entire execution\","]
-#[doc = "      \"type\": \"string\","]
-#[doc = "      \"const\": \"ReadsBytes\""]
-#[doc = "    },"]
-#[doc = "    {"]
-#[doc = "      \"description\": \"The amount of bytes written during the entire execution\","]
-#[doc = "      \"type\": \"string\","]
-#[doc = "      \"const\": \"WritesBytes\""]
-#[doc = "    },"]
-#[doc = "    {"]
-#[doc = "      \"description\": \"The total lifetimes of all heap blocks allocated\","]
-#[doc = "      \"type\": \"string\","]
-#[doc = "      \"const\": \"TotalLifetimes\""]
-#[doc = "    },"]
-#[doc = "    {"]
-#[doc = "      \"description\": \"The maximum amount of bytes\","]
-#[doc = "      \"type\": \"string\","]
-#[doc = "      \"const\": \"MaximumBytes\""]
-#[doc = "    },"]
-#[doc = "    {"]
-#[doc = "      \"description\": \"The maximum amount of heap blocks\","]
-#[doc = "      \"type\": \"string\","]
-#[doc = "      \"const\": \"MaximumBlocks\""]
-#[doc = "    }"]
-#[doc = "  ]"]
-#[doc = "}"]
-#[doc = r" ```"]
-#[doc = r" </details>"]
+///The metrics collected by DHAT
+///
+/// <details><summary>JSON schema</summary>
+///
+/// ```json
+/// {
+///  "description": "The metrics collected by DHAT",
+///  "oneOf": [
+///    {
+///      "description": "In ad-hoc mode, Total units measured over the entire execution",
+///      "type": "string",
+///      "const": "TotalUnits"
+///    },
+///    {
+///      "description": "Total ad-hoc events over the entire execution",
+///      "type": "string",
+///      "const": "TotalEvents"
+///    },
+///    {
+///      "description": "Total bytes allocated over the entire execution",
+///      "type": "string",
+///      "const": "TotalBytes"
+///    },
+///    {
+///      "description": "Total heap blocks allocated over the entire execution",
+///      "type": "string",
+///      "const": "TotalBlocks"
+///    },
+///    {
+///      "description": "The bytes alive at t-gmax, the time when the heap size reached its
+/// global maximum",
+///      "type": "string",
+///      "const": "AtTGmaxBytes"
+///    },
+///    {
+///      "description": "The blocks alive at t-gmax",
+///      "type": "string",
+///      "const": "AtTGmaxBlocks"
+///    },
+///    {
+///      "description": "The amount of bytes at the end of the execution.\n\nThis is the amount
+/// of bytes which were not explicitly freed.",
+///      "type": "string",
+///      "const": "AtTEndBytes"
+///    },
+///    {
+///      "description": "The amount of blocks at the end of the execution.\n\nThis is the
+/// amount of heap blocks which were not explicitly freed.",
+///      "type": "string",
+///      "const": "AtTEndBlocks"
+///    },
+///    {
+///      "description": "The amount of bytes read during the entire execution",
+///      "type": "string",
+///      "const": "ReadsBytes"
+///    },
+///    {
+///      "description": "The amount of bytes written during the entire execution",
+///      "type": "string",
+///      "const": "WritesBytes"
+///    },
+///    {
+///      "description": "The total lifetimes of all heap blocks allocated",
+///      "type": "string",
+///      "const": "TotalLifetimes"
+///    },
+///    {
+///      "description": "The maximum amount of bytes",
+///      "type": "string",
+///      "const": "MaximumBytes"
+///    },
+///    {
+///      "description": "The maximum amount of heap blocks",
+///      "type": "string",
+///      "const": "MaximumBlocks"
+///    }
+///  ]
+/// }
+/// ```
+/// </details>
 #[derive(
     :: serde :: Deserialize,
     :: serde :: Serialize,
@@ -668,31 +693,35 @@ impl ::std::convert::TryFrom<::std::string::String> for CachegrindMetric {
     PartialOrd,
 )]
 pub enum DhatMetric {
-    #[doc = "In ad-hoc mode, Total units measured over the entire execution"]
+    ///In ad-hoc mode, Total units measured over the entire execution
     TotalUnits,
-    #[doc = "Total ad-hoc events over the entire execution"]
+    ///Total ad-hoc events over the entire execution
     TotalEvents,
-    #[doc = "Total bytes allocated over the entire execution"]
+    ///Total bytes allocated over the entire execution
     TotalBytes,
-    #[doc = "Total heap blocks allocated over the entire execution"]
+    ///Total heap blocks allocated over the entire execution
     TotalBlocks,
-    #[doc = "The bytes alive at t-gmax, the time when the heap size reached its global maximum"]
+    ///The bytes alive at t-gmax, the time when the heap size reached its global maximum
     AtTGmaxBytes,
-    #[doc = "The blocks alive at t-gmax"]
+    ///The blocks alive at t-gmax
     AtTGmaxBlocks,
-    #[doc = "The amount of bytes at the end of the execution.\n\nThis is the amount of bytes which were not explicitly freed."]
+    ///The amount of bytes at the end of the execution.
+    ///
+    ///This is the amount of bytes which were not explicitly freed.
     AtTEndBytes,
-    #[doc = "The amount of blocks at the end of the execution.\n\nThis is the amount of heap blocks which were not explicitly freed."]
+    ///The amount of blocks at the end of the execution.
+    ///
+    ///This is the amount of heap blocks which were not explicitly freed.
     AtTEndBlocks,
-    #[doc = "The amount of bytes read during the entire execution"]
+    ///The amount of bytes read during the entire execution
     ReadsBytes,
-    #[doc = "The amount of bytes written during the entire execution"]
+    ///The amount of bytes written during the entire execution
     WritesBytes,
-    #[doc = "The total lifetimes of all heap blocks allocated"]
+    ///The total lifetimes of all heap blocks allocated
     TotalLifetimes,
-    #[doc = "The maximum amount of bytes"]
+    ///The maximum amount of bytes
     MaximumBytes,
-    #[doc = "The maximum amount of heap blocks"]
+    ///The maximum amount of heap blocks
     MaximumBlocks,
 }
 impl ::std::convert::From<&Self> for DhatMetric {
@@ -762,36 +791,40 @@ impl ::std::convert::TryFrom<::std::string::String> for DhatMetric {
         value.parse()
     }
 }
-#[doc = "The differences between two `Metrics` as percentage and factor"]
-#[doc = r""]
-#[doc = r" <details><summary>JSON schema</summary>"]
-#[doc = r""]
-#[doc = r" ```json"]
-#[doc = "{"]
-#[doc = "  \"description\": \"The differences between two `Metrics` as percentage and factor\","]
-#[doc = "  \"type\": \"object\","]
-#[doc = "  \"required\": ["]
-#[doc = "    \"diff_pct\","]
-#[doc = "    \"factor\""]
-#[doc = "  ],"]
-#[doc = "  \"properties\": {"]
-#[doc = "    \"diff_pct\": {"]
-#[doc = "      \"description\": \"The percentage of the difference between two `Metrics` serialized as string to preserve\\ninfinity values and avoid `null` in json\","]
-#[doc = "      \"type\": \"string\""]
-#[doc = "    },"]
-#[doc = "    \"factor\": {"]
-#[doc = "      \"description\": \"The factor of the difference between two `Metrics` serialized as string to preserve\\ninfinity values and void `null` in json\","]
-#[doc = "      \"type\": \"string\""]
-#[doc = "    }"]
-#[doc = "  }"]
-#[doc = "}"]
-#[doc = r" ```"]
-#[doc = r" </details>"]
+///The differences between two `Metrics` as percentage and factor
+///
+/// <details><summary>JSON schema</summary>
+///
+/// ```json
+/// {
+///  "description": "The differences between two `Metrics` as percentage and factor",
+///  "type": "object",
+///  "required": [
+///    "diff_pct",
+///    "factor"
+///  ],
+///  "properties": {
+///    "diff_pct": {
+///      "description": "The percentage of the difference between two `Metrics` serialized as
+/// string to preserve\ninfinity values and avoid `null` in json",
+///      "type": "string"
+///    },
+///    "factor": {
+///      "description": "The factor of the difference between two `Metrics` serialized as
+/// string to preserve\ninfinity values and void `null` in json",
+///      "type": "string"
+///    }
+///  }
+/// }
+/// ```
+/// </details>
 #[derive(:: serde :: Deserialize, :: serde :: Serialize, Clone, Debug)]
 pub struct Diffs {
-    #[doc = "The percentage of the difference between two `Metrics` serialized as string to preserve\ninfinity values and avoid `null` in json"]
+    ///The percentage of the difference between two `Metrics` serialized as string to preserve
+    ///infinity values and avoid `null` in json
     pub diff_pct: ::std::string::String,
-    #[doc = "The factor of the difference between two `Metrics` serialized as string to preserve\ninfinity values and void `null` in json"]
+    ///The factor of the difference between two `Metrics` serialized as string to preserve
+    ///infinity values and void `null` in json
     pub factor: ::std::string::String,
 }
 impl ::std::convert::From<&Diffs> for Diffs {
@@ -804,74 +837,75 @@ impl Diffs {
         Default::default()
     }
 }
-#[doc = "Represent values that have either a `Left` or `Right` value or `Both` values"]
-#[doc = r""]
-#[doc = r" <details><summary>JSON schema</summary>"]
-#[doc = r""]
-#[doc = r" ```json"]
-#[doc = "{"]
-#[doc = "  \"description\": \"Represent values that have either a `Left` or `Right` value or `Both` values\","]
-#[doc = "  \"oneOf\": ["]
-#[doc = "    {"]
-#[doc = "      \"description\": \"Represents a value from both sides\","]
-#[doc = "      \"type\": \"object\","]
-#[doc = "      \"required\": ["]
-#[doc = "        \"Both\""]
-#[doc = "      ],"]
-#[doc = "      \"properties\": {"]
-#[doc = "        \"Both\": {"]
-#[doc = "          \"type\": \"array\","]
-#[doc = "          \"items\": ["]
-#[doc = "            {"]
-#[doc = "              \"$ref\": \"#/definitions/ProfileInfo\""]
-#[doc = "            },"]
-#[doc = "            {"]
-#[doc = "              \"$ref\": \"#/definitions/ProfileInfo\""]
-#[doc = "            }"]
-#[doc = "          ],"]
-#[doc = "          \"maxItems\": 2,"]
-#[doc = "          \"minItems\": 2"]
-#[doc = "        }"]
-#[doc = "      },"]
-#[doc = "      \"additionalProperties\": false"]
-#[doc = "    },"]
-#[doc = "    {"]
-#[doc = "      \"description\": \"Represents a value from the left side\","]
-#[doc = "      \"type\": \"object\","]
-#[doc = "      \"required\": ["]
-#[doc = "        \"Left\""]
-#[doc = "      ],"]
-#[doc = "      \"properties\": {"]
-#[doc = "        \"Left\": {"]
-#[doc = "          \"$ref\": \"#/definitions/ProfileInfo\""]
-#[doc = "        }"]
-#[doc = "      },"]
-#[doc = "      \"additionalProperties\": false"]
-#[doc = "    },"]
-#[doc = "    {"]
-#[doc = "      \"description\": \"Represents a value from the right side\","]
-#[doc = "      \"type\": \"object\","]
-#[doc = "      \"required\": ["]
-#[doc = "        \"Right\""]
-#[doc = "      ],"]
-#[doc = "      \"properties\": {"]
-#[doc = "        \"Right\": {"]
-#[doc = "          \"$ref\": \"#/definitions/ProfileInfo\""]
-#[doc = "        }"]
-#[doc = "      },"]
-#[doc = "      \"additionalProperties\": false"]
-#[doc = "    }"]
-#[doc = "  ]"]
-#[doc = "}"]
-#[doc = r" ```"]
-#[doc = r" </details>"]
+///Represent values that have either a `Left` or `Right` value or `Both` values
+///
+/// <details><summary>JSON schema</summary>
+///
+/// ```json
+/// {
+///  "description": "Represent values that have either a `Left` or `Right` value or `Both`
+/// values",
+///  "oneOf": [
+///    {
+///      "description": "Represents a value from both sides",
+///      "type": "object",
+///      "required": [
+///        "Both"
+///      ],
+///      "properties": {
+///        "Both": {
+///          "type": "array",
+///          "items": [
+///            {
+///              "$ref": "#/definitions/ProfileInfo"
+///            },
+///            {
+///              "$ref": "#/definitions/ProfileInfo"
+///            }
+///          ],
+///          "maxItems": 2,
+///          "minItems": 2
+///        }
+///      },
+///      "additionalProperties": false
+///    },
+///    {
+///      "description": "Represents a value from the left side",
+///      "type": "object",
+///      "required": [
+///        "Left"
+///      ],
+///      "properties": {
+///        "Left": {
+///          "$ref": "#/definitions/ProfileInfo"
+///        }
+///      },
+///      "additionalProperties": false
+///    },
+///    {
+///      "description": "Represents a value from the right side",
+///      "type": "object",
+///      "required": [
+///        "Right"
+///      ],
+///      "properties": {
+///        "Right": {
+///          "$ref": "#/definitions/ProfileInfo"
+///        }
+///      },
+///      "additionalProperties": false
+///    }
+///  ]
+/// }
+/// ```
+/// </details>
 #[derive(:: serde :: Deserialize, :: serde :: Serialize, Clone, Debug)]
 pub enum EitherOrBoth {
-    #[doc = "Represents a value from both sides"]
+    ///Represents a value from both sides
     Both(ProfileInfo, ProfileInfo),
-    #[doc = "Represents a value from the left side"]
+    ///Represents a value from the left side
     Left(ProfileInfo),
-    #[doc = "Represents a value from the right side"]
+    ///Represents a value from the right side
     Right(ProfileInfo),
 }
 impl ::std::convert::From<&Self> for EitherOrBoth {
@@ -884,74 +918,75 @@ impl ::std::convert::From<(ProfileInfo, ProfileInfo)> for EitherOrBoth {
         Self::Both(value.0, value.1)
     }
 }
-#[doc = "Represent values that have either a `Left` or `Right` value or `Both` values"]
-#[doc = r""]
-#[doc = r" <details><summary>JSON schema</summary>"]
-#[doc = r""]
-#[doc = r" ```json"]
-#[doc = "{"]
-#[doc = "  \"description\": \"Represent values that have either a `Left` or `Right` value or `Both` values\","]
-#[doc = "  \"oneOf\": ["]
-#[doc = "    {"]
-#[doc = "      \"description\": \"Represents a value from both sides\","]
-#[doc = "      \"type\": \"object\","]
-#[doc = "      \"required\": ["]
-#[doc = "        \"Both\""]
-#[doc = "      ],"]
-#[doc = "      \"properties\": {"]
-#[doc = "        \"Both\": {"]
-#[doc = "          \"type\": \"array\","]
-#[doc = "          \"items\": ["]
-#[doc = "            {"]
-#[doc = "              \"$ref\": \"#/definitions/Metric\""]
-#[doc = "            },"]
-#[doc = "            {"]
-#[doc = "              \"$ref\": \"#/definitions/Metric\""]
-#[doc = "            }"]
-#[doc = "          ],"]
-#[doc = "          \"maxItems\": 2,"]
-#[doc = "          \"minItems\": 2"]
-#[doc = "        }"]
-#[doc = "      },"]
-#[doc = "      \"additionalProperties\": false"]
-#[doc = "    },"]
-#[doc = "    {"]
-#[doc = "      \"description\": \"Represents a value from the left side\","]
-#[doc = "      \"type\": \"object\","]
-#[doc = "      \"required\": ["]
-#[doc = "        \"Left\""]
-#[doc = "      ],"]
-#[doc = "      \"properties\": {"]
-#[doc = "        \"Left\": {"]
-#[doc = "          \"$ref\": \"#/definitions/Metric\""]
-#[doc = "        }"]
-#[doc = "      },"]
-#[doc = "      \"additionalProperties\": false"]
-#[doc = "    },"]
-#[doc = "    {"]
-#[doc = "      \"description\": \"Represents a value from the right side\","]
-#[doc = "      \"type\": \"object\","]
-#[doc = "      \"required\": ["]
-#[doc = "        \"Right\""]
-#[doc = "      ],"]
-#[doc = "      \"properties\": {"]
-#[doc = "        \"Right\": {"]
-#[doc = "          \"$ref\": \"#/definitions/Metric\""]
-#[doc = "        }"]
-#[doc = "      },"]
-#[doc = "      \"additionalProperties\": false"]
-#[doc = "    }"]
-#[doc = "  ]"]
-#[doc = "}"]
-#[doc = r" ```"]
-#[doc = r" </details>"]
+///Represent values that have either a `Left` or `Right` value or `Both` values
+///
+/// <details><summary>JSON schema</summary>
+///
+/// ```json
+/// {
+///  "description": "Represent values that have either a `Left` or `Right` value or `Both`
+/// values",
+///  "oneOf": [
+///    {
+///      "description": "Represents a value from both sides",
+///      "type": "object",
+///      "required": [
+///        "Both"
+///      ],
+///      "properties": {
+///        "Both": {
+///          "type": "array",
+///          "items": [
+///            {
+///              "$ref": "#/definitions/Metric"
+///            },
+///            {
+///              "$ref": "#/definitions/Metric"
+///            }
+///          ],
+///          "maxItems": 2,
+///          "minItems": 2
+///        }
+///      },
+///      "additionalProperties": false
+///    },
+///    {
+///      "description": "Represents a value from the left side",
+///      "type": "object",
+///      "required": [
+///        "Left"
+///      ],
+///      "properties": {
+///        "Left": {
+///          "$ref": "#/definitions/Metric"
+///        }
+///      },
+///      "additionalProperties": false
+///    },
+///    {
+///      "description": "Represents a value from the right side",
+///      "type": "object",
+///      "required": [
+///        "Right"
+///      ],
+///      "properties": {
+///        "Right": {
+///          "$ref": "#/definitions/Metric"
+///        }
+///      },
+///      "additionalProperties": false
+///    }
+///  ]
+/// }
+/// ```
+/// </details>
 #[derive(:: serde :: Deserialize, :: serde :: Serialize, Clone, Debug)]
 pub enum EitherOrBoth2 {
-    #[doc = "Represents a value from both sides"]
+    ///Represents a value from both sides
     Both(Metric, Metric),
-    #[doc = "Represents a value from the left side"]
+    ///Represents a value from the left side
     Left(Metric),
-    #[doc = "Represents a value from the right side"]
+    ///Represents a value from the right side
     Right(Metric),
 }
 impl ::std::convert::From<&Self> for EitherOrBoth2 {
@@ -964,38 +999,45 @@ impl ::std::convert::From<(Metric, Metric)> for EitherOrBoth2 {
         Self::Both(value.0, value.1)
     }
 }
-#[doc = "The error metrics from a tool which reports errors\n\nThe tools which report only errors are `helgrind`, `drd` and `memcheck`. The order in which the\nvariants are defined in this enum determines the order of the metrics in the benchmark terminal\noutput."]
-#[doc = r""]
-#[doc = r" <details><summary>JSON schema</summary>"]
-#[doc = r""]
-#[doc = r" ```json"]
-#[doc = "{"]
-#[doc = "  \"description\": \"The error metrics from a tool which reports errors\\n\\nThe tools which report only errors are `helgrind`, `drd` and `memcheck`. The order in which the\\nvariants are defined in this enum determines the order of the metrics in the benchmark terminal\\noutput.\","]
-#[doc = "  \"oneOf\": ["]
-#[doc = "    {"]
-#[doc = "      \"description\": \"The amount of detected unsuppressed errors\","]
-#[doc = "      \"type\": \"string\","]
-#[doc = "      \"const\": \"Errors\""]
-#[doc = "    },"]
-#[doc = "    {"]
-#[doc = "      \"description\": \"The amount of detected unsuppressed error contexts\","]
-#[doc = "      \"type\": \"string\","]
-#[doc = "      \"const\": \"Contexts\""]
-#[doc = "    },"]
-#[doc = "    {"]
-#[doc = "      \"description\": \"The amount of suppressed errors\","]
-#[doc = "      \"type\": \"string\","]
-#[doc = "      \"const\": \"SuppressedErrors\""]
-#[doc = "    },"]
-#[doc = "    {"]
-#[doc = "      \"description\": \"The amount of suppressed error contexts\","]
-#[doc = "      \"type\": \"string\","]
-#[doc = "      \"const\": \"SuppressedContexts\""]
-#[doc = "    }"]
-#[doc = "  ]"]
-#[doc = "}"]
-#[doc = r" ```"]
-#[doc = r" </details>"]
+///The error metrics from a tool which reports errors
+///
+///The tools which report only errors are `helgrind`, `drd` and `memcheck`. The order in which
+/// the variants are defined in this enum determines the order of the metrics in the benchmark
+/// terminal output.
+///
+/// <details><summary>JSON schema</summary>
+///
+/// ```json
+/// {
+///  "description": "The error metrics from a tool which reports errors\n\nThe tools which
+/// report only errors are `helgrind`, `drd` and `memcheck`. The order in which the\nvariants
+/// are defined in this enum determines the order of the metrics in the benchmark
+/// terminal\noutput.",
+///  "oneOf": [
+///    {
+///      "description": "The amount of detected unsuppressed errors",
+///      "type": "string",
+///      "const": "Errors"
+///    },
+///    {
+///      "description": "The amount of detected unsuppressed error contexts",
+///      "type": "string",
+///      "const": "Contexts"
+///    },
+///    {
+///      "description": "The amount of suppressed errors",
+///      "type": "string",
+///      "const": "SuppressedErrors"
+///    },
+///    {
+///      "description": "The amount of suppressed error contexts",
+///      "type": "string",
+///      "const": "SuppressedContexts"
+///    }
+///  ]
+/// }
+/// ```
+/// </details>
 #[derive(
     :: serde :: Deserialize,
     :: serde :: Serialize,
@@ -1009,13 +1051,13 @@ impl ::std::convert::From<(Metric, Metric)> for EitherOrBoth2 {
     PartialOrd,
 )]
 pub enum ErrorMetric {
-    #[doc = "The amount of detected unsuppressed errors"]
+    ///The amount of detected unsuppressed errors
     Errors,
-    #[doc = "The amount of detected unsuppressed error contexts"]
+    ///The amount of detected unsuppressed error contexts
     Contexts,
-    #[doc = "The amount of suppressed errors"]
+    ///The amount of suppressed errors
     SuppressedErrors,
-    #[doc = "The amount of suppressed error contexts"]
+    ///The amount of suppressed error contexts
     SuppressedContexts,
 }
 impl ::std::convert::From<&Self> for ErrorMetric {
@@ -1067,203 +1109,211 @@ impl ::std::convert::TryFrom<::std::string::String> for ErrorMetric {
         value.parse()
     }
 }
-#[doc = "All `EventKind`s callgrind produces and additionally some derived events\n\nDepending on the options passed to Callgrind, these are the events that Callgrind can produce.\nSee the [Callgrind\ndocumentation](https://valgrind.org/docs/manual/cl-manual.html#cl-manual.options) for details."]
-#[doc = r""]
-#[doc = r" <details><summary>JSON schema</summary>"]
-#[doc = r""]
-#[doc = r" ```json"]
-#[doc = "{"]
-#[doc = "  \"description\": \"All `EventKind`s callgrind produces and additionally some derived events\\n\\nDepending on the options passed to Callgrind, these are the events that Callgrind can produce.\\nSee the [Callgrind\\ndocumentation](https://valgrind.org/docs/manual/cl-manual.html#cl-manual.options) for details.\","]
-#[doc = "  \"oneOf\": ["]
-#[doc = "    {"]
-#[doc = "      \"description\": \"The default event. I cache reads (which equals the number of instructions executed)\","]
-#[doc = "      \"type\": \"string\","]
-#[doc = "      \"const\": \"Ir\""]
-#[doc = "    },"]
-#[doc = "    {"]
-#[doc = "      \"description\": \"D Cache reads (which equals the number of memory reads) (--cache-sim=yes)\","]
-#[doc = "      \"type\": \"string\","]
-#[doc = "      \"const\": \"Dr\""]
-#[doc = "    },"]
-#[doc = "    {"]
-#[doc = "      \"description\": \"D Cache writes (which equals the number of memory writes) (--cache-sim=yes)\","]
-#[doc = "      \"type\": \"string\","]
-#[doc = "      \"const\": \"Dw\""]
-#[doc = "    },"]
-#[doc = "    {"]
-#[doc = "      \"description\": \"I1 cache read misses (--cache-sim=yes)\","]
-#[doc = "      \"type\": \"string\","]
-#[doc = "      \"const\": \"I1mr\""]
-#[doc = "    },"]
-#[doc = "    {"]
-#[doc = "      \"description\": \"D1 cache read misses (--cache-sim=yes)\","]
-#[doc = "      \"type\": \"string\","]
-#[doc = "      \"const\": \"D1mr\""]
-#[doc = "    },"]
-#[doc = "    {"]
-#[doc = "      \"description\": \"D1 cache write misses (--cache-sim=yes)\","]
-#[doc = "      \"type\": \"string\","]
-#[doc = "      \"const\": \"D1mw\""]
-#[doc = "    },"]
-#[doc = "    {"]
-#[doc = "      \"description\": \"LL cache instruction read misses (--cache-sim=yes)\","]
-#[doc = "      \"type\": \"string\","]
-#[doc = "      \"const\": \"ILmr\""]
-#[doc = "    },"]
-#[doc = "    {"]
-#[doc = "      \"description\": \"LL cache data read misses (--cache-sim=yes)\","]
-#[doc = "      \"type\": \"string\","]
-#[doc = "      \"const\": \"DLmr\""]
-#[doc = "    },"]
-#[doc = "    {"]
-#[doc = "      \"description\": \"LL cache data write misses (--cache-sim=yes)\","]
-#[doc = "      \"type\": \"string\","]
-#[doc = "      \"const\": \"DLmw\""]
-#[doc = "    },"]
-#[doc = "    {"]
-#[doc = "      \"description\": \"I1 cache miss rate (--cache-sim=yes)\","]
-#[doc = "      \"type\": \"string\","]
-#[doc = "      \"const\": \"I1MissRate\""]
-#[doc = "    },"]
-#[doc = "    {"]
-#[doc = "      \"description\": \"LL/L2 instructions cache miss rate (--cache-sim=yes)\","]
-#[doc = "      \"type\": \"string\","]
-#[doc = "      \"const\": \"LLiMissRate\""]
-#[doc = "    },"]
-#[doc = "    {"]
-#[doc = "      \"description\": \"D1 cache miss rate (--cache-sim=yes)\","]
-#[doc = "      \"type\": \"string\","]
-#[doc = "      \"const\": \"D1MissRate\""]
-#[doc = "    },"]
-#[doc = "    {"]
-#[doc = "      \"description\": \"LL/L2 data cache miss rate (--cache-sim=yes)\","]
-#[doc = "      \"type\": \"string\","]
-#[doc = "      \"const\": \"LLdMissRate\""]
-#[doc = "    },"]
-#[doc = "    {"]
-#[doc = "      \"description\": \"LL/L2 cache miss rate (--cache-sim=yes)\","]
-#[doc = "      \"type\": \"string\","]
-#[doc = "      \"const\": \"LLMissRate\""]
-#[doc = "    },"]
-#[doc = "    {"]
-#[doc = "      \"description\": \"Derived event showing the L1 hits (--cache-sim=yes)\","]
-#[doc = "      \"type\": \"string\","]
-#[doc = "      \"const\": \"L1hits\""]
-#[doc = "    },"]
-#[doc = "    {"]
-#[doc = "      \"description\": \"Derived event showing the LL hits (--cache-sim=yes)\","]
-#[doc = "      \"type\": \"string\","]
-#[doc = "      \"const\": \"LLhits\""]
-#[doc = "    },"]
-#[doc = "    {"]
-#[doc = "      \"description\": \"Derived event showing the RAM hits (--cache-sim=yes)\","]
-#[doc = "      \"type\": \"string\","]
-#[doc = "      \"const\": \"RamHits\""]
-#[doc = "    },"]
-#[doc = "    {"]
-#[doc = "      \"description\": \"L1 cache hit rate (--cache-sim=yes)\","]
-#[doc = "      \"type\": \"string\","]
-#[doc = "      \"const\": \"L1HitRate\""]
-#[doc = "    },"]
-#[doc = "    {"]
-#[doc = "      \"description\": \"LL/L2 cache hit rate (--cache-sim=yes)\","]
-#[doc = "      \"type\": \"string\","]
-#[doc = "      \"const\": \"LLHitRate\""]
-#[doc = "    },"]
-#[doc = "    {"]
-#[doc = "      \"description\": \"RAM hit rate (--cache-sim=yes)\","]
-#[doc = "      \"type\": \"string\","]
-#[doc = "      \"const\": \"RamHitRate\""]
-#[doc = "    },"]
-#[doc = "    {"]
-#[doc = "      \"description\": \"Derived event showing the total amount of cache reads and writes (--cache-sim=yes)\","]
-#[doc = "      \"type\": \"string\","]
-#[doc = "      \"const\": \"TotalRW\""]
-#[doc = "    },"]
-#[doc = "    {"]
-#[doc = "      \"description\": \"Derived event showing estimated CPU cycles (--cache-sim=yes)\","]
-#[doc = "      \"type\": \"string\","]
-#[doc = "      \"const\": \"EstimatedCycles\""]
-#[doc = "    },"]
-#[doc = "    {"]
-#[doc = "      \"description\": \"The number of system calls done (--collect-systime=yes)\","]
-#[doc = "      \"type\": \"string\","]
-#[doc = "      \"const\": \"SysCount\""]
-#[doc = "    },"]
-#[doc = "    {"]
-#[doc = "      \"description\": \"The elapsed time spent in system calls (--collect-systime=yes)\","]
-#[doc = "      \"type\": \"string\","]
-#[doc = "      \"const\": \"SysTime\""]
-#[doc = "    },"]
-#[doc = "    {"]
-#[doc = "      \"description\": \"The cpu time spent during system calls (--collect-systime=nsec)\","]
-#[doc = "      \"type\": \"string\","]
-#[doc = "      \"const\": \"SysCpuTime\""]
-#[doc = "    },"]
-#[doc = "    {"]
-#[doc = "      \"description\": \"The number of global bus events (--collect-bus=yes)\","]
-#[doc = "      \"type\": \"string\","]
-#[doc = "      \"const\": \"Ge\""]
-#[doc = "    },"]
-#[doc = "    {"]
-#[doc = "      \"description\": \"Conditional branches executed (--branch-sim=yes)\","]
-#[doc = "      \"type\": \"string\","]
-#[doc = "      \"const\": \"Bc\""]
-#[doc = "    },"]
-#[doc = "    {"]
-#[doc = "      \"description\": \"Conditional branches mispredicted (--branch-sim=yes)\","]
-#[doc = "      \"type\": \"string\","]
-#[doc = "      \"const\": \"Bcm\""]
-#[doc = "    },"]
-#[doc = "    {"]
-#[doc = "      \"description\": \"Indirect branches executed (--branch-sim=yes)\","]
-#[doc = "      \"type\": \"string\","]
-#[doc = "      \"const\": \"Bi\""]
-#[doc = "    },"]
-#[doc = "    {"]
-#[doc = "      \"description\": \"Indirect branches mispredicted (--branch-sim=yes)\","]
-#[doc = "      \"type\": \"string\","]
-#[doc = "      \"const\": \"Bim\""]
-#[doc = "    },"]
-#[doc = "    {"]
-#[doc = "      \"description\": \"Dirty miss because of instruction read (--simulate-wb=yes)\","]
-#[doc = "      \"type\": \"string\","]
-#[doc = "      \"const\": \"ILdmr\""]
-#[doc = "    },"]
-#[doc = "    {"]
-#[doc = "      \"description\": \"Dirty miss because of data read (--simulate-wb=yes)\","]
-#[doc = "      \"type\": \"string\","]
-#[doc = "      \"const\": \"DLdmr\""]
-#[doc = "    },"]
-#[doc = "    {"]
-#[doc = "      \"description\": \"Dirty miss because of data write (--simulate-wb=yes)\","]
-#[doc = "      \"type\": \"string\","]
-#[doc = "      \"const\": \"DLdmw\""]
-#[doc = "    },"]
-#[doc = "    {"]
-#[doc = "      \"description\": \"Counter showing bad temporal locality for L1 caches (--cachuse=yes)\","]
-#[doc = "      \"type\": \"string\","]
-#[doc = "      \"const\": \"AcCost1\""]
-#[doc = "    },"]
-#[doc = "    {"]
-#[doc = "      \"description\": \"Counter showing bad temporal locality for LL caches (--cachuse=yes)\","]
-#[doc = "      \"type\": \"string\","]
-#[doc = "      \"const\": \"AcCost2\""]
-#[doc = "    },"]
-#[doc = "    {"]
-#[doc = "      \"description\": \"Counter showing bad spatial locality for L1 caches (--cachuse=yes)\","]
-#[doc = "      \"type\": \"string\","]
-#[doc = "      \"const\": \"SpLoss1\""]
-#[doc = "    },"]
-#[doc = "    {"]
-#[doc = "      \"description\": \"Counter showing bad spatial locality for LL caches (--cachuse=yes)\","]
-#[doc = "      \"type\": \"string\","]
-#[doc = "      \"const\": \"SpLoss2\""]
-#[doc = "    }"]
-#[doc = "  ]"]
-#[doc = "}"]
-#[doc = r" ```"]
-#[doc = r" </details>"]
+///All `EventKind`s callgrind produces and additionally some derived events
+///
+///Depending on the options passed to Callgrind, these are the events that Callgrind can
+/// produce. See the [Callgrind
+///documentation](https://valgrind.org/docs/manual/cl-manual.html#cl-manual.options) for details.
+///
+/// <details><summary>JSON schema</summary>
+///
+/// ```json
+/// {
+///  "description": "All `EventKind`s callgrind produces and additionally some derived events\n\nDepending on the options passed to Callgrind, these are the events that Callgrind can produce.\nSee the [Callgrind\ndocumentation](https://valgrind.org/docs/manual/cl-manual.html#cl-manual.options) for details.",
+///  "oneOf": [
+///    {
+///      "description": "The default event. I cache reads (which equals the number of
+/// instructions executed)",
+///      "type": "string",
+///      "const": "Ir"
+///    },
+///    {
+///      "description": "D Cache reads (which equals the number of memory reads)
+/// (--cache-sim=yes)",
+///      "type": "string",
+///      "const": "Dr"
+///    },
+///    {
+///      "description": "D Cache writes (which equals the number of memory writes)
+/// (--cache-sim=yes)",
+///      "type": "string",
+///      "const": "Dw"
+///    },
+///    {
+///      "description": "I1 cache read misses (--cache-sim=yes)",
+///      "type": "string",
+///      "const": "I1mr"
+///    },
+///    {
+///      "description": "D1 cache read misses (--cache-sim=yes)",
+///      "type": "string",
+///      "const": "D1mr"
+///    },
+///    {
+///      "description": "D1 cache write misses (--cache-sim=yes)",
+///      "type": "string",
+///      "const": "D1mw"
+///    },
+///    {
+///      "description": "LL cache instruction read misses (--cache-sim=yes)",
+///      "type": "string",
+///      "const": "ILmr"
+///    },
+///    {
+///      "description": "LL cache data read misses (--cache-sim=yes)",
+///      "type": "string",
+///      "const": "DLmr"
+///    },
+///    {
+///      "description": "LL cache data write misses (--cache-sim=yes)",
+///      "type": "string",
+///      "const": "DLmw"
+///    },
+///    {
+///      "description": "I1 cache miss rate (--cache-sim=yes)",
+///      "type": "string",
+///      "const": "I1MissRate"
+///    },
+///    {
+///      "description": "LL/L2 instructions cache miss rate (--cache-sim=yes)",
+///      "type": "string",
+///      "const": "LLiMissRate"
+///    },
+///    {
+///      "description": "D1 cache miss rate (--cache-sim=yes)",
+///      "type": "string",
+///      "const": "D1MissRate"
+///    },
+///    {
+///      "description": "LL/L2 data cache miss rate (--cache-sim=yes)",
+///      "type": "string",
+///      "const": "LLdMissRate"
+///    },
+///    {
+///      "description": "LL/L2 cache miss rate (--cache-sim=yes)",
+///      "type": "string",
+///      "const": "LLMissRate"
+///    },
+///    {
+///      "description": "Derived event showing the L1 hits (--cache-sim=yes)",
+///      "type": "string",
+///      "const": "L1hits"
+///    },
+///    {
+///      "description": "Derived event showing the LL hits (--cache-sim=yes)",
+///      "type": "string",
+///      "const": "LLhits"
+///    },
+///    {
+///      "description": "Derived event showing the RAM hits (--cache-sim=yes)",
+///      "type": "string",
+///      "const": "RamHits"
+///    },
+///    {
+///      "description": "L1 cache hit rate (--cache-sim=yes)",
+///      "type": "string",
+///      "const": "L1HitRate"
+///    },
+///    {
+///      "description": "LL/L2 cache hit rate (--cache-sim=yes)",
+///      "type": "string",
+///      "const": "LLHitRate"
+///    },
+///    {
+///      "description": "RAM hit rate (--cache-sim=yes)",
+///      "type": "string",
+///      "const": "RamHitRate"
+///    },
+///    {
+///      "description": "Derived event showing the total amount of cache reads and writes
+/// (--cache-sim=yes)",
+///      "type": "string",
+///      "const": "TotalRW"
+///    },
+///    {
+///      "description": "Derived event showing estimated CPU cycles (--cache-sim=yes)",
+///      "type": "string",
+///      "const": "EstimatedCycles"
+///    },
+///    {
+///      "description": "The number of system calls done (--collect-systime=yes)",
+///      "type": "string",
+///      "const": "SysCount"
+///    },
+///    {
+///      "description": "The elapsed time spent in system calls (--collect-systime=yes)",
+///      "type": "string",
+///      "const": "SysTime"
+///    },
+///    {
+///      "description": "The cpu time spent during system calls (--collect-systime=nsec)",
+///      "type": "string",
+///      "const": "SysCpuTime"
+///    },
+///    {
+///      "description": "The number of global bus events (--collect-bus=yes)",
+///      "type": "string",
+///      "const": "Ge"
+///    },
+///    {
+///      "description": "Conditional branches executed (--branch-sim=yes)",
+///      "type": "string",
+///      "const": "Bc"
+///    },
+///    {
+///      "description": "Conditional branches mispredicted (--branch-sim=yes)",
+///      "type": "string",
+///      "const": "Bcm"
+///    },
+///    {
+///      "description": "Indirect branches executed (--branch-sim=yes)",
+///      "type": "string",
+///      "const": "Bi"
+///    },
+///    {
+///      "description": "Indirect branches mispredicted (--branch-sim=yes)",
+///      "type": "string",
+///      "const": "Bim"
+///    },
+///    {
+///      "description": "Dirty miss because of instruction read (--simulate-wb=yes)",
+///      "type": "string",
+///      "const": "ILdmr"
+///    },
+///    {
+///      "description": "Dirty miss because of data read (--simulate-wb=yes)",
+///      "type": "string",
+///      "const": "DLdmr"
+///    },
+///    {
+///      "description": "Dirty miss because of data write (--simulate-wb=yes)",
+///      "type": "string",
+///      "const": "DLdmw"
+///    },
+///    {
+///      "description": "Counter showing bad temporal locality for L1 caches (--cachuse=yes)",
+///      "type": "string",
+///      "const": "AcCost1"
+///    },
+///    {
+///      "description": "Counter showing bad temporal locality for LL caches (--cachuse=yes)",
+///      "type": "string",
+///      "const": "AcCost2"
+///    },
+///    {
+///      "description": "Counter showing bad spatial locality for L1 caches (--cachuse=yes)",
+///      "type": "string",
+///      "const": "SpLoss1"
+///    },
+///    {
+///      "description": "Counter showing bad spatial locality for LL caches (--cachuse=yes)",
+///      "type": "string",
+///      "const": "SpLoss2"
+///    }
+///  ]
+/// }
+/// ```
+/// </details>
 #[derive(
     :: serde :: Deserialize,
     :: serde :: Serialize,
@@ -1277,82 +1327,82 @@ impl ::std::convert::TryFrom<::std::string::String> for ErrorMetric {
     PartialOrd,
 )]
 pub enum EventKind {
-    #[doc = "The default event. I cache reads (which equals the number of instructions executed)"]
+    ///The default event. I cache reads (which equals the number of instructions executed)
     Ir,
-    #[doc = "D Cache reads (which equals the number of memory reads) (--cache-sim=yes)"]
+    ///D Cache reads (which equals the number of memory reads) (--cache-sim=yes)
     Dr,
-    #[doc = "D Cache writes (which equals the number of memory writes) (--cache-sim=yes)"]
+    ///D Cache writes (which equals the number of memory writes) (--cache-sim=yes)
     Dw,
-    #[doc = "I1 cache read misses (--cache-sim=yes)"]
+    ///I1 cache read misses (--cache-sim=yes)
     I1mr,
-    #[doc = "D1 cache read misses (--cache-sim=yes)"]
+    ///D1 cache read misses (--cache-sim=yes)
     D1mr,
-    #[doc = "D1 cache write misses (--cache-sim=yes)"]
+    ///D1 cache write misses (--cache-sim=yes)
     D1mw,
-    #[doc = "LL cache instruction read misses (--cache-sim=yes)"]
+    ///LL cache instruction read misses (--cache-sim=yes)
     ILmr,
-    #[doc = "LL cache data read misses (--cache-sim=yes)"]
+    ///LL cache data read misses (--cache-sim=yes)
     DLmr,
-    #[doc = "LL cache data write misses (--cache-sim=yes)"]
+    ///LL cache data write misses (--cache-sim=yes)
     DLmw,
-    #[doc = "I1 cache miss rate (--cache-sim=yes)"]
+    ///I1 cache miss rate (--cache-sim=yes)
     I1MissRate,
-    #[doc = "LL/L2 instructions cache miss rate (--cache-sim=yes)"]
+    ///LL/L2 instructions cache miss rate (--cache-sim=yes)
     LLiMissRate,
-    #[doc = "D1 cache miss rate (--cache-sim=yes)"]
+    ///D1 cache miss rate (--cache-sim=yes)
     D1MissRate,
-    #[doc = "LL/L2 data cache miss rate (--cache-sim=yes)"]
+    ///LL/L2 data cache miss rate (--cache-sim=yes)
     LLdMissRate,
-    #[doc = "LL/L2 cache miss rate (--cache-sim=yes)"]
+    ///LL/L2 cache miss rate (--cache-sim=yes)
     #[serde(rename = "LLMissRate")]
     LlMissRate,
-    #[doc = "Derived event showing the L1 hits (--cache-sim=yes)"]
+    ///Derived event showing the L1 hits (--cache-sim=yes)
     L1hits,
-    #[doc = "Derived event showing the LL hits (--cache-sim=yes)"]
+    ///Derived event showing the LL hits (--cache-sim=yes)
     LLhits,
-    #[doc = "Derived event showing the RAM hits (--cache-sim=yes)"]
+    ///Derived event showing the RAM hits (--cache-sim=yes)
     RamHits,
-    #[doc = "L1 cache hit rate (--cache-sim=yes)"]
+    ///L1 cache hit rate (--cache-sim=yes)
     L1HitRate,
-    #[doc = "LL/L2 cache hit rate (--cache-sim=yes)"]
+    ///LL/L2 cache hit rate (--cache-sim=yes)
     #[serde(rename = "LLHitRate")]
     LlHitRate,
-    #[doc = "RAM hit rate (--cache-sim=yes)"]
+    ///RAM hit rate (--cache-sim=yes)
     RamHitRate,
-    #[doc = "Derived event showing the total amount of cache reads and writes (--cache-sim=yes)"]
+    ///Derived event showing the total amount of cache reads and writes (--cache-sim=yes)
     #[serde(rename = "TotalRW")]
     TotalRw,
-    #[doc = "Derived event showing estimated CPU cycles (--cache-sim=yes)"]
+    ///Derived event showing estimated CPU cycles (--cache-sim=yes)
     EstimatedCycles,
-    #[doc = "The number of system calls done (--collect-systime=yes)"]
+    ///The number of system calls done (--collect-systime=yes)
     SysCount,
-    #[doc = "The elapsed time spent in system calls (--collect-systime=yes)"]
+    ///The elapsed time spent in system calls (--collect-systime=yes)
     SysTime,
-    #[doc = "The cpu time spent during system calls (--collect-systime=nsec)"]
+    ///The cpu time spent during system calls (--collect-systime=nsec)
     SysCpuTime,
-    #[doc = "The number of global bus events (--collect-bus=yes)"]
+    ///The number of global bus events (--collect-bus=yes)
     Ge,
-    #[doc = "Conditional branches executed (--branch-sim=yes)"]
+    ///Conditional branches executed (--branch-sim=yes)
     Bc,
-    #[doc = "Conditional branches mispredicted (--branch-sim=yes)"]
+    ///Conditional branches mispredicted (--branch-sim=yes)
     Bcm,
-    #[doc = "Indirect branches executed (--branch-sim=yes)"]
+    ///Indirect branches executed (--branch-sim=yes)
     Bi,
-    #[doc = "Indirect branches mispredicted (--branch-sim=yes)"]
+    ///Indirect branches mispredicted (--branch-sim=yes)
     Bim,
-    #[doc = "Dirty miss because of instruction read (--simulate-wb=yes)"]
+    ///Dirty miss because of instruction read (--simulate-wb=yes)
     ILdmr,
-    #[doc = "Dirty miss because of data read (--simulate-wb=yes)"]
+    ///Dirty miss because of data read (--simulate-wb=yes)
     DLdmr,
-    #[doc = "Dirty miss because of data write (--simulate-wb=yes)"]
+    ///Dirty miss because of data write (--simulate-wb=yes)
     DLdmw,
-    #[doc = "Counter showing bad temporal locality for L1 caches (--cachuse=yes)"]
+    ///Counter showing bad temporal locality for L1 caches (--cachuse=yes)
     AcCost1,
-    #[doc = "Counter showing bad temporal locality for LL caches (--cachuse=yes)"]
+    ///Counter showing bad temporal locality for LL caches (--cachuse=yes)
     AcCost2,
-    #[doc = "Counter showing bad spatial locality for L1 caches (--cachuse=yes)"]
+    ///Counter showing bad spatial locality for L1 caches (--cachuse=yes)
     SpLoss1,
-    #[doc = "Counter showing bad spatial locality for LL caches (--cachuse=yes)"]
+    ///Counter showing bad spatial locality for LL caches (--cachuse=yes)
     SpLoss2,
 }
 impl ::std::convert::From<&Self> for EventKind {
@@ -1470,62 +1520,70 @@ impl ::std::convert::TryFrom<::std::string::String> for EventKind {
         value.parse()
     }
 }
-#[doc = "The callgrind `FlamegraphSummary` records all created paths for an [`EventKind`] specific\nflamegraph\n\nEither the `regular_path`, `old_path` or the `diff_path` are present. Never can all of them be\nabsent."]
-#[doc = r""]
-#[doc = r" <details><summary>JSON schema</summary>"]
-#[doc = r""]
-#[doc = r" ```json"]
-#[doc = "{"]
-#[doc = "  \"description\": \"The callgrind `FlamegraphSummary` records all created paths for an [`EventKind`] specific\\nflamegraph\\n\\nEither the `regular_path`, `old_path` or the `diff_path` are present. Never can all of them be\\nabsent.\","]
-#[doc = "  \"type\": \"object\","]
-#[doc = "  \"required\": ["]
-#[doc = "    \"event_kind\""]
-#[doc = "  ],"]
-#[doc = "  \"properties\": {"]
-#[doc = "    \"base_path\": {"]
-#[doc = "      \"description\": \"If present, the path to the file of the old regular (non-differential) flamegraph\","]
-#[doc = "      \"type\": ["]
-#[doc = "        \"string\","]
-#[doc = "        \"null\""]
-#[doc = "      ]"]
-#[doc = "    },"]
-#[doc = "    \"diff_path\": {"]
-#[doc = "      \"description\": \"If present, the path to the file of the differential flamegraph\","]
-#[doc = "      \"type\": ["]
-#[doc = "        \"string\","]
-#[doc = "        \"null\""]
-#[doc = "      ]"]
-#[doc = "    },"]
-#[doc = "    \"event_kind\": {"]
-#[doc = "      \"description\": \"The `EventKind` of the flamegraph\","]
-#[doc = "      \"allOf\": ["]
-#[doc = "        {"]
-#[doc = "          \"$ref\": \"#/definitions/EventKind\""]
-#[doc = "        }"]
-#[doc = "      ]"]
-#[doc = "    },"]
-#[doc = "    \"regular_path\": {"]
-#[doc = "      \"description\": \"If present, the path to the file of the regular (non-differential) flamegraph\","]
-#[doc = "      \"type\": ["]
-#[doc = "        \"string\","]
-#[doc = "        \"null\""]
-#[doc = "      ]"]
-#[doc = "    }"]
-#[doc = "  }"]
-#[doc = "}"]
-#[doc = r" ```"]
-#[doc = r" </details>"]
+///The callgrind `FlamegraphSummary` records all created paths for an [`EventKind`] specific
+///flamegraph
+///
+///Either the `regular_path`, `old_path` or the `diff_path` are present. Never can all of them
+/// be absent.
+///
+/// <details><summary>JSON schema</summary>
+///
+/// ```json
+/// {
+///  "description": "The callgrind `FlamegraphSummary` records all created paths for an
+/// [`EventKind`] specific\nflamegraph\n\nEither the `regular_path`, `old_path` or the
+/// `diff_path` are present. Never can all of them be\nabsent.",
+///  "type": "object",
+///  "required": [
+///    "event_kind"
+///  ],
+///  "properties": {
+///    "base_path": {
+///      "description": "If present, the path to the file of the old regular (non-differential)
+/// flamegraph",
+///      "type": [
+///        "string",
+///        "null"
+///      ]
+///    },
+///    "diff_path": {
+///      "description": "If present, the path to the file of the differential flamegraph",
+///      "type": [
+///        "string",
+///        "null"
+///      ]
+///    },
+///    "event_kind": {
+///      "description": "The `EventKind` of the flamegraph",
+///      "allOf": [
+///        {
+///          "$ref": "#/definitions/EventKind"
+///        }
+///      ]
+///    },
+///    "regular_path": {
+///      "description": "If present, the path to the file of the regular (non-differential)
+/// flamegraph",
+///      "type": [
+///        "string",
+///        "null"
+///      ]
+///    }
+///  }
+/// }
+/// ```
+/// </details>
 #[derive(:: serde :: Deserialize, :: serde :: Serialize, Clone, Debug)]
 pub struct FlamegraphSummary {
-    #[doc = "If present, the path to the file of the old regular (non-differential) flamegraph"]
+    ///If present, the path to the file of the old regular (non-differential) flamegraph
     #[serde(default, skip_serializing_if = "::std::option::Option::is_none")]
     pub base_path: ::std::option::Option<::std::string::String>,
-    #[doc = "If present, the path to the file of the differential flamegraph"]
+    ///If present, the path to the file of the differential flamegraph
     #[serde(default, skip_serializing_if = "::std::option::Option::is_none")]
     pub diff_path: ::std::option::Option<::std::string::String>,
-    #[doc = "The `EventKind` of the flamegraph"]
+    ///The `EventKind` of the flamegraph
     pub event_kind: EventKind,
-    #[doc = "If present, the path to the file of the regular (non-differential) flamegraph"]
+    ///If present, the path to the file of the regular (non-differential) flamegraph
     #[serde(default, skip_serializing_if = "::std::option::Option::is_none")]
     pub regular_path: ::std::option::Option<::std::string::String>,
 }
@@ -1539,52 +1597,75 @@ impl FlamegraphSummary {
         Default::default()
     }
 }
-#[doc = "The metric measured by valgrind or derived from one or more other metrics\n\nThe valgrind metrics measured by any of its tools are `u64`. However, to be able to represent\nderived metrics like cache miss/hit rates it is inevitable to have a type which can store a\n`u64` or a `f64`. When doing math with metrics, the original type should be preserved as far as\npossible by using `u64` operations. A float metric should be a last resort.\n\nFloat operations with a `Metric` that stores a `u64` introduce a precision loss and are to be\navoided. Especially comparison between a `u64` metric and `f64` metric are not exact because the\n`u64` has to be converted to a `f64`. Also, if adding/multiplying two `u64` metrics would result\nin an overflow the metric saturates at `u64::MAX`. This choice was made to preserve precision\nand the original type (instead of for example adding the two `u64` by converting both of them to\n`f64`)."]
-#[doc = r""]
-#[doc = r" <details><summary>JSON schema</summary>"]
-#[doc = r""]
-#[doc = r" ```json"]
-#[doc = "{"]
-#[doc = "  \"description\": \"The metric measured by valgrind or derived from one or more other metrics\\n\\nThe valgrind metrics measured by any of its tools are `u64`. However, to be able to represent\\nderived metrics like cache miss/hit rates it is inevitable to have a type which can store a\\n`u64` or a `f64`. When doing math with metrics, the original type should be preserved as far as\\npossible by using `u64` operations. A float metric should be a last resort.\\n\\nFloat operations with a `Metric` that stores a `u64` introduce a precision loss and are to be\\navoided. Especially comparison between a `u64` metric and `f64` metric are not exact because the\\n`u64` has to be converted to a `f64`. Also, if adding/multiplying two `u64` metrics would result\\nin an overflow the metric saturates at `u64::MAX`. This choice was made to preserve precision\\nand the original type (instead of for example adding the two `u64` by converting both of them to\\n`f64`).\","]
-#[doc = "  \"oneOf\": ["]
-#[doc = "    {"]
-#[doc = "      \"description\": \"An integer `Metric`\","]
-#[doc = "      \"type\": \"object\","]
-#[doc = "      \"required\": ["]
-#[doc = "        \"Int\""]
-#[doc = "      ],"]
-#[doc = "      \"properties\": {"]
-#[doc = "        \"Int\": {"]
-#[doc = "          \"type\": \"integer\","]
-#[doc = "          \"format\": \"uint64\","]
-#[doc = "          \"minimum\": 0.0"]
-#[doc = "        }"]
-#[doc = "      },"]
-#[doc = "      \"additionalProperties\": false"]
-#[doc = "    },"]
-#[doc = "    {"]
-#[doc = "      \"description\": \"A float `Metric`\","]
-#[doc = "      \"type\": \"object\","]
-#[doc = "      \"required\": ["]
-#[doc = "        \"Float\""]
-#[doc = "      ],"]
-#[doc = "      \"properties\": {"]
-#[doc = "        \"Float\": {"]
-#[doc = "          \"type\": \"number\","]
-#[doc = "          \"format\": \"double\""]
-#[doc = "        }"]
-#[doc = "      },"]
-#[doc = "      \"additionalProperties\": false"]
-#[doc = "    }"]
-#[doc = "  ]"]
-#[doc = "}"]
-#[doc = r" ```"]
-#[doc = r" </details>"]
+///The metric measured by valgrind or derived from one or more other metrics
+///
+///The valgrind metrics measured by any of its tools are `u64`. However, to be able to
+/// represent derived metrics like cache miss/hit rates it is inevitable to have a type which
+/// can store a `u64` or a `f64`. When doing math with metrics, the original type should be
+/// preserved as far as possible by using `u64` operations. A float metric should be a last
+/// resort.
+///
+///Float operations with a `Metric` that stores a `u64` introduce a precision loss and are to
+/// be avoided. Especially comparison between a `u64` metric and `f64` metric are not exact
+/// because the `u64` has to be converted to a `f64`. Also, if adding/multiplying two `u64`
+/// metrics would result in an overflow the metric saturates at `u64::MAX`. This choice was
+/// made to preserve precision and the original type (instead of for example adding the two
+/// `u64` by converting both of them to `f64`).
+///
+/// <details><summary>JSON schema</summary>
+///
+/// ```json
+/// {
+///  "description": "The metric measured by valgrind or derived from one or more other
+/// metrics\n\nThe valgrind metrics measured by any of its tools are `u64`. However, to be able
+/// to represent\nderived metrics like cache miss/hit rates it is inevitable to have a type
+/// which can store a\n`u64` or a `f64`. When doing math with metrics, the original type should
+/// be preserved as far as\npossible by using `u64` operations. A float metric should be a last
+/// resort.\n\nFloat operations with a `Metric` that stores a `u64` introduce a precision loss
+/// and are to be\navoided. Especially comparison between a `u64` metric and `f64` metric are
+/// not exact because the\n`u64` has to be converted to a `f64`. Also, if adding/multiplying
+/// two `u64` metrics would result\nin an overflow the metric saturates at `u64::MAX`. This
+/// choice was made to preserve precision\nand the original type (instead of for example adding
+/// the two `u64` by converting both of them to\n`f64`).",
+///  "oneOf": [
+///    {
+///      "description": "An integer `Metric`",
+///      "type": "object",
+///      "required": [
+///        "Int"
+///      ],
+///      "properties": {
+///        "Int": {
+///          "type": "integer",
+///          "format": "uint64",
+///          "minimum": 0.0
+///        }
+///      },
+///      "additionalProperties": false
+///    },
+///    {
+///      "description": "A float `Metric`",
+///      "type": "object",
+///      "required": [
+///        "Float"
+///      ],
+///      "properties": {
+///        "Float": {
+///          "type": "number",
+///          "format": "double"
+///        }
+///      },
+///      "additionalProperties": false
+///    }
+///  ]
+/// }
+/// ```
+/// </details>
 #[derive(:: serde :: Deserialize, :: serde :: Serialize, Clone, Debug)]
 pub enum Metric {
-    #[doc = "An integer `Metric`"]
+    ///An integer `Metric`
     Int(u64),
-    #[doc = "A float `Metric`"]
+    ///A float `Metric`
     Float(f64),
 }
 impl ::std::convert::From<&Self> for Metric {
@@ -1602,116 +1683,118 @@ impl ::std::convert::From<f64> for Metric {
         Self::Float(value)
     }
 }
-#[doc = "The different metrics distinguished by tool and if it is an error checking tool as `ErrorMetric`"]
-#[doc = r""]
-#[doc = r" <details><summary>JSON schema</summary>"]
-#[doc = r""]
-#[doc = r" ```json"]
-#[doc = "{"]
-#[doc = "  \"description\": \"The different metrics distinguished by tool and if it is an error checking tool as `ErrorMetric`\","]
-#[doc = "  \"oneOf\": ["]
-#[doc = "    {"]
-#[doc = "      \"description\": \"The `None` kind if there are no metrics for a tool\","]
-#[doc = "      \"type\": \"string\","]
-#[doc = "      \"const\": \"None\""]
-#[doc = "    },"]
-#[doc = "    {"]
-#[doc = "      \"description\": \"The Callgrind metric kind\","]
-#[doc = "      \"type\": \"object\","]
-#[doc = "      \"required\": ["]
-#[doc = "        \"Callgrind\""]
-#[doc = "      ],"]
-#[doc = "      \"properties\": {"]
-#[doc = "        \"Callgrind\": {"]
-#[doc = "          \"$ref\": \"#/definitions/EventKind\""]
-#[doc = "        }"]
-#[doc = "      },"]
-#[doc = "      \"additionalProperties\": false"]
-#[doc = "    },"]
-#[doc = "    {"]
-#[doc = "      \"description\": \"The Cachegrind metric kind\","]
-#[doc = "      \"type\": \"object\","]
-#[doc = "      \"required\": ["]
-#[doc = "        \"Cachegrind\""]
-#[doc = "      ],"]
-#[doc = "      \"properties\": {"]
-#[doc = "        \"Cachegrind\": {"]
-#[doc = "          \"$ref\": \"#/definitions/CachegrindMetric\""]
-#[doc = "        }"]
-#[doc = "      },"]
-#[doc = "      \"additionalProperties\": false"]
-#[doc = "    },"]
-#[doc = "    {"]
-#[doc = "      \"description\": \"The DHAT metric kind\","]
-#[doc = "      \"type\": \"object\","]
-#[doc = "      \"required\": ["]
-#[doc = "        \"Dhat\""]
-#[doc = "      ],"]
-#[doc = "      \"properties\": {"]
-#[doc = "        \"Dhat\": {"]
-#[doc = "          \"$ref\": \"#/definitions/DhatMetric\""]
-#[doc = "        }"]
-#[doc = "      },"]
-#[doc = "      \"additionalProperties\": false"]
-#[doc = "    },"]
-#[doc = "    {"]
-#[doc = "      \"description\": \"The Memcheck metric kind\","]
-#[doc = "      \"type\": \"object\","]
-#[doc = "      \"required\": ["]
-#[doc = "        \"Memcheck\""]
-#[doc = "      ],"]
-#[doc = "      \"properties\": {"]
-#[doc = "        \"Memcheck\": {"]
-#[doc = "          \"$ref\": \"#/definitions/ErrorMetric\""]
-#[doc = "        }"]
-#[doc = "      },"]
-#[doc = "      \"additionalProperties\": false"]
-#[doc = "    },"]
-#[doc = "    {"]
-#[doc = "      \"description\": \"The Helgrind metric kind\","]
-#[doc = "      \"type\": \"object\","]
-#[doc = "      \"required\": ["]
-#[doc = "        \"Helgrind\""]
-#[doc = "      ],"]
-#[doc = "      \"properties\": {"]
-#[doc = "        \"Helgrind\": {"]
-#[doc = "          \"$ref\": \"#/definitions/ErrorMetric\""]
-#[doc = "        }"]
-#[doc = "      },"]
-#[doc = "      \"additionalProperties\": false"]
-#[doc = "    },"]
-#[doc = "    {"]
-#[doc = "      \"description\": \"The DRD metric kind\","]
-#[doc = "      \"type\": \"object\","]
-#[doc = "      \"required\": ["]
-#[doc = "        \"DRD\""]
-#[doc = "      ],"]
-#[doc = "      \"properties\": {"]
-#[doc = "        \"DRD\": {"]
-#[doc = "          \"$ref\": \"#/definitions/ErrorMetric\""]
-#[doc = "        }"]
-#[doc = "      },"]
-#[doc = "      \"additionalProperties\": false"]
-#[doc = "    }"]
-#[doc = "  ]"]
-#[doc = "}"]
-#[doc = r" ```"]
-#[doc = r" </details>"]
+///The different metrics distinguished by tool and if it is an error checking tool as
+/// `ErrorMetric`
+///
+/// <details><summary>JSON schema</summary>
+///
+/// ```json
+/// {
+///  "description": "The different metrics distinguished by tool and if it is an error checking
+/// tool as `ErrorMetric`",
+///  "oneOf": [
+///    {
+///      "description": "The `None` kind if there are no metrics for a tool",
+///      "type": "string",
+///      "const": "None"
+///    },
+///    {
+///      "description": "The Callgrind metric kind",
+///      "type": "object",
+///      "required": [
+///        "Callgrind"
+///      ],
+///      "properties": {
+///        "Callgrind": {
+///          "$ref": "#/definitions/EventKind"
+///        }
+///      },
+///      "additionalProperties": false
+///    },
+///    {
+///      "description": "The Cachegrind metric kind",
+///      "type": "object",
+///      "required": [
+///        "Cachegrind"
+///      ],
+///      "properties": {
+///        "Cachegrind": {
+///          "$ref": "#/definitions/CachegrindMetric"
+///        }
+///      },
+///      "additionalProperties": false
+///    },
+///    {
+///      "description": "The DHAT metric kind",
+///      "type": "object",
+///      "required": [
+///        "Dhat"
+///      ],
+///      "properties": {
+///        "Dhat": {
+///          "$ref": "#/definitions/DhatMetric"
+///        }
+///      },
+///      "additionalProperties": false
+///    },
+///    {
+///      "description": "The Memcheck metric kind",
+///      "type": "object",
+///      "required": [
+///        "Memcheck"
+///      ],
+///      "properties": {
+///        "Memcheck": {
+///          "$ref": "#/definitions/ErrorMetric"
+///        }
+///      },
+///      "additionalProperties": false
+///    },
+///    {
+///      "description": "The Helgrind metric kind",
+///      "type": "object",
+///      "required": [
+///        "Helgrind"
+///      ],
+///      "properties": {
+///        "Helgrind": {
+///          "$ref": "#/definitions/ErrorMetric"
+///        }
+///      },
+///      "additionalProperties": false
+///    },
+///    {
+///      "description": "The DRD metric kind",
+///      "type": "object",
+///      "required": [
+///        "DRD"
+///      ],
+///      "properties": {
+///        "DRD": {
+///          "$ref": "#/definitions/ErrorMetric"
+///        }
+///      },
+///      "additionalProperties": false
+///    }
+///  ]
+/// }
+/// ```
+/// </details>
 #[derive(:: serde :: Deserialize, :: serde :: Serialize, Clone, Debug)]
 pub enum MetricKind {
-    #[doc = "The `None` kind if there are no metrics for a tool"]
+    ///The `None` kind if there are no metrics for a tool
     None,
-    #[doc = "The Callgrind metric kind"]
+    ///The Callgrind metric kind
     Callgrind(EventKind),
-    #[doc = "The Cachegrind metric kind"]
+    ///The Cachegrind metric kind
     Cachegrind(CachegrindMetric),
-    #[doc = "The DHAT metric kind"]
+    ///The DHAT metric kind
     Dhat(DhatMetric),
-    #[doc = "The Memcheck metric kind"]
+    ///The Memcheck metric kind
     Memcheck(ErrorMetric),
-    #[doc = "The Helgrind metric kind"]
+    ///The Helgrind metric kind
     Helgrind(ErrorMetric),
-    #[doc = "The DRD metric kind"]
+    ///The DRD metric kind
     #[serde(rename = "DRD")]
     Drd(ErrorMetric),
 }
@@ -1735,47 +1818,53 @@ impl ::std::convert::From<DhatMetric> for MetricKind {
         Self::Dhat(value)
     }
 }
-#[doc = "The `MetricsDiff` describes the difference between a `new` and `old` metric as percentage and\nfactor.\n\nOnly if both metrics are present there is also a `Diffs` present. Otherwise, it just stores the\n`new` or `old` metric."]
-#[doc = r""]
-#[doc = r" <details><summary>JSON schema</summary>"]
-#[doc = r""]
-#[doc = r" ```json"]
-#[doc = "{"]
-#[doc = "  \"description\": \"The `MetricsDiff` describes the difference between a `new` and `old` metric as percentage and\\nfactor.\\n\\nOnly if both metrics are present there is also a `Diffs` present. Otherwise, it just stores the\\n`new` or `old` metric.\","]
-#[doc = "  \"type\": \"object\","]
-#[doc = "  \"required\": ["]
-#[doc = "    \"metrics\""]
-#[doc = "  ],"]
-#[doc = "  \"properties\": {"]
-#[doc = "    \"diffs\": {"]
-#[doc = "      \"description\": \"If both metrics are present there is also a `Diffs` present\","]
-#[doc = "      \"anyOf\": ["]
-#[doc = "        {"]
-#[doc = "          \"$ref\": \"#/definitions/Diffs\""]
-#[doc = "        },"]
-#[doc = "        {"]
-#[doc = "          \"type\": \"null\""]
-#[doc = "        }"]
-#[doc = "      ]"]
-#[doc = "    },"]
-#[doc = "    \"metrics\": {"]
-#[doc = "      \"description\": \"Either the `new`, `old` or both metrics\","]
-#[doc = "      \"allOf\": ["]
-#[doc = "        {"]
-#[doc = "          \"$ref\": \"#/definitions/EitherOrBoth2\""]
-#[doc = "        }"]
-#[doc = "      ]"]
-#[doc = "    }"]
-#[doc = "  }"]
-#[doc = "}"]
-#[doc = r" ```"]
-#[doc = r" </details>"]
+///The `MetricsDiff` describes the difference between a `new` and `old` metric as percentage
+/// and factor.
+///
+///Only if both metrics are present there is also a `Diffs` present. Otherwise, it just stores
+/// the `new` or `old` metric.
+///
+/// <details><summary>JSON schema</summary>
+///
+/// ```json
+/// {
+///  "description": "The `MetricsDiff` describes the difference between a `new` and `old`
+/// metric as percentage and\nfactor.\n\nOnly if both metrics are present there is also a
+/// `Diffs` present. Otherwise, it just stores the\n`new` or `old` metric.",
+///  "type": "object",
+///  "required": [
+///    "metrics"
+///  ],
+///  "properties": {
+///    "diffs": {
+///      "description": "If both metrics are present there is also a `Diffs` present",
+///      "anyOf": [
+///        {
+///          "$ref": "#/definitions/Diffs"
+///        },
+///        {
+///          "type": "null"
+///        }
+///      ]
+///    },
+///    "metrics": {
+///      "description": "Either the `new`, `old` or both metrics",
+///      "allOf": [
+///        {
+///          "$ref": "#/definitions/EitherOrBoth2"
+///        }
+///      ]
+///    }
+///  }
+/// }
+/// ```
+/// </details>
 #[derive(:: serde :: Deserialize, :: serde :: Serialize, Clone, Debug)]
 pub struct MetricsDiff {
-    #[doc = "If both metrics are present there is also a `Diffs` present"]
+    ///If both metrics are present there is also a `Diffs` present
     #[serde(default, skip_serializing_if = "::std::option::Option::is_none")]
     pub diffs: ::std::option::Option<Diffs>,
-    #[doc = "Either the `new`, `old` or both metrics"]
+    ///Either the `new`, `old` or both metrics
     pub metrics: EitherOrBoth2,
 }
 impl ::std::convert::From<&MetricsDiff> for MetricsDiff {
@@ -1788,20 +1877,21 @@ impl MetricsDiff {
         Default::default()
     }
 }
-#[doc = "The `MetricsSummary` contains all differences between two tool run segments"]
-#[doc = r""]
-#[doc = r" <details><summary>JSON schema</summary>"]
-#[doc = r""]
-#[doc = r" ```json"]
-#[doc = "{"]
-#[doc = "  \"description\": \"The `MetricsSummary` contains all differences between two tool run segments\","]
-#[doc = "  \"type\": \"object\","]
-#[doc = "  \"additionalProperties\": {"]
-#[doc = "    \"$ref\": \"#/definitions/MetricsDiff\""]
-#[doc = "  }"]
-#[doc = "}"]
-#[doc = r" ```"]
-#[doc = r" </details>"]
+///The `MetricsSummary` contains all differences between two tool run segments
+///
+/// <details><summary>JSON schema</summary>
+///
+/// ```json
+/// {
+///  "description": "The `MetricsSummary` contains all differences between two tool run
+/// segments",
+///  "type": "object",
+///  "additionalProperties": {
+///    "$ref": "#/definitions/MetricsDiff"
+///  }
+/// }
+/// ```
+/// </details>
 #[derive(:: serde :: Deserialize, :: serde :: Serialize, Clone, Debug)]
 #[serde(transparent)]
 pub struct MetricsSummary(pub ::std::collections::HashMap<::std::string::String, MetricsDiff>);
@@ -1830,20 +1920,21 @@ impl ::std::convert::From<::std::collections::HashMap<::std::string::String, Met
         Self(value)
     }
 }
-#[doc = "The `MetricsSummary` contains all differences between two tool run segments"]
-#[doc = r""]
-#[doc = r" <details><summary>JSON schema</summary>"]
-#[doc = r""]
-#[doc = r" ```json"]
-#[doc = "{"]
-#[doc = "  \"description\": \"The `MetricsSummary` contains all differences between two tool run segments\","]
-#[doc = "  \"type\": \"object\","]
-#[doc = "  \"additionalProperties\": {"]
-#[doc = "    \"$ref\": \"#/definitions/MetricsDiff\""]
-#[doc = "  }"]
-#[doc = "}"]
-#[doc = r" ```"]
-#[doc = r" </details>"]
+///The `MetricsSummary` contains all differences between two tool run segments
+///
+/// <details><summary>JSON schema</summary>
+///
+/// ```json
+/// {
+///  "description": "The `MetricsSummary` contains all differences between two tool run
+/// segments",
+///  "type": "object",
+///  "additionalProperties": {
+///    "$ref": "#/definitions/MetricsDiff"
+///  }
+/// }
+/// ```
+/// </details>
 #[derive(:: serde :: Deserialize, :: serde :: Serialize, Clone, Debug)]
 #[serde(transparent)]
 pub struct MetricsSummary2(pub ::std::collections::HashMap<::std::string::String, MetricsDiff>);
@@ -1872,20 +1963,21 @@ impl ::std::convert::From<::std::collections::HashMap<::std::string::String, Met
         Self(value)
     }
 }
-#[doc = "The `MetricsSummary` contains all differences between two tool run segments"]
-#[doc = r""]
-#[doc = r" <details><summary>JSON schema</summary>"]
-#[doc = r""]
-#[doc = r" ```json"]
-#[doc = "{"]
-#[doc = "  \"description\": \"The `MetricsSummary` contains all differences between two tool run segments\","]
-#[doc = "  \"type\": \"object\","]
-#[doc = "  \"additionalProperties\": {"]
-#[doc = "    \"$ref\": \"#/definitions/MetricsDiff\""]
-#[doc = "  }"]
-#[doc = "}"]
-#[doc = r" ```"]
-#[doc = r" </details>"]
+///The `MetricsSummary` contains all differences between two tool run segments
+///
+/// <details><summary>JSON schema</summary>
+///
+/// ```json
+/// {
+///  "description": "The `MetricsSummary` contains all differences between two tool run
+/// segments",
+///  "type": "object",
+///  "additionalProperties": {
+///    "$ref": "#/definitions/MetricsDiff"
+///  }
+/// }
+/// ```
+/// </details>
 #[derive(:: serde :: Deserialize, :: serde :: Serialize, Clone, Debug)]
 #[serde(transparent)]
 pub struct MetricsSummary3(pub ::std::collections::HashMap<::std::string::String, MetricsDiff>);
@@ -1914,20 +2006,21 @@ impl ::std::convert::From<::std::collections::HashMap<::std::string::String, Met
         Self(value)
     }
 }
-#[doc = "The `MetricsSummary` contains all differences between two tool run segments"]
-#[doc = r""]
-#[doc = r" <details><summary>JSON schema</summary>"]
-#[doc = r""]
-#[doc = r" ```json"]
-#[doc = "{"]
-#[doc = "  \"description\": \"The `MetricsSummary` contains all differences between two tool run segments\","]
-#[doc = "  \"type\": \"object\","]
-#[doc = "  \"additionalProperties\": {"]
-#[doc = "    \"$ref\": \"#/definitions/MetricsDiff\""]
-#[doc = "  }"]
-#[doc = "}"]
-#[doc = r" ```"]
-#[doc = r" </details>"]
+///The `MetricsSummary` contains all differences between two tool run segments
+///
+/// <details><summary>JSON schema</summary>
+///
+/// ```json
+/// {
+///  "description": "The `MetricsSummary` contains all differences between two tool run
+/// segments",
+///  "type": "object",
+///  "additionalProperties": {
+///    "$ref": "#/definitions/MetricsDiff"
+///  }
+/// }
+/// ```
+/// </details>
 #[derive(:: serde :: Deserialize, :: serde :: Serialize, Clone, Debug)]
 #[serde(transparent)]
 pub struct MetricsSummary4(pub ::std::collections::HashMap<::std::string::String, MetricsDiff>);
@@ -1956,74 +2049,77 @@ impl ::std::convert::From<::std::collections::HashMap<::std::string::String, Met
         Self(value)
     }
 }
-#[doc = "The `ToolSummary` containing all information about a valgrind tool run"]
-#[doc = r""]
-#[doc = r" <details><summary>JSON schema</summary>"]
-#[doc = r""]
-#[doc = r" ```json"]
-#[doc = "{"]
-#[doc = "  \"description\": \"The `ToolSummary` containing all information about a valgrind tool run\","]
-#[doc = "  \"type\": \"object\","]
-#[doc = "  \"required\": ["]
-#[doc = "    \"flamegraphs\","]
-#[doc = "    \"log_paths\","]
-#[doc = "    \"out_paths\","]
-#[doc = "    \"summaries\","]
-#[doc = "    \"tool\""]
-#[doc = "  ],"]
-#[doc = "  \"properties\": {"]
-#[doc = "    \"flamegraphs\": {"]
-#[doc = "      \"description\": \"Details and information about the created flamegraphs if any\","]
-#[doc = "      \"type\": \"array\","]
-#[doc = "      \"items\": {"]
-#[doc = "        \"$ref\": \"#/definitions/FlamegraphSummary\""]
-#[doc = "      }"]
-#[doc = "    },"]
-#[doc = "    \"log_paths\": {"]
-#[doc = "      \"description\": \"The paths to the `*.log` files. All tools produce at least one log file\","]
-#[doc = "      \"type\": \"array\","]
-#[doc = "      \"items\": {"]
-#[doc = "        \"type\": \"string\""]
-#[doc = "      }"]
-#[doc = "    },"]
-#[doc = "    \"out_paths\": {"]
-#[doc = "      \"description\": \"The paths to the `*.out` files. Not all tools produce an output in addition to the log\\nfiles\","]
-#[doc = "      \"type\": \"array\","]
-#[doc = "      \"items\": {"]
-#[doc = "        \"type\": \"string\""]
-#[doc = "      }"]
-#[doc = "    },"]
-#[doc = "    \"summaries\": {"]
-#[doc = "      \"description\": \"The metrics and details about the tool run\","]
-#[doc = "      \"allOf\": ["]
-#[doc = "        {"]
-#[doc = "          \"$ref\": \"#/definitions/ProfileData\""]
-#[doc = "        }"]
-#[doc = "      ]"]
-#[doc = "    },"]
-#[doc = "    \"tool\": {"]
-#[doc = "      \"description\": \"The Valgrind tool like `DHAT`, `Memcheck` etc.\","]
-#[doc = "      \"allOf\": ["]
-#[doc = "        {"]
-#[doc = "          \"$ref\": \"#/definitions/ValgrindTool\""]
-#[doc = "        }"]
-#[doc = "      ]"]
-#[doc = "    }"]
-#[doc = "  }"]
-#[doc = "}"]
-#[doc = r" ```"]
-#[doc = r" </details>"]
+///The `ToolSummary` containing all information about a valgrind tool run
+///
+/// <details><summary>JSON schema</summary>
+///
+/// ```json
+/// {
+///  "description": "The `ToolSummary` containing all information about a valgrind tool run",
+///  "type": "object",
+///  "required": [
+///    "flamegraphs",
+///    "log_paths",
+///    "out_paths",
+///    "summaries",
+///    "tool"
+///  ],
+///  "properties": {
+///    "flamegraphs": {
+///      "description": "Details and information about the created flamegraphs if any",
+///      "type": "array",
+///      "items": {
+///        "$ref": "#/definitions/FlamegraphSummary"
+///      }
+///    },
+///    "log_paths": {
+///      "description": "The paths to the `*.log` files. All tools produce at least one log
+/// file",
+///      "type": "array",
+///      "items": {
+///        "type": "string"
+///      }
+///    },
+///    "out_paths": {
+///      "description": "The paths to the `*.out` files. Not all tools produce an output in
+/// addition to the log\nfiles",
+///      "type": "array",
+///      "items": {
+///        "type": "string"
+///      }
+///    },
+///    "summaries": {
+///      "description": "The metrics and details about the tool run",
+///      "allOf": [
+///        {
+///          "$ref": "#/definitions/ProfileData"
+///        }
+///      ]
+///    },
+///    "tool": {
+///      "description": "The Valgrind tool like `DHAT`, `Memcheck` etc.",
+///      "allOf": [
+///        {
+///          "$ref": "#/definitions/ValgrindTool"
+///        }
+///      ]
+///    }
+///  }
+/// }
+/// ```
+/// </details>
 #[derive(:: serde :: Deserialize, :: serde :: Serialize, Clone, Debug)]
 pub struct Profile {
-    #[doc = "Details and information about the created flamegraphs if any"]
+    ///Details and information about the created flamegraphs if any
     pub flamegraphs: ::std::vec::Vec<FlamegraphSummary>,
-    #[doc = "The paths to the `*.log` files. All tools produce at least one log file"]
+    ///The paths to the `*.log` files. All tools produce at least one log file
     pub log_paths: ::std::vec::Vec<::std::string::String>,
-    #[doc = "The paths to the `*.out` files. Not all tools produce an output in addition to the log\nfiles"]
+    ///The paths to the `*.out` files. Not all tools produce an output in addition to the log
+    ///files
     pub out_paths: ::std::vec::Vec<::std::string::String>,
-    #[doc = "The metrics and details about the tool run"]
+    ///The metrics and details about the tool run
     pub summaries: ProfileData,
-    #[doc = "The Valgrind tool like `DHAT`, `Memcheck` etc."]
+    ///The Valgrind tool like `DHAT`, `Memcheck` etc.
     pub tool: ValgrindTool,
 }
 impl ::std::convert::From<&Profile> for Profile {
@@ -2036,43 +2132,50 @@ impl Profile {
         Default::default()
     }
 }
-#[doc = "The `ToolRun` contains all information about a single tool run with possibly multiple segments\n\nThe total is always present and summarizes all tool run segments. In the special case of a\nsingle tool run segment, the total equals the metrics of this segment."]
-#[doc = r""]
-#[doc = r" <details><summary>JSON schema</summary>"]
-#[doc = r""]
-#[doc = r" ```json"]
-#[doc = "{"]
-#[doc = "  \"description\": \"The `ToolRun` contains all information about a single tool run with possibly multiple segments\\n\\nThe total is always present and summarizes all tool run segments. In the special case of a\\nsingle tool run segment, the total equals the metrics of this segment.\","]
-#[doc = "  \"type\": \"object\","]
-#[doc = "  \"required\": ["]
-#[doc = "    \"parts\","]
-#[doc = "    \"total\""]
-#[doc = "  ],"]
-#[doc = "  \"properties\": {"]
-#[doc = "    \"parts\": {"]
-#[doc = "      \"description\": \"All [`ProfilePart`]s\","]
-#[doc = "      \"type\": \"array\","]
-#[doc = "      \"items\": {"]
-#[doc = "        \"$ref\": \"#/definitions/ProfilePart\""]
-#[doc = "      }"]
-#[doc = "    },"]
-#[doc = "    \"total\": {"]
-#[doc = "      \"description\": \"The total over the [`ProfilePart`]s\","]
-#[doc = "      \"allOf\": ["]
-#[doc = "        {"]
-#[doc = "          \"$ref\": \"#/definitions/ProfileTotal\""]
-#[doc = "        }"]
-#[doc = "      ]"]
-#[doc = "    }"]
-#[doc = "  }"]
-#[doc = "}"]
-#[doc = r" ```"]
-#[doc = r" </details>"]
+///The `ToolRun` contains all information about a single tool run with possibly multiple
+/// segments
+///
+///The total is always present and summarizes all tool run segments. In the special case of a
+///single tool run segment, the total equals the metrics of this segment.
+///
+/// <details><summary>JSON schema</summary>
+///
+/// ```json
+/// {
+///  "description": "The `ToolRun` contains all information about a single tool run with
+/// possibly multiple segments\n\nThe total is always present and summarizes all tool run
+/// segments. In the special case of a\nsingle tool run segment, the total equals the metrics
+/// of this segment.",
+///  "type": "object",
+///  "required": [
+///    "parts",
+///    "total"
+///  ],
+///  "properties": {
+///    "parts": {
+///      "description": "All [`ProfilePart`]s",
+///      "type": "array",
+///      "items": {
+///        "$ref": "#/definitions/ProfilePart"
+///      }
+///    },
+///    "total": {
+///      "description": "The total over the [`ProfilePart`]s",
+///      "allOf": [
+///        {
+///          "$ref": "#/definitions/ProfileTotal"
+///        }
+///      ]
+///    }
+///  }
+/// }
+/// ```
+/// </details>
 #[derive(:: serde :: Deserialize, :: serde :: Serialize, Clone, Debug)]
 pub struct ProfileData {
-    #[doc = "All [`ProfilePart`]s"]
+    ///All [`ProfilePart`]s
     pub parts: ::std::vec::Vec<ProfilePart>,
-    #[doc = "The total over the [`ProfilePart`]s"]
+    ///The total over the [`ProfilePart`]s
     pub total: ProfileTotal,
 }
 impl ::std::convert::From<&ProfileData> for ProfileData {
@@ -2085,88 +2188,88 @@ impl ProfileData {
         Default::default()
     }
 }
-#[doc = "Some additional and necessary information about the tool run segment"]
-#[doc = r""]
-#[doc = r" <details><summary>JSON schema</summary>"]
-#[doc = r""]
-#[doc = r" ```json"]
-#[doc = "{"]
-#[doc = "  \"description\": \"Some additional and necessary information about the tool run segment\","]
-#[doc = "  \"type\": \"object\","]
-#[doc = "  \"required\": ["]
-#[doc = "    \"command\","]
-#[doc = "    \"path\","]
-#[doc = "    \"pid\""]
-#[doc = "  ],"]
-#[doc = "  \"properties\": {"]
-#[doc = "    \"command\": {"]
-#[doc = "      \"description\": \"The executed command extracted from Valgrind output\","]
-#[doc = "      \"type\": \"string\""]
-#[doc = "    },"]
-#[doc = "    \"details\": {"]
-#[doc = "      \"description\": \"More details for example from the logging output of the tool run\","]
-#[doc = "      \"type\": ["]
-#[doc = "        \"string\","]
-#[doc = "        \"null\""]
-#[doc = "      ]"]
-#[doc = "    },"]
-#[doc = "    \"parent_pid\": {"]
-#[doc = "      \"description\": \"The parent pid of this process\","]
-#[doc = "      \"type\": ["]
-#[doc = "        \"integer\","]
-#[doc = "        \"null\""]
-#[doc = "      ],"]
-#[doc = "      \"format\": \"int32\""]
-#[doc = "    },"]
-#[doc = "    \"part\": {"]
-#[doc = "      \"description\": \"The part of this tool run (only callgrind)\","]
-#[doc = "      \"type\": ["]
-#[doc = "        \"integer\","]
-#[doc = "        \"null\""]
-#[doc = "      ],"]
-#[doc = "      \"format\": \"uint64\","]
-#[doc = "      \"minimum\": 0.0"]
-#[doc = "    },"]
-#[doc = "    \"path\": {"]
-#[doc = "      \"description\": \"The path to the file from the tool run\","]
-#[doc = "      \"type\": \"string\""]
-#[doc = "    },"]
-#[doc = "    \"pid\": {"]
-#[doc = "      \"description\": \"The pid of this process\","]
-#[doc = "      \"type\": \"integer\","]
-#[doc = "      \"format\": \"int32\""]
-#[doc = "    },"]
-#[doc = "    \"thread\": {"]
-#[doc = "      \"description\": \"The thread of this tool run (only callgrind)\","]
-#[doc = "      \"type\": ["]
-#[doc = "        \"integer\","]
-#[doc = "        \"null\""]
-#[doc = "      ],"]
-#[doc = "      \"format\": \"uint\","]
-#[doc = "      \"minimum\": 0.0"]
-#[doc = "    }"]
-#[doc = "  }"]
-#[doc = "}"]
-#[doc = r" ```"]
-#[doc = r" </details>"]
+///Some additional and necessary information about the tool run segment
+///
+/// <details><summary>JSON schema</summary>
+///
+/// ```json
+/// {
+///  "description": "Some additional and necessary information about the tool run segment",
+///  "type": "object",
+///  "required": [
+///    "command",
+///    "path",
+///    "pid"
+///  ],
+///  "properties": {
+///    "command": {
+///      "description": "The executed command extracted from Valgrind output",
+///      "type": "string"
+///    },
+///    "details": {
+///      "description": "More details for example from the logging output of the tool run",
+///      "type": [
+///        "string",
+///        "null"
+///      ]
+///    },
+///    "parent_pid": {
+///      "description": "The parent pid of this process",
+///      "type": [
+///        "integer",
+///        "null"
+///      ],
+///      "format": "int32"
+///    },
+///    "part": {
+///      "description": "The part of this tool run (only callgrind)",
+///      "type": [
+///        "integer",
+///        "null"
+///      ],
+///      "format": "uint64",
+///      "minimum": 0.0
+///    },
+///    "path": {
+///      "description": "The path to the file from the tool run",
+///      "type": "string"
+///    },
+///    "pid": {
+///      "description": "The pid of this process",
+///      "type": "integer",
+///      "format": "int32"
+///    },
+///    "thread": {
+///      "description": "The thread of this tool run (only callgrind)",
+///      "type": [
+///        "integer",
+///        "null"
+///      ],
+///      "format": "uint",
+///      "minimum": 0.0
+///    }
+///  }
+/// }
+/// ```
+/// </details>
 #[derive(:: serde :: Deserialize, :: serde :: Serialize, Clone, Debug)]
 pub struct ProfileInfo {
-    #[doc = "The executed command extracted from Valgrind output"]
+    ///The executed command extracted from Valgrind output
     pub command: ::std::string::String,
-    #[doc = "More details for example from the logging output of the tool run"]
+    ///More details for example from the logging output of the tool run
     #[serde(default, skip_serializing_if = "::std::option::Option::is_none")]
     pub details: ::std::option::Option<::std::string::String>,
-    #[doc = "The parent pid of this process"]
+    ///The parent pid of this process
     #[serde(default, skip_serializing_if = "::std::option::Option::is_none")]
     pub parent_pid: ::std::option::Option<i32>,
-    #[doc = "The part of this tool run (only callgrind)"]
+    ///The part of this tool run (only callgrind)
     #[serde(default, skip_serializing_if = "::std::option::Option::is_none")]
     pub part: ::std::option::Option<u64>,
-    #[doc = "The path to the file from the tool run"]
+    ///The path to the file from the tool run
     pub path: ::std::string::String,
-    #[doc = "The pid of this process"]
+    ///The pid of this process
     pub pid: i32,
-    #[doc = "The thread of this tool run (only callgrind)"]
+    ///The thread of this tool run (only callgrind)
     #[serde(default, skip_serializing_if = "::std::option::Option::is_none")]
     pub thread: ::std::option::Option<u32>,
 }
@@ -2180,44 +2283,50 @@ impl ProfileInfo {
         Default::default()
     }
 }
-#[doc = "A single segment of a tool run and if present the comparison with the \"old\" segment\n\nA tool run can produce multiple segments, for example for each process and subprocess with\n(--trace-children)."]
-#[doc = r""]
-#[doc = r" <details><summary>JSON schema</summary>"]
-#[doc = r""]
-#[doc = r" ```json"]
-#[doc = "{"]
-#[doc = "  \"description\": \"A single segment of a tool run and if present the comparison with the \\\"old\\\" segment\\n\\nA tool run can produce multiple segments, for example for each process and subprocess with\\n(--trace-children).\","]
-#[doc = "  \"type\": \"object\","]
-#[doc = "  \"required\": ["]
-#[doc = "    \"details\","]
-#[doc = "    \"metrics_summary\""]
-#[doc = "  ],"]
-#[doc = "  \"properties\": {"]
-#[doc = "    \"details\": {"]
-#[doc = "      \"description\": \"Details like command, pid, ppid, thread number etc. (see [`ProfileInfo`])\","]
-#[doc = "      \"allOf\": ["]
-#[doc = "        {"]
-#[doc = "          \"$ref\": \"#/definitions/EitherOrBoth\""]
-#[doc = "        }"]
-#[doc = "      ]"]
-#[doc = "    },"]
-#[doc = "    \"metrics_summary\": {"]
-#[doc = "      \"description\": \"The [`ToolMetricSummary`]\","]
-#[doc = "      \"allOf\": ["]
-#[doc = "        {"]
-#[doc = "          \"$ref\": \"#/definitions/ToolMetricSummary\""]
-#[doc = "        }"]
-#[doc = "      ]"]
-#[doc = "    }"]
-#[doc = "  }"]
-#[doc = "}"]
-#[doc = r" ```"]
-#[doc = r" </details>"]
+///A single segment of a tool run and if present the comparison with the "old" segment
+///
+///A tool run can produce multiple segments, for example for each process and subprocess with
+///(--trace-children).
+///
+/// <details><summary>JSON schema</summary>
+///
+/// ```json
+/// {
+///  "description": "A single segment of a tool run and if present the comparison with the
+/// \"old\" segment\n\nA tool run can produce multiple segments, for example for each process
+/// and subprocess with\n(--trace-children).",
+///  "type": "object",
+///  "required": [
+///    "details",
+///    "metrics_summary"
+///  ],
+///  "properties": {
+///    "details": {
+///      "description": "Details like command, pid, ppid, thread number etc. (see
+/// [`ProfileInfo`])",
+///      "allOf": [
+///        {
+///          "$ref": "#/definitions/EitherOrBoth"
+///        }
+///      ]
+///    },
+///    "metrics_summary": {
+///      "description": "The [`ToolMetricSummary`]",
+///      "allOf": [
+///        {
+///          "$ref": "#/definitions/ToolMetricSummary"
+///        }
+///      ]
+///    }
+///  }
+/// }
+/// ```
+/// </details>
 #[derive(:: serde :: Deserialize, :: serde :: Serialize, Clone, Debug)]
 pub struct ProfilePart {
-    #[doc = "Details like command, pid, ppid, thread number etc. (see [`ProfileInfo`])"]
+    ///Details like command, pid, ppid, thread number etc. (see [`ProfileInfo`])
     pub details: EitherOrBoth,
-    #[doc = "The [`ToolMetricSummary`]"]
+    ///The [`ToolMetricSummary`]
     pub metrics_summary: ToolMetricSummary,
 }
 impl ::std::convert::From<&ProfilePart> for ProfilePart {
@@ -2230,43 +2339,44 @@ impl ProfilePart {
         Default::default()
     }
 }
-#[doc = "The total metrics over all [`ProfilePart`]s and if detected any [`ToolRegression`]"]
-#[doc = r""]
-#[doc = r" <details><summary>JSON schema</summary>"]
-#[doc = r""]
-#[doc = r" ```json"]
-#[doc = "{"]
-#[doc = "  \"description\": \"The total metrics over all [`ProfilePart`]s and if detected any [`ToolRegression`]\","]
-#[doc = "  \"type\": \"object\","]
-#[doc = "  \"required\": ["]
-#[doc = "    \"regressions\","]
-#[doc = "    \"summary\""]
-#[doc = "  ],"]
-#[doc = "  \"properties\": {"]
-#[doc = "    \"regressions\": {"]
-#[doc = "      \"description\": \"The detected regressions if any\","]
-#[doc = "      \"type\": \"array\","]
-#[doc = "      \"items\": {"]
-#[doc = "        \"$ref\": \"#/definitions/ToolRegression\""]
-#[doc = "      }"]
-#[doc = "    },"]
-#[doc = "    \"summary\": {"]
-#[doc = "      \"description\": \"The summary of metrics of the tool\","]
-#[doc = "      \"allOf\": ["]
-#[doc = "        {"]
-#[doc = "          \"$ref\": \"#/definitions/ToolMetricSummary\""]
-#[doc = "        }"]
-#[doc = "      ]"]
-#[doc = "    }"]
-#[doc = "  }"]
-#[doc = "}"]
-#[doc = r" ```"]
-#[doc = r" </details>"]
+///The total metrics over all [`ProfilePart`]s and if detected any [`ToolRegression`]
+///
+/// <details><summary>JSON schema</summary>
+///
+/// ```json
+/// {
+///  "description": "The total metrics over all [`ProfilePart`]s and if detected any
+/// [`ToolRegression`]",
+///  "type": "object",
+///  "required": [
+///    "regressions",
+///    "summary"
+///  ],
+///  "properties": {
+///    "regressions": {
+///      "description": "The detected regressions if any",
+///      "type": "array",
+///      "items": {
+///        "$ref": "#/definitions/ToolRegression"
+///      }
+///    },
+///    "summary": {
+///      "description": "The summary of metrics of the tool",
+///      "allOf": [
+///        {
+///          "$ref": "#/definitions/ToolMetricSummary"
+///        }
+///      ]
+///    }
+///  }
+/// }
+/// ```
+/// </details>
 #[derive(:: serde :: Deserialize, :: serde :: Serialize, Clone, Debug)]
 pub struct ProfileTotal {
-    #[doc = "The detected regressions if any"]
+    ///The detected regressions if any
     pub regressions: ::std::vec::Vec<ToolRegression>,
-    #[doc = "The summary of metrics of the tool"]
+    ///The summary of metrics of the tool
     pub summary: ToolMetricSummary,
 }
 impl ::std::convert::From<&ProfileTotal> for ProfileTotal {
@@ -2279,20 +2389,20 @@ impl ProfileTotal {
         Default::default()
     }
 }
-#[doc = "The collection of all generated [`Profile`]s"]
-#[doc = r""]
-#[doc = r" <details><summary>JSON schema</summary>"]
-#[doc = r""]
-#[doc = r" ```json"]
-#[doc = "{"]
-#[doc = "  \"description\": \"The collection of all generated [`Profile`]s\","]
-#[doc = "  \"type\": \"array\","]
-#[doc = "  \"items\": {"]
-#[doc = "    \"$ref\": \"#/definitions/Profile\""]
-#[doc = "  }"]
-#[doc = "}"]
-#[doc = r" ```"]
-#[doc = r" </details>"]
+///The collection of all generated [`Profile`]s
+///
+/// <details><summary>JSON schema</summary>
+///
+/// ```json
+/// {
+///  "description": "The collection of all generated [`Profile`]s",
+///  "type": "array",
+///  "items": {
+///    "$ref": "#/definitions/Profile"
+///  }
+/// }
+/// ```
+/// </details>
 #[derive(:: serde :: Deserialize, :: serde :: Serialize, Clone, Debug)]
 #[serde(transparent)]
 pub struct Profiles(pub ::std::vec::Vec<Profile>);
@@ -2317,28 +2427,29 @@ impl ::std::convert::From<::std::vec::Vec<Profile>> for Profiles {
         Self(value)
     }
 }
-#[doc = "The format (json, ...) in which the summary file should be saved or printed"]
-#[doc = r""]
-#[doc = r" <details><summary>JSON schema</summary>"]
-#[doc = r""]
-#[doc = r" ```json"]
-#[doc = "{"]
-#[doc = "  \"description\": \"The format (json, ...) in which the summary file should be saved or printed\","]
-#[doc = "  \"oneOf\": ["]
-#[doc = "    {"]
-#[doc = "      \"description\": \"The format in a space optimal json representation without newlines\","]
-#[doc = "      \"type\": \"string\","]
-#[doc = "      \"const\": \"Json\""]
-#[doc = "    },"]
-#[doc = "    {"]
-#[doc = "      \"description\": \"The format in pretty printed json\","]
-#[doc = "      \"type\": \"string\","]
-#[doc = "      \"const\": \"PrettyJson\""]
-#[doc = "    }"]
-#[doc = "  ]"]
-#[doc = "}"]
-#[doc = r" ```"]
-#[doc = r" </details>"]
+///The format (json, ...) in which the summary file should be saved or printed
+///
+/// <details><summary>JSON schema</summary>
+///
+/// ```json
+/// {
+///  "description": "The format (json, ...) in which the summary file should be saved or
+/// printed",
+///  "oneOf": [
+///    {
+///      "description": "The format in a space optimal json representation without newlines",
+///      "type": "string",
+///      "const": "Json"
+///    },
+///    {
+///      "description": "The format in pretty printed json",
+///      "type": "string",
+///      "const": "PrettyJson"
+///    }
+///  ]
+/// }
+/// ```
+/// </details>
 #[derive(
     :: serde :: Deserialize,
     :: serde :: Serialize,
@@ -2352,9 +2463,9 @@ impl ::std::convert::From<::std::vec::Vec<Profile>> for Profiles {
     PartialOrd,
 )]
 pub enum SummaryFormat {
-    #[doc = "The format in a space optimal json representation without newlines"]
+    ///The format in a space optimal json representation without newlines
     Json,
-    #[doc = "The format in pretty printed json"]
+    ///The format in pretty printed json
     PrettyJson,
 }
 impl ::std::convert::From<&Self> for SummaryFormat {
@@ -2402,40 +2513,40 @@ impl ::std::convert::TryFrom<::std::string::String> for SummaryFormat {
         value.parse()
     }
 }
-#[doc = "Manage the summary output file with this `SummaryOutput`"]
-#[doc = r""]
-#[doc = r" <details><summary>JSON schema</summary>"]
-#[doc = r""]
-#[doc = r" ```json"]
-#[doc = "{"]
-#[doc = "  \"description\": \"Manage the summary output file with this `SummaryOutput`\","]
-#[doc = "  \"type\": \"object\","]
-#[doc = "  \"required\": ["]
-#[doc = "    \"format\","]
-#[doc = "    \"path\""]
-#[doc = "  ],"]
-#[doc = "  \"properties\": {"]
-#[doc = "    \"format\": {"]
-#[doc = "      \"description\": \"The [`SummaryFormat`]\","]
-#[doc = "      \"allOf\": ["]
-#[doc = "        {"]
-#[doc = "          \"$ref\": \"#/definitions/SummaryFormat\""]
-#[doc = "        }"]
-#[doc = "      ]"]
-#[doc = "    },"]
-#[doc = "    \"path\": {"]
-#[doc = "      \"description\": \"The path to the destination file of this summary\","]
-#[doc = "      \"type\": \"string\""]
-#[doc = "    }"]
-#[doc = "  }"]
-#[doc = "}"]
-#[doc = r" ```"]
-#[doc = r" </details>"]
+///Manage the summary output file with this `SummaryOutput`
+///
+/// <details><summary>JSON schema</summary>
+///
+/// ```json
+/// {
+///  "description": "Manage the summary output file with this `SummaryOutput`",
+///  "type": "object",
+///  "required": [
+///    "format",
+///    "path"
+///  ],
+///  "properties": {
+///    "format": {
+///      "description": "The [`SummaryFormat`]",
+///      "allOf": [
+///        {
+///          "$ref": "#/definitions/SummaryFormat"
+///        }
+///      ]
+///    },
+///    "path": {
+///      "description": "The path to the destination file of this summary",
+///      "type": "string"
+///    }
+///  }
+/// }
+/// ```
+/// </details>
 #[derive(:: serde :: Deserialize, :: serde :: Serialize, Clone, Debug)]
 pub struct SummaryOutput {
-    #[doc = "The [`SummaryFormat`]"]
+    ///The [`SummaryFormat`]
     pub format: SummaryFormat,
-    #[doc = "The path to the destination file of this summary"]
+    ///The path to the destination file of this summary
     pub path: ::std::string::String,
 }
 impl ::std::convert::From<&SummaryOutput> for SummaryOutput {
@@ -2448,86 +2559,89 @@ impl SummaryOutput {
         Default::default()
     }
 }
-#[doc = "The `ToolMetricSummary` contains the `MetricsSummary` distinguished by tool and metric kinds"]
-#[doc = r""]
-#[doc = r" <details><summary>JSON schema</summary>"]
-#[doc = r""]
-#[doc = r" ```json"]
-#[doc = "{"]
-#[doc = "  \"description\": \"The `ToolMetricSummary` contains the `MetricsSummary` distinguished by tool and metric kinds\","]
-#[doc = "  \"oneOf\": ["]
-#[doc = "    {"]
-#[doc = "      \"description\": \"If there are no metrics extracted (currently massif, bbv)\","]
-#[doc = "      \"type\": \"string\","]
-#[doc = "      \"const\": \"None\""]
-#[doc = "    },"]
-#[doc = "    {"]
-#[doc = "      \"description\": \"The error summary of tools which reports errors (memcheck, helgrind, drd)\","]
-#[doc = "      \"type\": \"object\","]
-#[doc = "      \"required\": ["]
-#[doc = "        \"ErrorTool\""]
-#[doc = "      ],"]
-#[doc = "      \"properties\": {"]
-#[doc = "        \"ErrorTool\": {"]
-#[doc = "          \"$ref\": \"#/definitions/MetricsSummary\""]
-#[doc = "        }"]
-#[doc = "      },"]
-#[doc = "      \"additionalProperties\": false"]
-#[doc = "    },"]
-#[doc = "    {"]
-#[doc = "      \"description\": \"The dhat summary\","]
-#[doc = "      \"type\": \"object\","]
-#[doc = "      \"required\": ["]
-#[doc = "        \"Dhat\""]
-#[doc = "      ],"]
-#[doc = "      \"properties\": {"]
-#[doc = "        \"Dhat\": {"]
-#[doc = "          \"$ref\": \"#/definitions/MetricsSummary2\""]
-#[doc = "        }"]
-#[doc = "      },"]
-#[doc = "      \"additionalProperties\": false"]
-#[doc = "    },"]
-#[doc = "    {"]
-#[doc = "      \"description\": \"The callgrind summary\","]
-#[doc = "      \"type\": \"object\","]
-#[doc = "      \"required\": ["]
-#[doc = "        \"Callgrind\""]
-#[doc = "      ],"]
-#[doc = "      \"properties\": {"]
-#[doc = "        \"Callgrind\": {"]
-#[doc = "          \"$ref\": \"#/definitions/MetricsSummary3\""]
-#[doc = "        }"]
-#[doc = "      },"]
-#[doc = "      \"additionalProperties\": false"]
-#[doc = "    },"]
-#[doc = "    {"]
-#[doc = "      \"description\": \"The cachegrind summary\","]
-#[doc = "      \"type\": \"object\","]
-#[doc = "      \"required\": ["]
-#[doc = "        \"Cachegrind\""]
-#[doc = "      ],"]
-#[doc = "      \"properties\": {"]
-#[doc = "        \"Cachegrind\": {"]
-#[doc = "          \"$ref\": \"#/definitions/MetricsSummary4\""]
-#[doc = "        }"]
-#[doc = "      },"]
-#[doc = "      \"additionalProperties\": false"]
-#[doc = "    }"]
-#[doc = "  ]"]
-#[doc = "}"]
-#[doc = r" ```"]
-#[doc = r" </details>"]
+///The `ToolMetricSummary` contains the `MetricsSummary` distinguished by tool and metric
+/// kinds
+///
+/// <details><summary>JSON schema</summary>
+///
+/// ```json
+/// {
+///  "description": "The `ToolMetricSummary` contains the `MetricsSummary` distinguished by
+/// tool and metric kinds",
+///  "oneOf": [
+///    {
+///      "description": "If there are no metrics extracted (currently massif, bbv)",
+///      "type": "string",
+///      "const": "None"
+///    },
+///    {
+///      "description": "The error summary of tools which reports errors (memcheck, helgrind,
+/// drd)",
+///      "type": "object",
+///      "required": [
+///        "ErrorTool"
+///      ],
+///      "properties": {
+///        "ErrorTool": {
+///          "$ref": "#/definitions/MetricsSummary"
+///        }
+///      },
+///      "additionalProperties": false
+///    },
+///    {
+///      "description": "The dhat summary",
+///      "type": "object",
+///      "required": [
+///        "Dhat"
+///      ],
+///      "properties": {
+///        "Dhat": {
+///          "$ref": "#/definitions/MetricsSummary2"
+///        }
+///      },
+///      "additionalProperties": false
+///    },
+///    {
+///      "description": "The callgrind summary",
+///      "type": "object",
+///      "required": [
+///        "Callgrind"
+///      ],
+///      "properties": {
+///        "Callgrind": {
+///          "$ref": "#/definitions/MetricsSummary3"
+///        }
+///      },
+///      "additionalProperties": false
+///    },
+///    {
+///      "description": "The cachegrind summary",
+///      "type": "object",
+///      "required": [
+///        "Cachegrind"
+///      ],
+///      "properties": {
+///        "Cachegrind": {
+///          "$ref": "#/definitions/MetricsSummary4"
+///        }
+///      },
+///      "additionalProperties": false
+///    }
+///  ]
+/// }
+/// ```
+/// </details>
 #[derive(:: serde :: Deserialize, :: serde :: Serialize, Clone, Debug)]
 pub enum ToolMetricSummary {
-    #[doc = "If there are no metrics extracted (currently massif, bbv)"]
+    ///If there are no metrics extracted (currently massif, bbv)
     None,
-    #[doc = "The error summary of tools which reports errors (memcheck, helgrind, drd)"]
+    ///The error summary of tools which reports errors (memcheck, helgrind, drd)
     ErrorTool(MetricsSummary),
-    #[doc = "The dhat summary"]
+    ///The dhat summary
     Dhat(MetricsSummary2),
-    #[doc = "The callgrind summary"]
+    ///The callgrind summary
     Callgrind(MetricsSummary3),
-    #[doc = "The cachegrind summary"]
+    ///The cachegrind summary
     Cachegrind(MetricsSummary4),
 }
 impl ::std::convert::From<&Self> for ToolMetricSummary {
@@ -2555,149 +2669,155 @@ impl ::std::convert::From<MetricsSummary4> for ToolMetricSummary {
         Self::Cachegrind(value)
     }
 }
-#[doc = "A detected performance regression depending on the limit either `Soft` or `Hard`"]
-#[doc = r""]
-#[doc = r" <details><summary>JSON schema</summary>"]
-#[doc = r""]
-#[doc = r" ```json"]
-#[doc = "{"]
-#[doc = "  \"description\": \"A detected performance regression depending on the limit either `Soft` or `Hard`\","]
-#[doc = "  \"oneOf\": ["]
-#[doc = "    {"]
-#[doc = "      \"description\": \"A performance regression triggered by a soft limit\","]
-#[doc = "      \"type\": \"object\","]
-#[doc = "      \"required\": ["]
-#[doc = "        \"Soft\""]
-#[doc = "      ],"]
-#[doc = "      \"properties\": {"]
-#[doc = "        \"Soft\": {"]
-#[doc = "          \"type\": \"object\","]
-#[doc = "          \"required\": ["]
-#[doc = "            \"diff_pct\","]
-#[doc = "            \"limit\","]
-#[doc = "            \"metric\","]
-#[doc = "            \"new\","]
-#[doc = "            \"old\""]
-#[doc = "          ],"]
-#[doc = "          \"properties\": {"]
-#[doc = "            \"diff_pct\": {"]
-#[doc = "              \"description\": \"The difference between new and old in percent. Serialized as string to preserve\\ninfinity values and avoid null in json.\","]
-#[doc = "              \"type\": \"string\""]
-#[doc = "            },"]
-#[doc = "            \"limit\": {"]
-#[doc = "              \"description\": \"The value of the limit which was exceeded to cause a performance regression. Serialized\\nas string to preserve infinity values and avoid null in json.\","]
-#[doc = "              \"type\": \"string\""]
-#[doc = "            },"]
-#[doc = "            \"metric\": {"]
-#[doc = "              \"description\": \"The metric kind per tool\","]
-#[doc = "              \"allOf\": ["]
-#[doc = "                {"]
-#[doc = "                  \"$ref\": \"#/definitions/MetricKind\""]
-#[doc = "                }"]
-#[doc = "              ]"]
-#[doc = "            },"]
-#[doc = "            \"new\": {"]
-#[doc = "              \"description\": \"The value of the new benchmark run\","]
-#[doc = "              \"allOf\": ["]
-#[doc = "                {"]
-#[doc = "                  \"$ref\": \"#/definitions/Metric\""]
-#[doc = "                }"]
-#[doc = "              ]"]
-#[doc = "            },"]
-#[doc = "            \"old\": {"]
-#[doc = "              \"description\": \"The value of the old benchmark run\","]
-#[doc = "              \"allOf\": ["]
-#[doc = "                {"]
-#[doc = "                  \"$ref\": \"#/definitions/Metric\""]
-#[doc = "                }"]
-#[doc = "              ]"]
-#[doc = "            }"]
-#[doc = "          }"]
-#[doc = "        }"]
-#[doc = "      },"]
-#[doc = "      \"additionalProperties\": false"]
-#[doc = "    },"]
-#[doc = "    {"]
-#[doc = "      \"description\": \"A performance regression triggered by a hard limit\","]
-#[doc = "      \"type\": \"object\","]
-#[doc = "      \"required\": ["]
-#[doc = "        \"Hard\""]
-#[doc = "      ],"]
-#[doc = "      \"properties\": {"]
-#[doc = "        \"Hard\": {"]
-#[doc = "          \"type\": \"object\","]
-#[doc = "          \"required\": ["]
-#[doc = "            \"diff\","]
-#[doc = "            \"limit\","]
-#[doc = "            \"metric\","]
-#[doc = "            \"new\""]
-#[doc = "          ],"]
-#[doc = "          \"properties\": {"]
-#[doc = "            \"diff\": {"]
-#[doc = "              \"description\": \"The difference between new and the limit\","]
-#[doc = "              \"allOf\": ["]
-#[doc = "                {"]
-#[doc = "                  \"$ref\": \"#/definitions/Metric\""]
-#[doc = "                }"]
-#[doc = "              ]"]
-#[doc = "            },"]
-#[doc = "            \"limit\": {"]
-#[doc = "              \"description\": \"The limit\","]
-#[doc = "              \"allOf\": ["]
-#[doc = "                {"]
-#[doc = "                  \"$ref\": \"#/definitions/Metric\""]
-#[doc = "                }"]
-#[doc = "              ]"]
-#[doc = "            },"]
-#[doc = "            \"metric\": {"]
-#[doc = "              \"description\": \"The metric kind per tool\","]
-#[doc = "              \"allOf\": ["]
-#[doc = "                {"]
-#[doc = "                  \"$ref\": \"#/definitions/MetricKind\""]
-#[doc = "                }"]
-#[doc = "              ]"]
-#[doc = "            },"]
-#[doc = "            \"new\": {"]
-#[doc = "              \"description\": \"The value of the benchmark run\","]
-#[doc = "              \"allOf\": ["]
-#[doc = "                {"]
-#[doc = "                  \"$ref\": \"#/definitions/Metric\""]
-#[doc = "                }"]
-#[doc = "              ]"]
-#[doc = "            }"]
-#[doc = "          }"]
-#[doc = "        }"]
-#[doc = "      },"]
-#[doc = "      \"additionalProperties\": false"]
-#[doc = "    }"]
-#[doc = "  ]"]
-#[doc = "}"]
-#[doc = r" ```"]
-#[doc = r" </details>"]
+///A detected performance regression depending on the limit either `Soft` or `Hard`
+///
+/// <details><summary>JSON schema</summary>
+///
+/// ```json
+/// {
+///  "description": "A detected performance regression depending on the limit either `Soft` or
+/// `Hard`",
+///  "oneOf": [
+///    {
+///      "description": "A performance regression triggered by a soft limit",
+///      "type": "object",
+///      "required": [
+///        "Soft"
+///      ],
+///      "properties": {
+///        "Soft": {
+///          "type": "object",
+///          "required": [
+///            "diff_pct",
+///            "limit",
+///            "metric",
+///            "new",
+///            "old"
+///          ],
+///          "properties": {
+///            "diff_pct": {
+///              "description": "The difference between new and old in percent. Serialized as
+/// string to preserve\ninfinity values and avoid null in json.",
+///              "type": "string"
+///            },
+///            "limit": {
+///              "description": "The value of the limit which was exceeded to cause a
+/// performance regression. Serialized\nas string to preserve infinity values and avoid null in
+/// json.",
+///              "type": "string"
+///            },
+///            "metric": {
+///              "description": "The metric kind per tool",
+///              "allOf": [
+///                {
+///                  "$ref": "#/definitions/MetricKind"
+///                }
+///              ]
+///            },
+///            "new": {
+///              "description": "The value of the new benchmark run",
+///              "allOf": [
+///                {
+///                  "$ref": "#/definitions/Metric"
+///                }
+///              ]
+///            },
+///            "old": {
+///              "description": "The value of the old benchmark run",
+///              "allOf": [
+///                {
+///                  "$ref": "#/definitions/Metric"
+///                }
+///              ]
+///            }
+///          }
+///        }
+///      },
+///      "additionalProperties": false
+///    },
+///    {
+///      "description": "A performance regression triggered by a hard limit",
+///      "type": "object",
+///      "required": [
+///        "Hard"
+///      ],
+///      "properties": {
+///        "Hard": {
+///          "type": "object",
+///          "required": [
+///            "diff",
+///            "limit",
+///            "metric",
+///            "new"
+///          ],
+///          "properties": {
+///            "diff": {
+///              "description": "The difference between new and the limit",
+///              "allOf": [
+///                {
+///                  "$ref": "#/definitions/Metric"
+///                }
+///              ]
+///            },
+///            "limit": {
+///              "description": "The limit",
+///              "allOf": [
+///                {
+///                  "$ref": "#/definitions/Metric"
+///                }
+///              ]
+///            },
+///            "metric": {
+///              "description": "The metric kind per tool",
+///              "allOf": [
+///                {
+///                  "$ref": "#/definitions/MetricKind"
+///                }
+///              ]
+///            },
+///            "new": {
+///              "description": "The value of the benchmark run",
+///              "allOf": [
+///                {
+///                  "$ref": "#/definitions/Metric"
+///                }
+///              ]
+///            }
+///          }
+///        }
+///      },
+///      "additionalProperties": false
+///    }
+///  ]
+/// }
+/// ```
+/// </details>
 #[derive(:: serde :: Deserialize, :: serde :: Serialize, Clone, Debug)]
 pub enum ToolRegression {
-    #[doc = "A performance regression triggered by a soft limit"]
+    ///A performance regression triggered by a soft limit
     Soft {
-        #[doc = "The difference between new and old in percent. Serialized as string to preserve\ninfinity values and avoid null in json."]
+        ///The difference between new and old in percent. Serialized as string to preserve
+        ///infinity values and avoid null in json.
         diff_pct: ::std::string::String,
-        #[doc = "The value of the limit which was exceeded to cause a performance regression. Serialized\nas string to preserve infinity values and avoid null in json."]
+        ///The value of the limit which was exceeded to cause a performance regression.
+        /// Serialized as string to preserve infinity values and avoid null in json.
         limit: ::std::string::String,
-        #[doc = "The metric kind per tool"]
+        ///The metric kind per tool
         metric: MetricKind,
-        #[doc = "The value of the new benchmark run"]
+        ///The value of the new benchmark run
         new: Metric,
-        #[doc = "The value of the old benchmark run"]
+        ///The value of the old benchmark run
         old: Metric,
     },
-    #[doc = "A performance regression triggered by a hard limit"]
+    ///A performance regression triggered by a hard limit
     Hard {
-        #[doc = "The difference between new and the limit"]
+        ///The difference between new and the limit
         diff: Metric,
-        #[doc = "The limit"]
+        ///The limit
         limit: Metric,
-        #[doc = "The metric kind per tool"]
+        ///The metric kind per tool
         metric: MetricKind,
-        #[doc = "The value of the benchmark run"]
+        ///The value of the benchmark run
         new: Metric,
     },
 }
@@ -2706,58 +2826,62 @@ impl ::std::convert::From<&Self> for ToolRegression {
         value.clone()
     }
 }
-#[doc = "The valgrind tools which can be run\n\nNote the default changes from `Callgrind` to `Cachegrind` if the `cachegrind` feature is\nselected."]
-#[doc = r""]
-#[doc = r" <details><summary>JSON schema</summary>"]
-#[doc = r""]
-#[doc = r" ```json"]
-#[doc = "{"]
-#[doc = "  \"description\": \"The valgrind tools which can be run\\n\\nNote the default changes from `Callgrind` to `Cachegrind` if the `cachegrind` feature is\\nselected.\","]
-#[doc = "  \"oneOf\": ["]
-#[doc = "    {"]
-#[doc = "      \"description\": \"[Callgrind: a call-graph generating cache and branch prediction profiler](https://valgrind.org/docs/manual/cl-manual.html)\","]
-#[doc = "      \"type\": \"string\","]
-#[doc = "      \"const\": \"Callgrind\""]
-#[doc = "    },"]
-#[doc = "    {"]
-#[doc = "      \"description\": \"[Cachegrind: a high-precision tracing profiler](https://valgrind.org/docs/manual/cg-manual.html)\","]
-#[doc = "      \"type\": \"string\","]
-#[doc = "      \"const\": \"Cachegrind\""]
-#[doc = "    },"]
-#[doc = "    {"]
-#[doc = "      \"description\": \"[DHAT: a dynamic heap analysis tool](https://valgrind.org/docs/manual/dh-manual.html)\","]
-#[doc = "      \"type\": \"string\","]
-#[doc = "      \"const\": \"DHAT\""]
-#[doc = "    },"]
-#[doc = "    {"]
-#[doc = "      \"description\": \"[Memcheck: a memory error detector](https://valgrind.org/docs/manual/mc-manual.html)\","]
-#[doc = "      \"type\": \"string\","]
-#[doc = "      \"const\": \"Memcheck\""]
-#[doc = "    },"]
-#[doc = "    {"]
-#[doc = "      \"description\": \"[Helgrind: a thread error detector](https://valgrind.org/docs/manual/hg-manual.html)\","]
-#[doc = "      \"type\": \"string\","]
-#[doc = "      \"const\": \"Helgrind\""]
-#[doc = "    },"]
-#[doc = "    {"]
-#[doc = "      \"description\": \"[DRD: a thread error detector](https://valgrind.org/docs/manual/drd-manual.html)\","]
-#[doc = "      \"type\": \"string\","]
-#[doc = "      \"const\": \"DRD\""]
-#[doc = "    },"]
-#[doc = "    {"]
-#[doc = "      \"description\": \"[Massif: a heap profiler](https://valgrind.org/docs/manual/ms-manual.html)\","]
-#[doc = "      \"type\": \"string\","]
-#[doc = "      \"const\": \"Massif\""]
-#[doc = "    },"]
-#[doc = "    {"]
-#[doc = "      \"description\": \"[BBV: an experimental basic block vector generation tool](https://valgrind.org/docs/manual/bbv-manual.html)\","]
-#[doc = "      \"type\": \"string\","]
-#[doc = "      \"const\": \"BBV\""]
-#[doc = "    }"]
-#[doc = "  ]"]
-#[doc = "}"]
-#[doc = r" ```"]
-#[doc = r" </details>"]
+///The valgrind tools which can be run
+///
+///Note the default changes from `Callgrind` to `Cachegrind` if the `cachegrind` feature is
+///selected.
+///
+/// <details><summary>JSON schema</summary>
+///
+/// ```json
+/// {
+///  "description": "The valgrind tools which can be run\n\nNote the default changes from
+/// `Callgrind` to `Cachegrind` if the `cachegrind` feature is\nselected.",
+///  "oneOf": [
+///    {
+///      "description": "[Callgrind: a call-graph generating cache and branch prediction profiler](https://valgrind.org/docs/manual/cl-manual.html)",
+///      "type": "string",
+///      "const": "Callgrind"
+///    },
+///    {
+///      "description": "[Cachegrind: a high-precision tracing profiler](https://valgrind.org/docs/manual/cg-manual.html)",
+///      "type": "string",
+///      "const": "Cachegrind"
+///    },
+///    {
+///      "description": "[DHAT: a dynamic heap analysis tool](https://valgrind.org/docs/manual/dh-manual.html)",
+///      "type": "string",
+///      "const": "DHAT"
+///    },
+///    {
+///      "description": "[Memcheck: a memory error detector](https://valgrind.org/docs/manual/mc-manual.html)",
+///      "type": "string",
+///      "const": "Memcheck"
+///    },
+///    {
+///      "description": "[Helgrind: a thread error detector](https://valgrind.org/docs/manual/hg-manual.html)",
+///      "type": "string",
+///      "const": "Helgrind"
+///    },
+///    {
+///      "description": "[DRD: a thread error detector](https://valgrind.org/docs/manual/drd-manual.html)",
+///      "type": "string",
+///      "const": "DRD"
+///    },
+///    {
+///      "description": "[Massif: a heap profiler](https://valgrind.org/docs/manual/ms-manual.html)",
+///      "type": "string",
+///      "const": "Massif"
+///    },
+///    {
+///      "description": "[BBV: an experimental basic block vector generation tool](https://valgrind.org/docs/manual/bbv-manual.html)",
+///      "type": "string",
+///      "const": "BBV"
+///    }
+///  ]
+/// }
+/// ```
+/// </details>
 #[derive(
     :: serde :: Deserialize,
     :: serde :: Serialize,
@@ -2771,23 +2895,23 @@ impl ::std::convert::From<&Self> for ToolRegression {
     PartialOrd,
 )]
 pub enum ValgrindTool {
-    #[doc = "[Callgrind: a call-graph generating cache and branch prediction profiler](https://valgrind.org/docs/manual/cl-manual.html)"]
+    ///[Callgrind: a call-graph generating cache and branch prediction profiler](https://valgrind.org/docs/manual/cl-manual.html)
     Callgrind,
-    #[doc = "[Cachegrind: a high-precision tracing profiler](https://valgrind.org/docs/manual/cg-manual.html)"]
+    ///[Cachegrind: a high-precision tracing profiler](https://valgrind.org/docs/manual/cg-manual.html)
     Cachegrind,
-    #[doc = "[DHAT: a dynamic heap analysis tool](https://valgrind.org/docs/manual/dh-manual.html)"]
+    ///[DHAT: a dynamic heap analysis tool](https://valgrind.org/docs/manual/dh-manual.html)
     #[serde(rename = "DHAT")]
     Dhat,
-    #[doc = "[Memcheck: a memory error detector](https://valgrind.org/docs/manual/mc-manual.html)"]
+    ///[Memcheck: a memory error detector](https://valgrind.org/docs/manual/mc-manual.html)
     Memcheck,
-    #[doc = "[Helgrind: a thread error detector](https://valgrind.org/docs/manual/hg-manual.html)"]
+    ///[Helgrind: a thread error detector](https://valgrind.org/docs/manual/hg-manual.html)
     Helgrind,
-    #[doc = "[DRD: a thread error detector](https://valgrind.org/docs/manual/drd-manual.html)"]
+    ///[DRD: a thread error detector](https://valgrind.org/docs/manual/drd-manual.html)
     #[serde(rename = "DRD")]
     Drd,
-    #[doc = "[Massif: a heap profiler](https://valgrind.org/docs/manual/ms-manual.html)"]
+    ///[Massif: a heap profiler](https://valgrind.org/docs/manual/ms-manual.html)
     Massif,
-    #[doc = "[BBV: an experimental basic block vector generation tool](https://valgrind.org/docs/manual/bbv-manual.html)"]
+    ///[BBV: an experimental basic block vector generation tool](https://valgrind.org/docs/manual/bbv-manual.html)
     #[serde(rename = "BBV")]
     Bbv,
 }
@@ -2848,7 +2972,7 @@ impl ::std::convert::TryFrom<::std::string::String> for ValgrindTool {
         value.parse()
     }
 }
-#[doc = r" Types for composing complex structures."]
+/// Types for composing complex structures.
 pub mod builder {
     #[derive(Clone, Debug)]
     pub struct BenchmarkSummary {

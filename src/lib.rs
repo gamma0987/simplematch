@@ -196,11 +196,11 @@ use alloc::string::String;
 #[cfg(not(feature = "std"))]
 use alloc::vec::Vec;
 use core::cmp::Ordering;
-#[cfg(feature = "std")]
-use core::error::Error;
 use core::fmt::Display;
 #[cfg(feature = "std")]
 use std::collections::VecDeque;
+#[cfg(feature = "std")]
+use std::error::Error;
 #[cfg(feature = "std")]
 use std::string::String;
 #[cfg(feature = "std")]
@@ -617,7 +617,7 @@ where
     /// ```rust
     /// use simplematch::Options;
     ///
-    /// let options = Options::default().case_insensitive(true);
+    /// let options: Options<u8> = Options::default().case_insensitive(true);
     /// ```
     #[must_use]
     pub const fn case_insensitive(mut self, yes: bool) -> Self {
@@ -634,7 +634,7 @@ where
     /// ```rust
     /// use simplematch::Options;
     ///
-    /// let options = Options::default().enable_escape(true);
+    /// let options: Options<u8> = Options::default().enable_escape(true);
     /// ```
     #[must_use]
     pub const fn enable_escape(mut self, yes: bool) -> Self {
@@ -669,7 +669,7 @@ where
     /// ```rust
     /// use simplematch::Options;
     ///
-    /// let options = Options::default().enable_classes(true);
+    /// let options: Options<u8> = Options::default().enable_classes(true);
     /// ```
     #[must_use]
     pub const fn enable_classes(mut self, yes: bool) -> Self {
@@ -688,7 +688,7 @@ where
     /// ```rust
     /// use simplematch::Options;
     ///
-    /// let options = Options::default().enable_classes_with("^");
+    /// let options = Options::default().enable_classes_with(b'^');
     /// ```
     #[must_use]
     pub const fn enable_classes_with(mut self, negation: T) -> Self {
@@ -741,7 +741,7 @@ where
     ///
     /// assert_eq!(
     ///     Options::default().wildcard_any_with(b'?').verified(),
-    ///     SimpleMatchError::DuplicateCharacterAssignment
+    ///     Err(SimpleMatchError::DuplicateCharacterAssignment)
     /// );
     /// ```
     pub fn verify(&self) -> Result<(), SimpleMatchError> {
@@ -774,7 +774,7 @@ where
     /// ```rust
     /// use simplematch::{Options, SimpleMatchError};
     ///
-    /// let options: Options = Options::default()
+    /// let options = Options::default()
     ///     .wildcard_any_with(b'%')
     ///     .verified()
     ///     .unwrap();
@@ -788,7 +788,7 @@ where
     ///
     /// assert_eq!(
     ///     Options::default().wildcard_any_with(b'?').verified(),
-    ///     SimpleMatchError::DuplicateCharacterAssignment
+    ///     Err(SimpleMatchError::DuplicateCharacterAssignment)
     /// );
     /// ```
     ///

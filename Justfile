@@ -25,6 +25,10 @@ msrv := '1.62.0'
 build-hack:
     cargo hack --workspace --feature-powerset build
 
+[group('build')]
+build-hack-simplematch:
+    cargo hack --package simplematch --feature-powerset build
+
 # Check and fix format of rust files (Uses: 'cargo +nightly')
 [group('formatting')]
 fmt:
@@ -88,11 +92,15 @@ build package:
 build-docs:
     DOCS_RS=1 cargo doc --all-features --no-deps --workspace
 
-
-# Run all tests in a package. (Uses: 'cargo')
+# Run tests for a package. (Uses: 'cargo')
 [group('test')]
-test:
-    cargo test --all-features --all-targets {{ if args != '' { args } else { '' } }}
+test package:
+    cargo test --package {{ package }} --all-features {{ if args != '' { args } else { '' } }}
+
+# Run all tests. (Uses: 'cargo')
+[group('test')]
+test-all:
+    cargo test --workspace --all-features {{ if args != '' { args } else { '' } }}
 
 # Run all doc tests (Uses: 'cargo')
 [group('test')]
@@ -106,6 +114,10 @@ build-and-test-docs: build-docs test-doc
 [group('test')]
 test-hack:
     cargo hack --workspace --feature-powerset test
+
+[group('test')]
+test-hack-simplematch:
+    cargo hack --package simplematch --feature-powerset test
 
 [group('test')]
 fuzz target:

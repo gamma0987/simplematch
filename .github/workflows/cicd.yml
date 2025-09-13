@@ -142,10 +142,18 @@ jobs:
           key: ${{ runner.os }}-cargo-${{ matrix.toolchain }}
       - name: Lint
         run: just lint
-      - name: Build
+      - name: Build hack all packages
+        if: matrix.toolchain == 'stable' || matrix.toolchain == 'nightly'
         run: just build-hack
-      - name: Run tests
+      - name: Build hack just simplematch
+        if: matrix.toolchain == '1.62.0'
+        run: just build-hack-simplematch
+      - name: Run tests for all packages
+        if: matrix.toolchain == 'stable' || matrix.toolchain == 'nightly'
         run: just test-hack
+      - name: Run tests just for simplematch
+        if: matrix.toolchain == '1.62.0'
+        run: just test-hack-simplematch
 
   fuzz:
     name: Fuzzy testing

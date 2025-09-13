@@ -258,18 +258,18 @@ mod tests {
 
     // From fuzzy test
     #[rstest]
-    #[case::fuzz_0("*[--$j-/]", Regex::new("^.*?[[$-\\-][/-j]]$").unwrap())]
+    #[case::fuzz_0("*[--$j-/]", Regex::new("^.*?[[\\$-\\-][/-j]]$").unwrap())]
     #[case::fuzz_1("[nzz!aa][bc", Regex::new("^[nzz\\!aa]\\[[b][c]$").unwrap())]
     #[case::fuzz_2("[n", Regex::new("^\\[[n]$").unwrap())]
-    #[case::fuzz_3("[.$--.j-.\\/j.]", Regex::new("^[\\.[$-\\-]\\.[.-j]\\\\\\/j\\.]$").unwrap())]
-    #[case::fuzz_5("[--$j\0-\0--\0-\0]", Regex::new("^[[$-\\-]j[\0-\0][\0-\\-]\\-\\\0]$").unwrap())]
-    #[case::fuzz_5("*[--$j---\0\0\0\0]", Regex::new("^.*?[[$-\\-][\\--j]\\-\\\0\\\0\\\0\\\0]$").unwrap())]
-    #[case::fuzz_6("*[--$j---\0\0\0\0]", Regex::new("^.*?[[$-\\-][\\--j]\\-\\\0\\\0\\\0\\\0]$").unwrap())]
+    #[case::fuzz_3("[.$--.j-.\\/j.]", Regex::new("^[\\.[\\$-\\-]\\.[\\.-j]\\\\\\/j\\.]$").unwrap())]
+    #[case::fuzz_5_0("[--$j\0-\0--\0-\0]", Regex::new("^[[\\$-\\-]j[\0-\0][\0-\\-]\\-\\\0]$").unwrap())]
+    #[case::fuzz_5_1("*[--$j---\0\0\0\0]", Regex::new("^.*?[[\\$-\\-][\\--j]\\-\\\0\\\0\\\0\\\0]$").unwrap())]
+    #[case::fuzz_6("*[--$j---\0\0\0\0]", Regex::new("^.*?[[\\$-\\-][\\--j]\\-\\\0\\\0\\\0\\\0]$").unwrap())]
     #[case::fuzz_7("[\0\0-\0]", Regex::new("^[\\\0[\0-\0]]$").unwrap())]
     #[case::fuzz_8("*[--\nJ-\0\0-\0-+\0]", Regex::new("^.*?[[\n-\\-][\0-J][\0-\0]\\-\\+\\\0]$").unwrap())]
     #[case::fuzz_9("*[-$\0j-/\0a-]", Regex::new("^.*?[\\-\\$\\\0[/-j]\\\0a\\-]$").unwrap())]
     #[case::fuzz_10("[]--]G", Regex::new("^[[\\--\\]]][G]$").unwrap())]
-    #[case::fuzz_11("*[]-^\0\0l[]", Regex::new("^.*?[[\\]-^]\\\0\\\0l\\[]$").unwrap())]
+    #[case::fuzz_11("*[]-^\0\0l[]", Regex::new("^.*?[[\\]-\\^]\\\0\\\0l\\[]$").unwrap())]
     fn pattern_to_regex_when_range(#[case] pattern: &str, #[case] expected: Regex) {
         let actual = pattern_to_regex(
             pattern,

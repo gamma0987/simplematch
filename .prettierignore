@@ -1,0 +1,3 @@
+# Ignore all JSON files in the benchmarks/fixtures directory
+benchmarks/fixtures/*.json
+

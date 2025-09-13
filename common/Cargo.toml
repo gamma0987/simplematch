@@ -6,9 +6,9 @@ publish = false
 rust-version = "1.87.0"
 
 [dependencies]
-arbitrary = { version = "1.4", features = ["derive"] }
+arbitrary = { version = "1", features = ["derive"] }
 regex = "1"
 simplematch = { path = ".." }
 
 [dev-dependencies]
-rstest = "0.26.1"
+rstest = "0.18"
