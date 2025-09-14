@@ -154,6 +154,14 @@ jobs:
       - name: Run tests just for simplematch
         if: matrix.toolchain == '1.62.0'
         run: just test-hack-simplematch
+      - name: Coverage
+        if: matrix.toolchain == 'stable'
+        run: just coverage-lcov
+      - name: Upload coverage reports to Codecov
+        if: matrix.toolchain == 'stable'
+        uses: codecov/codecov-action@v5
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
 
   fuzz:
     name: Fuzzy testing
