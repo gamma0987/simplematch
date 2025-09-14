@@ -126,3 +126,12 @@ fn options_verified() {
     let options = Options::<u8>::default().verified().unwrap();
     assert_eq!(options, Options::default());
 }
+
+#[test]
+fn error_message_when_options_verified_fails() {
+    let result = Options::default().wildcard_any_with('?').verified();
+    assert_eq!(
+        result.unwrap_err().to_string(),
+        "Verifying options failed: The options contain a duplicate character assignment."
+    );
+}

@@ -17,6 +17,16 @@ Versioning](http://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+## [0.2.0] - 2025-09-14
+
+### Changed
+
+* Rename `SimpleMatch` trait to `DoWild`
+
+### Fixed
+
+* Library/API documentation and crate description
+
 ## [0.1.0] - 2025-09-14
 
 ### Added

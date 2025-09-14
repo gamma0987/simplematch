@@ -13,7 +13,7 @@ iai-callgrind = "0.16.1"
 regex = "1"
 serde = "1"
 serde_json = "1"
-simplematch = { version = "0.1.0", path = ".." }
+simplematch = { path = ".." }
 wildcard = "0.3.0"
 wildmatch = "2.5.0"
 

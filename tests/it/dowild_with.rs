@@ -1,7 +1,7 @@
 //! The tests
 
 use rstest::rstest;
-use simplematch::{dowild_with, Options, SimpleMatch};
+use simplematch::{dowild_with, DoWild, Options};
 
 #[test]
 fn impl_for_str() {
