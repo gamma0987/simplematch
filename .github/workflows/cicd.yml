@@ -120,6 +120,7 @@ jobs:
           cargo update
       - uses: taiki-e/install-action@cargo-hack
       - uses: taiki-e/install-action@just
+      - uses: taiki-e/install-action@grcov
       - name: Info
         run: |
           set -x
