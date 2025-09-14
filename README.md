@@ -61,11 +61,11 @@ assert_eq!(dowild("foo*".as_bytes(), "foobar".as_bytes()), true);
 assert_eq!(dowild("foo?".as_bytes(), "fooa".as_bytes()), true)
 ```
 
-or more conveniently, bring the `SimpleMatch` trait in scope to match directly
+or more conveniently, bring the `DoWild` trait in scope to match directly
 on strings (and bytes) without performance loss:
 
 ```rust
-use simplematch::SimpleMatch;
+use simplematch::DoWild;
 
 assert_eq!("foobar".dowild("foo*"), true);
 ```
@@ -73,7 +73,7 @@ assert_eq!("foobar".dowild("foo*"), true);
 Use `dowild_with` with `Options` to customize the pattern matching:
 
 ```rust
-use simplematch::{dowild_with, Options, SimpleMatch};
+use simplematch::{dowild_with, Options, DoWild};
 
 let options = Options::default()
     .case_insensitive(true)

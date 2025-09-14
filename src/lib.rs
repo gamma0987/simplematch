@@ -47,11 +47,11 @@
 //! assert_eq!(dowild("foo?".as_bytes(), "fooa".as_bytes()), true)
 //! ```
 //!
-//! Or, bringing the trait [`SimpleMatch`] in scope allows for more convenient access to this
+//! Or, bringing the trait [`DoWild`] in scope allows for more convenient access to this
 //! function without performance loss:
 //!
 //! ```rust
-//! use simplematch::SimpleMatch;
+//! use simplematch::DoWild;
 //!
 //! assert_eq!("foobar".dowild("foo*"), true);
 //! ```
@@ -59,7 +59,7 @@
 //! A possible usage with `char`:
 //!
 //! ```rust
-//! use simplematch::SimpleMatch;
+//! use simplematch::DoWild;
 //!
 //! let pattern = "foo*".chars().collect::<Vec<char>>();
 //! let haystack = "foobar".chars().collect::<Vec<char>>();
@@ -109,7 +109,7 @@
 //! slice, ...:
 //!
 //! ```rust
-//! use simplematch::{Options, SimpleMatch};
+//! use simplematch::{DoWild, Options};
 //!
 //! assert_eq!(
 //!     "FOObar".dowild_with("foo*", Options::default().case_insensitive(true)),
@@ -161,9 +161,9 @@
 #![cfg_attr(not(feature = "std"), no_std)]
 #![cfg_attr(docsrs, feature(doc_auto_cfg))]
 
-macro_rules! impl_simplematch {
+macro_rules! impl_dowild {
     ( $type:ty: $for:ty ) => {
-        impl SimpleMatch<$type> for $for {
+        impl DoWild<$type> for $for {
             fn dowild(&self, pattern: Self) -> bool {
                 dowild(pattern, self)
             }
@@ -174,7 +174,7 @@ macro_rules! impl_simplematch {
         }
     };
     ( $type:ty: $for:ty => $( $tail:tt )* ) => {
-        impl SimpleMatch<$type> for $for {
+        impl DoWild<$type> for $for {
             fn dowild(&self, pattern: Self) -> bool {
                 dowild(pattern $( $tail )*, self $( $tail )* )
             }
@@ -222,11 +222,11 @@ use std::vec::Vec;
 /// Use [`dowild`] directly on a `&str`
 ///
 /// ```rust
-/// use simplematch::SimpleMatch;
+/// use simplematch::DoWild;
 ///
 /// assert_eq!("foobar".dowild("foo*"), true);
 /// ```
-pub trait SimpleMatch<T>
+pub trait DoWild<T>
 where
     T: Wildcard,
 {
@@ -237,7 +237,7 @@ where
     /// # Examples
     ///
     /// ```rust
-    /// use simplematch::SimpleMatch;
+    /// use simplematch::DoWild;
     ///
     /// assert_eq!("foobar".dowild("foo*"), true);
     /// ```
@@ -251,7 +251,7 @@ where
     /// # Examples
     ///
     /// ```rust
-    /// use simplematch::{Options, SimpleMatch};
+    /// use simplematch::{DoWild, Options};
     ///
     /// assert_eq!(
     ///     "foobar".dowild_with("foo*", Options::default().case_insensitive(true)),
@@ -822,12 +822,12 @@ impl Display for SimpleMatchError {
 // Our trait implementations for the basic types
 ////////////////////////////////////////////////////////////////////////////////
 
-impl_simplematch!(u8: &[u8]);
-impl_simplematch!(u8: &str => .as_bytes());
-impl_simplematch!(u8: String => .as_bytes());
-impl_simplematch!(u8: Vec<u8> => .as_slice());
-impl_simplematch!(char: &[char]);
-impl_simplematch!(char: Vec<char> => .as_slice());
+impl_dowild!(u8: &[u8]);
+impl_dowild!(u8: &str => .as_bytes());
+impl_dowild!(u8: String => .as_bytes());
+impl_dowild!(u8: Vec<u8> => .as_slice());
+impl_dowild!(char: &[char]);
+impl_dowild!(char: Vec<char> => .as_slice());
 
 impl Wildcard for u8 {
     const DEFAULT_ANY: Self = b'*';
@@ -914,7 +914,7 @@ impl Wildcard for char {
 /// If you need [`Options`] you can use [`dowild_with`].
 ///
 /// Instead of using this function, match directly on strings, u8 slices, ... without
-/// performance loss, if you bring the [`SimpleMatch`] trait in scope.
+/// performance loss, if you bring the [`DoWild`] trait in scope.
 ///
 /// See also the [library documentation](crate) for more details.
 ///
@@ -929,7 +929,7 @@ impl Wildcard for char {
 /// or more conveniently directly on a string
 ///
 /// ```rust
-/// use simplematch::SimpleMatch;
+/// use simplematch::DoWild;
 ///
 /// assert_eq!("aaabc".dowild("*bc"), true);
 /// ```
@@ -1069,11 +1069,11 @@ where
 /// );
 /// ```
 ///
-/// or more conveniently match directly on a string bringing the [`SimpleMatch`] trait in
+/// or more conveniently match directly on a string bringing the [`DoWild`] trait in
 /// scope.
 ///
 /// ```rust
-/// use simplematch::{Options, SimpleMatch};
+/// use simplematch::{DoWild, Options};
 ///
 /// assert_eq!(
 ///     "aaabc".dowild_with("%bc", Options::default().wildcard_any_with(b'%')),
