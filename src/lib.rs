@@ -1,7 +1,7 @@
 //! # simplematch
 //!
 //! The `simplematch` library provides a fast and efficient way to match wildcard patterns on
-//! strings and bytes. It provides two primary functions, `dowild` and `dowild_with`, along
+//! strings and bytes. It includes two primary functions, `dowild` and `dowild_with`, along
 //! with an `Options` struct to customize the behavior of the `dowild_with` function.
 //!
 //! ## Usage
