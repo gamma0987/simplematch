@@ -5,7 +5,7 @@ members = ["benchmarks", "common", "xtask"]
 authors = ["gamma0987 <gamma0987@posteo.de>"]
 categories = ["algorithms", "no-std", "text-processing"]
 description = """
-Fast wildcard pattern matching made easy
+Fast wildcard pattern matching for strings and bytes with a simple api
 """
 edition = "2021"
 homepage = "https://github.com/gamma0987/simplematch"
