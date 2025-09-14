@@ -3,7 +3,7 @@ members = ["benchmarks", "common", "xtask"]
 
 [package]
 authors = ["gamma0987 <gamma0987@posteo.de>"]
-categories = ["Algorithms", "No standard library", "Text processing"]
+categories = ["algorithms", "no-std", "text-processing"]
 description = """
 Fast wildcard pattern matching made easy
 """
