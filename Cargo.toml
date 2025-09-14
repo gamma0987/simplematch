@@ -25,6 +25,12 @@ overflow-checks = false
 [profile.bench]
 debug = true
 
+[profile.coverage]
+inherits = "dev"
+lto = false
+debug = true
+opt-level = 0
+
 [features]
 default = ["std"]
 std = []
