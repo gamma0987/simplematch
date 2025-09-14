@@ -1,7 +1,7 @@
 //! # simplematch
 //!
 //! The `simplematch` library provides a fast and efficient way to match wildcard patterns on
-//! strings and bytes. It includes two primary functions, `dowild` and `dowild_with`, along
+//! strings and bytes. It provides two primary functions, `dowild` and `dowild_with`, along
 //! with an `Options` struct to customize the behavior of the `dowild_with` function.
 //!
 //! ## Usage
@@ -25,11 +25,11 @@
 //!     T: Wildcard
 //! ```
 //!
-//! `Wildcard` is natively implemented for `u8` and `char`.
-//!
 //! Matches the given `haystack` against the specified `pattern` using simple wildcard rules.
 //! The `*` character matches any sequence of characters, while the `?` character matches
 //! a single character.
+//!
+//! `Wildcard` is natively implemented for `u8` and `char`.
 //!
 //! **Parameters:**
 //! - `pattern`: A bytes or char slice representing the wildcard pattern to match against.
@@ -105,8 +105,8 @@
 //! );
 //! ```
 //!
-//! With the [`SimpleMatch`] trait in scope, the [`dowild_with`] function can be accessed
-//! directly on the string or u8 slice, ...:
+//! Like [`dowild`], the [`dowild_with`] function can be accessed directly on the string or u8
+//! slice, ...:
 //!
 //! ```rust
 //! use simplematch::{Options, SimpleMatch};
@@ -154,7 +154,7 @@
 //! written by Kirk J. Krauss.
 //!
 //! The `simplematch` algorithm is an improved version which uses generally about 2-6x less
-//! instructions than the original algorithm tested for small and big data.
+//! instructions than the original algorithm; tested with random small and big data.
 
 // spell-checker: ignore aaabc fooa Krauss
 
@@ -206,16 +206,16 @@ use std::string::String;
 #[cfg(feature = "std")]
 use std::vec::Vec;
 
-/// A convenience trait to use [`dowild`] and [`dowild_with`] directly on the type `T`
+/// A convenience trait to use [`dowild`] and [`dowild_with`] directly for this type
 ///
 /// This trait is natively implemented for
 ///
-/// * &[u8]
-/// * &str
-/// * String
-/// * Vec<u8>
-/// * &[char]
-/// * Vec<char>
+/// * `&str`
+/// * `String`
+/// * `&[u8]`
+/// * `Vec<u8>`
+/// * `&[char]`
+/// * `Vec<char>`
 ///
 /// # Examples
 ///
@@ -726,7 +726,10 @@ where
         self
     }
 
-    /// Check `Options` for errors
+    /// Check `Options` for configuration errors
+    ///
+    /// An invalid configuration consists of duplicate character assignments. For example you
+    /// can't use `*` for the escape character and `wildcard_any` character simultaneously.
     ///
     /// # Errors
     ///
@@ -758,7 +761,7 @@ where
         Ok(())
     }
 
-    /// Return these `Options` if [`verify`] succeeds.
+    /// A convenience method that consumes and returns these `Options` if it succeeds.
     ///
     /// The only difference to [`verify`] is, that this method consumes the [`Options`]
     /// returning it on success.
@@ -902,16 +905,16 @@ impl Wildcard for char {
 // The main dowild functions
 ////////////////////////////////////////////////////////////////////////////////
 
-/// Return true if the wildcard pattern matches the `haystack`
+/// Returns `true` if the wildcard pattern matches the `haystack`.
 ///
 /// Allowed wildcard characters are `*` to match any amount of characters and `?` to match
 /// exactly one character.
 ///
 /// This is the basic algorithm without customization options to provide the best performance.
-/// If you need more [`Options`] use [`dowild_with`].
+/// If you need [`Options`] you can use [`dowild_with`].
 ///
-/// Match directly on strings, u8 slices, ... without performance loss, if you bring the
-/// [`SimpleMatch`] trait in scope.
+/// Instead of using this function, match directly on strings, u8 slices, ... without
+/// performance loss, if you bring the [`SimpleMatch`] trait in scope.
 ///
 /// See also the [library documentation](crate) for more details.
 ///
@@ -1034,8 +1037,8 @@ where
     true
 }
 
-/// Return true if the wildcard pattern matches the `haystack`. This method can be customized
-/// with [`Options`].
+/// Returns `true` if the wildcard pattern matches the `haystack`. This method can be
+/// customized with [`Options`].
 ///
 /// Don't use this method if you only need the default [`Options`]. The [`dowild`] function is
 /// more performant in such cases.
