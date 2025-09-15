@@ -167,6 +167,7 @@ fn dowild_with_escape_and_ranges(
 
 #[rstest]
 #[case::empty("[]", &["[]"], true)]
+#[case::only_opening_bracket("[[[[", &["[[[["], true)]
 #[case::open_without_close("[abc", &["[abc"], true)]
 #[case::close_bracket_end("a]", &["a]"], true)]
 #[case::open_bracket_end("a[", &["a["], true)]
@@ -278,6 +279,7 @@ fn dowild_with_range_and_wildcards(
 #[case::fuzz_13("[]--]G", &["GG"], true, true)]
 #[case::fuzz_14("[]-\0", &["5"], true, false)]
 #[case::fuzz_14("[!]a]", &[","], true, true)]
+#[case::fuzz_15( "*[![?qd][zU*", &["\0\0][zU"], true, true)]
 // cspell: enable
 fn dowild_with_from_fuzzy_tests(
     #[case] pattern: String,
