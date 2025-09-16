@@ -1220,7 +1220,7 @@ where
                     has_seen_wildcard_any = true;
                     p_idx += 1;
 
-                    while p_idx < pattern.len() && pattern[p_idx] == wildcard_any {
+                    while p_idx < pattern.len() && is_wildcard_any(pattern[p_idx]) {
                         p_idx += 1;
                     }
                     if p_idx >= pattern.len() {
@@ -1229,11 +1229,11 @@ where
 
                     let next_c = pattern[p_idx];
                     #[allow(clippy::else_if_without_else)]
-                    if next_c == wildcard_one {
+                    if is_wildcard_one(next_c) {
                         while h_idx < haystack.len() {
                             p_idx += 1;
                             h_idx += 1;
-                            if !(p_idx < pattern.len() && pattern[p_idx] == next_c) {
+                            if !(p_idx < pattern.len() && is_wildcard_one(pattern[p_idx])) {
                                 break;
                             }
                         }

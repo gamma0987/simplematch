@@ -19,6 +19,11 @@ wildmatch = "2.5.0"
 
 [[bench]]
 harness = false
+name = "dowild"
+path = "benches/dowild.rs"
+
+[[bench]]
+harness = false
 name = "compare"
 path = "benches/compare.rs"
 
