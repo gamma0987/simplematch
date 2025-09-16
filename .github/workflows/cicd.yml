@@ -187,6 +187,7 @@ jobs:
       - name: Cache/Restore rust cache
         uses: Swatinem/rust-cache@v2
         with:
+          key: "workflow-cicd-fuzz"
           workspaces: |
             . -> target
             fuzz -> target

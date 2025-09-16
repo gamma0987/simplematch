@@ -1,0 +1,69 @@
+# spell-checker: ignore dtolnay taiki Swatinem binstall taplo rustup cmin dawidd
+name: Fuzz
+
+on:
+  push:
+    branches: [main]
+  schedule:
+    - cron: "0 2 * * *"
+
+env:
+  CARGO_TERM_COLOR: always
+  RUST_BACKTRACE: "1"
+
+concurrency:
+  group: ${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  fuzz:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - fuzz_target: dowild
+          - fuzz_target: dowild_with
+
+    env:
+      # Directory where cargo‑fuzz stores the corpus
+      CORPUS_DIR: fuzz/corpus/${{ matrix.fuzz_target }}
+      FUZZ_MINUTES: 60
+
+    steps:
+      - uses: actions/checkout@v5
+      - uses: dtolnay/rust-toolchain@nightly
+        with:
+          targets: "x86_64-unknown-linux-musl"
+      - uses: taiki-e/install-action@just
+      - name: Cache/Restore rust cache
+        uses: Swatinem/rust-cache@v2
+        with:
+          key: "workflow-fuzz-fuzz"
+          workspaces: |
+            . -> target
+            fuzz -> target
+      - name: Install cargo‑fuzz
+        run: cargo install cargo-fuzz --locked
+      - name: Download previous corpus artifact
+        uses: dawidd6/action-download-artifact@v11
+        with:
+          workflow_conclusion: success
+          name: fuzz-corpus-${{ matrix.fuzz_target }}
+          check_artifacts: true
+          if_no_artifact_found: ignore
+          path: ${{ env.CORPUS_DIR }}
+      - name: Run cargo‑fuzz
+        run: |
+          just args="-- -max_total_time=$(( ${FUZZ_MINUTES} * 60 )) -jobs=$(nproc) -timeout=30" fuzz ${{ matrix.fuzz_target }}
+      - name: Minimize corpus (cmin)
+        if: always()
+        run: |
+          cargo fuzz cmin ${{ matrix.fuzz_target }} "${CORPUS_DIR}"
+          find "${CORPUS_DIR}" -type f -name 'crash-*' -delete || true
+      - name: Upload updated corpus
+        uses: actions/upload-artifact@v4
+        with:
+          name: fuzz-corpus-${{ matrix.fuzz_target }}
+          path: ${{ env.CORPUS_DIR }}
+          retention-days: 7
