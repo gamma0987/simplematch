@@ -197,7 +197,7 @@ use alloc::string::String;
 use alloc::vec::Vec;
 use core::cmp::Ordering;
 use core::fmt::Display;
-use std::borrow::Cow;
+use core::ops::Deref;
 #[cfg(feature = "std")]
 use std::collections::VecDeque;
 #[cfg(feature = "std")]
@@ -291,19 +291,15 @@ pub trait Wildcard: Eq + Copy + Clone {
     fn match_range_case_sensitive(token: Self, low: Self, high: Self) -> bool;
 }
 
-// Represents a character class
-#[derive(Debug, Clone)]
-struct CharacterClass<T> {
-    /// If `None`, the character class is invalid.
-    class: Option<Class<T>>,
-    /// The end index in the pattern
-    end: usize,
-    /// The start index in the pattern
-    start: usize,
+/// A simple type to hold the borrowed or owned value `T`
+///
+/// `Cow` would have been an alternative but it requires `std` and we don't need the actual
+/// copy-on-write property just a container for borrowed or owned data.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
+enum BorrowedOrOwned<'a, T> {
+    Borrowed(&'a T),
+    Owned(T),
 }
-
-#[derive(Debug, Clone)]
-struct CharacterClasses<T>(VecDeque<CharacterClass<T>>);
 
 #[derive(Debug, Clone)]
 enum Class<T> {
@@ -327,6 +323,20 @@ pub enum SimpleMatchError {
     /// A character in [`Options`] was assigned multiple times
     DuplicateCharacterAssignment,
 }
+
+// Represents a character class
+#[derive(Debug, Clone)]
+struct CharacterClass<T> {
+    /// If `None`, the character class is invalid.
+    class: Option<Class<T>>,
+    /// The end index in the pattern
+    end: usize,
+    /// The start index in the pattern
+    start: usize,
+}
+
+#[derive(Debug, Clone)]
+struct CharacterClasses<T>(VecDeque<CharacterClass<T>>);
 
 /// Customize the matching behavior of the [`dowild_with`] function
 #[derive(Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
@@ -375,6 +385,25 @@ where
     ///
     /// The default token is `?`.
     pub wildcard_one: T,
+}
+
+impl<T> Deref for BorrowedOrOwned<'_, T> {
+    type Target = T;
+
+    #[inline]
+    fn deref(&self) -> &Self::Target {
+        match self {
+            BorrowedOrOwned::Borrowed(value) => value,
+            BorrowedOrOwned::Owned(value) => value,
+        }
+    }
+}
+
+impl<T> AsRef<T> for BorrowedOrOwned<'_, T> {
+    #[inline]
+    fn as_ref(&self) -> &T {
+        self
+    }
 }
 
 impl<T> CharacterClass<T>
@@ -1285,11 +1314,19 @@ where
                         let class = if has_seen_wildcard_any {
                             // Try to get rid of classes outside of the possible index
                             classes.prune(next_p_idx);
-                            Cow::Borrowed(classes.get_or_add(p_idx, pattern, class_negate))
+                            BorrowedOrOwned::Borrowed(classes.get_or_add(
+                                p_idx,
+                                pattern,
+                                class_negate,
+                            ))
                         } else {
                             // There's no need to store character classes as long as we don't require
                             // to reset.
-                            Cow::Owned(CharacterClasses::parse(p_idx, pattern, class_negate))
+                            BorrowedOrOwned::Owned(CharacterClasses::parse(
+                                p_idx,
+                                pattern,
+                                class_negate,
+                            ))
                         };
 
                         // Try to match this class. If it is an invalid class, we can interpret the
