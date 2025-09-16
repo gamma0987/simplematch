@@ -197,6 +197,7 @@ use alloc::string::String;
 use alloc::vec::Vec;
 use core::cmp::Ordering;
 use core::fmt::Display;
+use core::ops::Deref;
 #[cfg(feature = "std")]
 use std::collections::VecDeque;
 #[cfg(feature = "std")]
@@ -290,27 +291,23 @@ pub trait Wildcard: Eq + Copy + Clone {
     fn match_range_case_sensitive(token: Self, low: Self, high: Self) -> bool;
 }
 
-// Represents a character class
-#[derive(Debug)]
-struct CharacterClass<T> {
-    /// If `None`, the character class is invalid.
-    class: Option<Class<T>>,
-    /// The end index in the pattern
-    end: usize,
-    /// The start index in the pattern
-    start: usize,
+/// A simple type to hold the borrowed or owned value `T`
+///
+/// `Cow` would have been an alternative but it requires `std` and we don't need the actual
+/// copy-on-write property just a container for borrowed or owned data.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
+enum BorrowedOrOwned<'a, T> {
+    Borrowed(&'a T),
+    Owned(T),
 }
 
-#[derive(Debug)]
-struct CharacterClasses<T>(VecDeque<CharacterClass<T>>);
-
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 enum Class<T> {
     Positive(Vec<ClassKind<T>>),
     Negative(Vec<ClassKind<T>>),
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord)]
 enum ClassKind<T> {
     /// A range like `a-z`
     Range(T, T),
@@ -326,6 +323,20 @@ pub enum SimpleMatchError {
     /// A character in [`Options`] was assigned multiple times
     DuplicateCharacterAssignment,
 }
+
+// Represents a character class
+#[derive(Debug, Clone)]
+struct CharacterClass<T> {
+    /// If `None`, the character class is invalid.
+    class: Option<Class<T>>,
+    /// The end index in the pattern
+    end: usize,
+    /// The start index in the pattern
+    start: usize,
+}
+
+#[derive(Debug, Clone)]
+struct CharacterClasses<T>(VecDeque<CharacterClass<T>>);
 
 /// Customize the matching behavior of the [`dowild_with`] function
 #[derive(Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
@@ -376,25 +387,51 @@ where
     pub wildcard_one: T,
 }
 
+impl<T> Deref for BorrowedOrOwned<'_, T> {
+    type Target = T;
+
+    #[inline]
+    fn deref(&self) -> &Self::Target {
+        match self {
+            BorrowedOrOwned::Borrowed(value) => value,
+            BorrowedOrOwned::Owned(value) => value,
+        }
+    }
+}
+
+impl<T> AsRef<T> for BorrowedOrOwned<'_, T> {
+    #[inline]
+    fn as_ref(&self) -> &T {
+        self
+    }
+}
+
 impl<T> CharacterClass<T>
 where
     T: Wildcard + Ord,
 {
+    /// Create a new valid character class
     #[inline]
     const fn new(class: Option<Class<T>>, start: usize, end: usize) -> Self {
         Self { class, end, start }
     }
 
+    /// Create a new invalid character class
     #[inline]
     const fn new_invalid(start: usize, end: usize) -> Self {
         Self::new(None, start, end)
     }
 
+    /// Returns the length of this character class.
     #[inline]
     const fn len(&self) -> usize {
         self.end - self.start + 1
     }
 
+    /// Parse a `CharacterClass`  with the opening bracket at the `start` index
+    ///
+    /// Beware, the starting condition is not verified in any way. A [`CharacterClass`] is
+    /// considered invalid, if there is no closing bracket found.
     fn parse(start: usize, pattern: &[T], class_negate: T) -> Self {
         // The first character of a range is always the opening bracket
         let mut p_idx = start + 1;
@@ -405,9 +442,9 @@ where
 
         let mut class = if pattern[p_idx] == class_negate {
             p_idx += 1;
-            Class::new_negative(p_idx, pattern.len())
+            Class::new_negative()
         } else {
-            Class::new_positive(p_idx, pattern.len())
+            Class::new_positive()
         };
 
         // The `]` directly after the opening `[` (and possibly `!`) is special and matched literally
@@ -436,6 +473,7 @@ where
         }
     }
 
+    /// If this `class` is valid, returns the result of [`Class::is_match`], otherwise `None`
     #[inline]
     fn try_match<F, G>(&self, token: T, match_one: F, match_range: G) -> Option<bool>
     where
@@ -452,31 +490,60 @@ impl<T> CharacterClasses<T>
 where
     T: Wildcard + Ord,
 {
+    /// Create a new `CharacterClass`
+    ///
+    /// This method does not allocate any memory.
     #[inline]
     fn new() -> Self {
         Self(VecDeque::new())
     }
 
+    /// Returns the `CharacterClass` with the given `index` as `start` index
     #[inline]
     fn get(&self, index: usize) -> Option<&CharacterClass<T>> {
         self.0.iter().find(|r| r.start == index)
     }
 
+    #[inline]
+    fn parse(start: usize, pattern: &[T], class_negate: T) -> CharacterClass<T> {
+        CharacterClass::parse(start, pattern, class_negate)
+    }
+
+    /// Parse a new class at this `index` or if already present return a reference to it.
+    ///
+    /// The character at the `index` has to be the opening bracket character. This implies that
+    /// `start < pattern.len()`. Note a [`CharacterClass`] can be invalid if there was no
+    /// closing bracket.
     fn get_or_add(&mut self, start: usize, pattern: &[T], class_negate: T) -> &CharacterClass<T> {
-        if self.0.capacity() == 0 {
-            self.0.reserve(pattern.len() - start);
-        }
         if let Some(last) = self.0.back() {
-            if last.start >= start {
+            #[allow(clippy::else_if_without_else)]
+            if last.start == start {
+                // SAFETY: The equivalent safe code is `return self.0.back().unwrap()`, but calling
+                // `back()` again and unwrap is unnecessary in this case. The reference `last` is
+                // guaranteed to be valid as it is just obtained from `self.0.back()`. The mutable
+                // reference to `self` prevents any concurrent modifications to `self.0` while this
+                // function is executing, ensuring that the data remains valid between the call to
+                // `back()` and the return here.
+                return unsafe { &*(last as *const CharacterClass<T>) };
+            // We already parsed this character class
+            } else if last.start > start {
                 return self.get(start).unwrap();
             }
         }
 
-        let class = CharacterClass::parse(start, pattern, class_negate);
+        let class = Self::parse(start, pattern, class_negate);
+
+        // Stick to the default allocation strategy, doubling the buffer starting with a capacity of
+        // `1`. In case of an invalid class as first class, the maximum amount of classes is `1`, so
+        // `1` might be a good starting point in any case. The maximum amount of `(pattern.len() -
+        // start) / 3` valid classes is most likely too much in typical scenarios.
         self.0.push_back(class);
-        self.0.back().unwrap()
+
+        // SAFETY: This unwrap is safe since we just added a class
+        unsafe { self.0.back().unwrap_unchecked() }
     }
 
+    /// Remove classes that have a smaller starting index than the given `index`
     #[inline]
     fn prune(&mut self, index: usize) {
         while let Some(first) = self.0.front() {
@@ -493,23 +560,32 @@ impl<T> Class<T>
 where
     T: Wildcard + Ord,
 {
+    /// Create a new positive `Class`.
     #[inline]
-    fn new_positive(index: usize, length: usize) -> Self {
-        Self::Positive(Vec::with_capacity(length - index))
+    const fn new_positive() -> Self {
+        Self::Positive(Vec::new())
     }
 
+    /// Create a new negative `Class`.
     #[inline]
-    fn new_negative(index: usize, length: usize) -> Self {
-        Self::Negative(Vec::with_capacity(length - index))
+    const fn new_negative() -> Self {
+        Self::Negative(Vec::new())
     }
 
+    /// Add a new [`ClassKind`] to this `Class`.
     #[inline]
     fn push(&mut self, kind: ClassKind<T>) {
         match self {
-            Self::Positive(kinds) | Self::Negative(kinds) => kinds.push(kind),
+            Self::Positive(kinds) | Self::Negative(kinds) => {
+                if kinds.last() != Some(&kind) {
+                    kinds.push(kind);
+                }
+            }
         }
     }
 
+    /// Returns `true` if a positive `Class` contains the given `token` or if negative doesn't
+    /// contain the `token`.
     #[inline]
     fn is_match<F, G>(&self, token: T, match_one: F, match_range: G) -> bool
     where
@@ -951,8 +1027,11 @@ where
     while p_idx < pattern.len() || h_idx < haystack.len() {
         if p_idx < pattern.len() {
             match pattern[p_idx] {
-                // This (expensive) case is ensured to be entered only once per `wildcard_any`
-                // character in the pattern.
+                // This (expensive) case is ensured to be entered only once per `wildcard_any` (or
+                // multiple consecutive `wildcard_any`) character in the pattern. This allows us to
+                // perform optimizations which would be otherwise not worth it. Note that every
+                // increment of the indices in this match case also increments the respective
+                // `next_*` index in the end.
                 c if c == wildcard_any => {
                     has_seen_wildcard_any = true;
                     p_idx += 1;
@@ -979,8 +1058,8 @@ where
                             }
                         }
                     } else {
-                        // Advancing the haystack and `next_h_idx` counter to the first match
-                        // significantly enhances the overall performance.
+                        // Advancing the haystack and indirectly the `next_h_idx` counter to the
+                        // first match significantly enhances the overall performance.
                         while h_idx < haystack.len() && haystack[h_idx] != next_c {
                             h_idx += 1;
                         }
@@ -1013,7 +1092,9 @@ where
                 }
             }
         }
-        // If `true`, we need to reset
+        // If `true`, we need to reset. Therefore, this statement can be entered multiple times per
+        // `wildcard_any`, so we need to be more careful with optimizations here than in the
+        // `wildcard_any` match case above.
         if has_seen_wildcard_any && next_h_idx < haystack.len() {
             p_idx = next_p_idx;
             next_h_idx += 1;
@@ -1081,7 +1162,6 @@ where
 /// );
 /// ```
 #[must_use]
-#[allow(clippy::too_many_lines)]
 pub fn dowild_with<T>(pattern: &[T], haystack: &[T], options: Options<T>) -> bool
 where
     T: Wildcard + Ord,
@@ -1105,6 +1185,10 @@ where
     }
 }
 
+/// This method has the same structure like [`dowild`] but can apply [`Options`]
+///
+/// Customizability has a price performance-wise, so this method is by nature slower than
+/// [`dowild`].
 #[inline]
 #[allow(clippy::too_many_lines)]
 fn dowild_with_worker<F, G, T>(
@@ -1120,14 +1204,19 @@ where
     G: Fn(T, T, T) -> bool + Copy,
 {
     let Options {
-        is_classes_enabled,
         class_negate,
+        is_classes_enabled,
+        is_escape_enabled,
         wildcard_any,
         wildcard_escape,
         wildcard_one,
-        is_escape_enabled,
         ..
     } = options;
+
+    let is_wildcard_any = |token: T| token == wildcard_any;
+    let is_wildcard_one = |token: T| token == wildcard_one;
+    let is_escape = |token: T| is_escape_enabled && token == wildcard_escape;
+    let is_class_open = |token: T| is_classes_enabled && token == T::DEFAULT_CLASS_OPEN;
 
     let is_special = |token: T| {
         token == wildcard_any
@@ -1136,23 +1225,31 @@ where
             || (is_classes_enabled && token == T::DEFAULT_CLASS_OPEN)
     };
 
+    let is_valid_class_or_escape = |token: T, p_idx: usize, invalid_class_idx: usize| {
+        (is_classes_enabled && token == T::DEFAULT_CLASS_OPEN && p_idx < invalid_class_idx)
+            || (is_escape_enabled && token == wildcard_escape)
+    };
+
     let mut p_idx = 0;
     let mut h_idx = 0;
 
     let mut next_p_idx = 0;
     let mut next_h_idx = 0;
 
+    // There are no allocations, yet. `CharacterClasses` allocate on first use.
     let mut classes = CharacterClasses::new();
 
     let mut has_seen_wildcard_any = false;
+    let mut invalid_class_idx = usize::MAX;
+
     while p_idx < pattern.len() || h_idx < haystack.len() {
         if p_idx < pattern.len() {
             match pattern[p_idx] {
-                c if c == wildcard_any => {
+                c if is_wildcard_any(c) => {
                     has_seen_wildcard_any = true;
                     p_idx += 1;
 
-                    while p_idx < pattern.len() && pattern[p_idx] == wildcard_any {
+                    while p_idx < pattern.len() && is_wildcard_any(pattern[p_idx]) {
                         p_idx += 1;
                     }
                     if p_idx >= pattern.len() {
@@ -1161,17 +1258,15 @@ where
 
                     let next_c = pattern[p_idx];
                     #[allow(clippy::else_if_without_else)]
-                    if next_c == wildcard_one {
+                    if is_wildcard_one(next_c) {
                         while h_idx < haystack.len() {
                             p_idx += 1;
                             h_idx += 1;
-                            if !(p_idx < pattern.len() && pattern[p_idx] == next_c) {
+                            if !(p_idx < pattern.len() && is_wildcard_one(pattern[p_idx])) {
                                 break;
                             }
                         }
-                    } else if !((is_escape_enabled && next_c == wildcard_escape)
-                        || (is_classes_enabled && next_c == T::DEFAULT_CLASS_OPEN))
-                    {
+                    } else if !is_valid_class_or_escape(next_c, p_idx, invalid_class_idx) {
                         while h_idx < haystack.len() && !match_one(haystack[h_idx], next_c) {
                             h_idx += 1;
                         }
@@ -1184,14 +1279,16 @@ where
                     next_h_idx = h_idx;
                     continue;
                 }
-                c if c == wildcard_one => {
+                c if is_wildcard_one(c) => {
                     if h_idx < haystack.len() {
                         p_idx += 1;
                         h_idx += 1;
                         continue;
                     }
                 }
-                c if is_escape_enabled && c == wildcard_escape && p_idx + 1 < pattern.len() => {
+                // Handling of the escape character. If it is the last character in the pattern, it
+                // can only stand for itself.
+                c if is_escape(c) && p_idx + 1 < pattern.len() => {
                     if h_idx < haystack.len() {
                         let next_c = pattern[p_idx + 1];
                         let h = haystack[h_idx];
@@ -1208,16 +1305,34 @@ where
                         }
                     }
                 }
-                c if is_classes_enabled
-                    && c == T::DEFAULT_CLASS_OPEN
-                    && p_idx + 1 < pattern.len() =>
-                {
+                // Handle character classes. To avoid parsing the same classes multiple times on
+                // reset, every class including the invalid ones are stored in a container. However,
+                // classes that are outside of the possible index don't need to be considered anymore
+                // and are pruned.
+                c if is_class_open(c) && p_idx < invalid_class_idx && p_idx + 1 < pattern.len() => {
                     if h_idx < haystack.len() {
-                        if has_seen_wildcard_any {
+                        let class = if has_seen_wildcard_any {
+                            // Try to get rid of classes outside of the possible index
                             classes.prune(next_p_idx);
-                        }
+                            BorrowedOrOwned::Borrowed(classes.get_or_add(
+                                p_idx,
+                                pattern,
+                                class_negate,
+                            ))
+                        } else {
+                            // There's no need to store character classes as long as we don't require
+                            // to reset.
+                            BorrowedOrOwned::Owned(CharacterClasses::parse(
+                                p_idx,
+                                pattern,
+                                class_negate,
+                            ))
+                        };
 
-                        let class = classes.get_or_add(p_idx, pattern, class_negate);
+                        // Try to match this class. If it is an invalid class, we can interpret the
+                        // opening bracket character literally and the rest of the pattern as if
+                        // there is no class. If the class is valid and matched, we can advance as
+                        // usual, otherwise we need to reset.
                         #[allow(clippy::else_if_without_else)]
                         if let Some(is_match) =
                             class.try_match(haystack[h_idx], match_one, match_range)
@@ -1227,10 +1342,15 @@ where
                                 h_idx += 1;
                                 continue;
                             }
-                        } else if match_one(haystack[h_idx], T::DEFAULT_CLASS_OPEN) {
-                            p_idx += 1;
-                            h_idx += 1;
-                            continue;
+                        } else {
+                            invalid_class_idx = class.as_ref().start;
+                            // A small shortcut to avoid the big loop and enter the generic
+                            // character case.
+                            if match_one(haystack[h_idx], T::DEFAULT_CLASS_OPEN) {
+                                p_idx += 1;
+                                h_idx += 1;
+                                continue;
+                            }
                         }
                     }
                 }
@@ -1248,8 +1368,7 @@ where
             next_h_idx += 1;
 
             if p_idx < pattern.len()
-                && !(is_classes_enabled && pattern[p_idx] == T::DEFAULT_CLASS_OPEN)
-                && !(is_escape_enabled && pattern[p_idx] == wildcard_escape)
+                && !is_valid_class_or_escape(pattern[p_idx], p_idx, invalid_class_idx)
             {
                 while next_h_idx < haystack.len() && !match_one(haystack[next_h_idx], pattern[p_idx])
                 {

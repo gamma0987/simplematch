@@ -108,11 +108,11 @@ strings each with variable length.
 
 | library/haystack length<br>(samples)           | `128`<br>`(100)` | `512`<br>`(100)` | `1000`<br>`(100)` | `10000`<br>`(100)` | `50000`<br>`(100)` | `100000`<br>`(100)` |
 | :--------------------------------------------- | ---------------: | ---------------: | ----------------: | -----------------: | -----------------: | ------------------: |
-| simplematch::dowild                            |           `1748` |           `5068` |            `8227` |            `88000` |           `420132` |            `781949` |
-| simplematch::dowild_with                       |           `2440` |           `7426` |           `11951` |           `130723` |           `635673` |           `1173179` |
-| regex::bytes::Regex::is_match<br>(precompiled) |         `202749` |         `258994` |          `271740` |           `411166` |           `748247` |           `1066587` |
-| wildcard::Wildcard::is_match                   |           `2910` |           `6347` |           `13313` |           `134660` |           `530098` |           `1053973` |
-| wildmatch::Wildmatch::matches                  |           `4925` |          `13016` |           `22968` |           `232897` |          `1105721` |           `2122124` |
+| simplematch::dowild                            |           `1716` |           `5068` |            `8227` |            `88000` |           `420132` |            `781949` |
+| simplematch::dowild_with                       |           `2334` |           `6971` |           `11077` |           `119570` |           `569361` |           `1056350` |
+| regex::bytes::Regex::is_match<br>(precompiled) |         `199782` |         `255366` |          `268337` |           `405869` |           `742161` |           `1061864` |
+| wildcard::Wildcard::is_match                   |           `2937` |           `6347` |           `13313` |           `134660` |           `530098` |           `1053973` |
+| wildmatch::Wildmatch::matches                  |           `4929` |          `13021` |           `22972` |           `232901` |          `1105726` |           `2122128` |
 
 To be able to run these benchmarks, you need
 [`iai-callgrind`](https://crates.io/crates/iai-callgrind) installed. Then run
