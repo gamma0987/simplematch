@@ -1184,11 +1184,21 @@ where
         ..
     } = options;
 
+    let is_wildcard_any = |token: T| token == wildcard_any;
+    let is_wildcard_one = |token: T| token == wildcard_one;
+    let is_escape = |token: T| is_escape_enabled && token == wildcard_escape;
+    let is_class_open = |token: T| is_classes_enabled && token == T::DEFAULT_CLASS_OPEN;
+
     let is_special = |token: T| {
         token == wildcard_any
             || token == wildcard_one
             || token == wildcard_escape
             || (is_classes_enabled && token == T::DEFAULT_CLASS_OPEN)
+    };
+
+    let is_valid_class_or_escape = |token: T, p_idx: usize, invalid_class_idx: usize| {
+        (is_classes_enabled && token == T::DEFAULT_CLASS_OPEN && p_idx < invalid_class_idx)
+            || (is_escape_enabled && token == wildcard_escape)
     };
 
     let mut p_idx = 0;
@@ -1197,14 +1207,16 @@ where
     let mut next_p_idx = 0;
     let mut next_h_idx = 0;
 
+    // There are no allocations, yet. `CharacterClasses` allocate on first use.
     let mut classes = CharacterClasses::new();
 
     let mut has_seen_wildcard_any = false;
     let mut invalid_class_idx = usize::MAX;
+
     while p_idx < pattern.len() || h_idx < haystack.len() {
         if p_idx < pattern.len() {
             match pattern[p_idx] {
-                c if c == wildcard_any => {
+                c if is_wildcard_any(c) => {
                     has_seen_wildcard_any = true;
                     p_idx += 1;
 
@@ -1225,11 +1237,7 @@ where
                                 break;
                             }
                         }
-                    // The escape character or the class opening bracket prevent this
-                    // optimization
-                    } else if !((is_escape_enabled && next_c == wildcard_escape)
-                        || (is_classes_enabled && next_c == T::DEFAULT_CLASS_OPEN))
-                    {
+                    } else if !is_valid_class_or_escape(next_c, p_idx, invalid_class_idx) {
                         while h_idx < haystack.len() && !match_one(haystack[h_idx], next_c) {
                             h_idx += 1;
                         }
@@ -1242,7 +1250,7 @@ where
                     next_h_idx = h_idx;
                     continue;
                 }
-                c if c == wildcard_one => {
+                c if is_wildcard_one(c) => {
                     if h_idx < haystack.len() {
                         p_idx += 1;
                         h_idx += 1;
@@ -1251,7 +1259,7 @@ where
                 }
                 // Handling of the escape character. If it is the last character in the pattern, it
                 // can only stand for itself.
-                c if is_escape_enabled && c == wildcard_escape && p_idx + 1 < pattern.len() => {
+                c if is_escape(c) && p_idx + 1 < pattern.len() => {
                     if h_idx < haystack.len() {
                         let next_c = pattern[p_idx + 1];
                         let h = haystack[h_idx];
@@ -1272,11 +1280,7 @@ where
                 // reset, every class including the invalid ones are stored in a container. However,
                 // classes that are outside of the possible index don't need to be considered anymore
                 // and are pruned.
-                c if is_classes_enabled
-                    && c == T::DEFAULT_CLASS_OPEN
-                    && p_idx + 1 < pattern.len()
-                    && p_idx < invalid_class_idx =>
-                {
+                c if is_class_open(c) && p_idx < invalid_class_idx && p_idx + 1 < pattern.len() => {
                     if h_idx < haystack.len() {
                         let class = if has_seen_wildcard_any {
                             // Try to get rid of classes outside of the possible index
@@ -1327,8 +1331,7 @@ where
             next_h_idx += 1;
 
             if p_idx < pattern.len()
-                && !(is_classes_enabled && pattern[p_idx] == T::DEFAULT_CLASS_OPEN)
-                && !(is_escape_enabled && pattern[p_idx] == wildcard_escape)
+                && !is_valid_class_or_escape(pattern[p_idx], p_idx, invalid_class_idx)
             {
                 while next_h_idx < haystack.len() && !match_one(haystack[next_h_idx], pattern[p_idx])
                 {
