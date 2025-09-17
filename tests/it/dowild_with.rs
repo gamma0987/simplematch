@@ -14,11 +14,9 @@ fn impl_for_str() {
 
 #[test]
 fn impl_for_string() {
-    assert_eq!(String::from("a*c").as_str().dowild("abc"), true);
+    assert_eq!(String::from("a*c").dowild("abc".to_owned()), true);
     assert_eq!(
-        String::from("a*c")
-            .as_str()
-            .dowild_with("abc", Options::new().enable_escape(true)),
+        String::from("a*c").dowild_with("abc".to_owned(), Options::new().enable_escape(true)),
         true
     );
 }
