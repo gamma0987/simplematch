@@ -43,8 +43,8 @@ characters or enable character classes `[...]`. Character classes can be negated
 `[!...]` and contain ranges `[a-zA-Z]`.
 
 * Optimized for **performance**
-* **Intuitive** and **simple** API consisting of two functions `dowild` and
-  `dowild_with` with custom pattern matching `Options`
+* **Simple** API consisting of two functions `dowild` and `dowild_with` with
+  custom pattern matching `Options`
 * **Customizable** wildcard characters and matching options like
   `case-insensitive`
 * `#![no_std]` compatible (when the `std` feature is disabled)
