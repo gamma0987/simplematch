@@ -67,7 +67,7 @@ on strings (and bytes) without performance loss:
 ```rust
 use simplematch::DoWild;
 
-assert_eq!("foobar".dowild("foo*"), true);
+assert_eq!("foo*".dowild("foobar"), true);
 ```
 
 Use `dowild_with` with `Options` to customize the pattern matching:
@@ -80,7 +80,7 @@ let options = Options::default()
     .wildcard_any_with(b'%');
 
 assert_eq!(
-    "FOObar".dowild_with("foo%", options),
+    "foo%".dowild_with("FOObar", options),
     true
 );
 ```
