@@ -55,7 +55,10 @@ jobs:
           path: ${{ env.CORPUS_DIR }}
       - name: Run cargo‑fuzz
         run: |
-          just args="-- -max_total_time=$(( ${FUZZ_MINUTES} * 60 )) -jobs=$(nproc) -timeout=30" fuzz ${{ matrix.fuzz_target }}
+          num_jobs=$(nproc)
+          num_worker=$(( $num_jobs / 2 ))
+          max_total_time=$(( ${FUZZ_MINUTES} / ${num_worker} * 60 ))
+          just args="-- -max_total_time=$max_total_time -jobs=$num_jobs -timeout=30" fuzz ${{ matrix.fuzz_target }}
       - name: Minimize corpus (cmin)
         if: always()
         run: |
