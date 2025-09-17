@@ -91,13 +91,13 @@ Add `simplematch` to your `Cargo.toml`:
 
 ```toml
 [dependencies]
-simplematch = "0.2.0"
+simplematch = "0.3.0"
 ```
 
 Or use [`cargo add`](https://github.com/killercup/cargo-edit):
 
 ```bash
-cargo add simplematch@0.2.0
+cargo add simplematch@0.3.0
 ```
 
 ## Benchmarks
