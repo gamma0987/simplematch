@@ -5,42 +5,42 @@ use simplematch::{dowild_with, DoWild, Options};
 
 #[test]
 fn impl_for_str() {
-    assert_eq!("abc".dowild("a*c"), true);
+    assert_eq!("a*c".dowild("abc"), true);
     assert_eq!(
-        "abc".dowild_with("a*c", Options::new().enable_escape(true)),
+        "a*c".dowild_with("abc", Options::new().enable_escape(true)),
         true
     );
 }
 
 #[test]
 fn impl_for_string() {
-    assert_eq!(String::from("abc").as_str().dowild("a*c"), true);
+    assert_eq!(String::from("a*c").as_str().dowild("abc"), true);
     assert_eq!(
-        String::from("abc")
+        String::from("a*c")
             .as_str()
-            .dowild_with("a*c", Options::new().enable_escape(true)),
+            .dowild_with("abc", Options::new().enable_escape(true)),
         true
     );
 }
 
 #[test]
 fn impl_for_u8_slice() {
-    assert_eq!(b"abc".as_slice().dowild("a*c".as_bytes()), true);
+    assert_eq!(b"a*c".as_slice().dowild("abc".as_bytes()), true);
     assert_eq!(
-        b"abc"
+        b"a*c"
             .as_slice()
-            .dowild_with("a*c".as_bytes(), Options::new().enable_escape(true)),
+            .dowild_with("abc".as_bytes(), Options::new().enable_escape(true)),
         true
     );
 }
 
 #[test]
 fn impl_for_u8_vec() {
-    assert_eq!(b"abc".to_vec().dowild(b"a*c".to_vec()), true);
+    assert_eq!(b"a*c".to_vec().dowild(b"abc".to_vec()), true);
     assert_eq!(
-        b"abc"
+        b"a*c"
             .to_vec()
-            .dowild_with(b"a*c".to_vec(), Options::new().enable_escape(true)),
+            .dowild_with(b"abc".to_vec(), Options::new().enable_escape(true)),
         true
     );
 }
@@ -48,14 +48,14 @@ fn impl_for_u8_vec() {
 #[test]
 fn impl_for_char_slice() {
     assert_eq!(
-        ['a', 'b', 'c']
+        ['a', '*', 'c']
             .as_slice()
-            .dowild(['a', '*', 'c'].as_slice()),
+            .dowild(['a', 'b', 'c'].as_slice()),
         true
     );
     assert_eq!(
-        ['a', 'b', 'c'].as_slice().dowild_with(
-            ['a', '*', 'c'].as_slice(),
+        ['a', '*', 'c'].as_slice().dowild_with(
+            ['a', 'b', 'c'].as_slice(),
             Options::new().enable_escape(true)
         ),
         true
@@ -65,13 +65,13 @@ fn impl_for_char_slice() {
 #[test]
 fn impl_for_char_vec() {
     assert_eq!(
-        ['a', 'b', 'c'].to_vec().dowild(['a', '*', 'c'].to_vec()),
+        ['a', '*', 'c'].to_vec().dowild(['a', 'b', 'c'].to_vec()),
         true
     );
     assert_eq!(
-        ['a', 'b', 'c']
+        ['a', '*', 'c']
             .to_vec()
-            .dowild_with(['a', '*', 'c'].to_vec(), Options::new().enable_escape(true)),
+            .dowild_with(['a', 'b', 'c'].to_vec(), Options::new().enable_escape(true)),
         true
     );
 }

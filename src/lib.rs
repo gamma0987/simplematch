@@ -53,7 +53,7 @@
 //! ```rust
 //! use simplematch::DoWild;
 //!
-//! assert_eq!("foobar".dowild("foo*"), true);
+//! assert_eq!("foo*".dowild("foobar"), true);
 //! ```
 //!
 //! A possible usage with `char`:
@@ -64,7 +64,7 @@
 //! let pattern = "foo*".chars().collect::<Vec<char>>();
 //! let haystack = "foobar".chars().collect::<Vec<char>>();
 //!
-//! assert_eq!(haystack.dowild(pattern), true);
+//! assert_eq!(pattern.dowild(haystack), true);
 //! ```
 //!
 //! ### `dowild_with`
@@ -112,7 +112,7 @@
 //! use simplematch::{DoWild, Options};
 //!
 //! assert_eq!(
-//!     "FOObar".dowild_with("foo*", Options::default().case_insensitive(true)),
+//!     "foo*".dowild_with("FOObar", Options::default().case_insensitive(true)),
 //!     true
 //! );
 //! ```
@@ -164,23 +164,23 @@
 macro_rules! impl_dowild {
     ( $type:ty: $for:ty ) => {
         impl DoWild<$type> for $for {
-            fn dowild(&self, pattern: Self) -> bool {
-                dowild(pattern, self)
+            fn dowild(&self, haystack: Self) -> bool {
+                dowild(self, haystack)
             }
 
-            fn dowild_with(&self, pattern: Self, options: Options<$type>) -> bool {
-                dowild_with(pattern, self, options)
+            fn dowild_with(&self, haystack: Self, options: Options<$type>) -> bool {
+                dowild_with(self, haystack, options)
             }
         }
     };
     ( $type:ty: $for:ty => $( $tail:tt )* ) => {
         impl DoWild<$type> for $for {
-            fn dowild(&self, pattern: Self) -> bool {
-                dowild(pattern $( $tail )*, self $( $tail )* )
+            fn dowild(&self, haystack: Self) -> bool {
+                dowild(self $( $tail )*, haystack $( $tail )* )
             }
 
-            fn dowild_with(&self, pattern: Self, options: Options<$type>) -> bool {
-                dowild_with(pattern $( $tail )*, self $( $tail )*, options)
+            fn dowild_with(&self, haystack: Self, options: Options<$type>) -> bool {
+                dowild_with(self $( $tail )*, haystack $( $tail )*, options)
             }
         }
     };
@@ -225,13 +225,13 @@ use std::vec::Vec;
 /// ```rust
 /// use simplematch::DoWild;
 ///
-/// assert_eq!("foobar".dowild("foo*"), true);
+/// assert_eq!("foo*".dowild("foobar"), true);
 /// ```
 pub trait DoWild<T>
 where
     T: Wildcard,
 {
-    /// Matches this `haystack` against the specified `pattern` using simple wildcard rules.
+    /// Matches this `pattern` against the specified `haystack` using simple wildcard rules.
     ///
     /// See [`dowild`] for more details.
     ///
@@ -240,12 +240,12 @@ where
     /// ```rust
     /// use simplematch::DoWild;
     ///
-    /// assert_eq!("foobar".dowild("foo*"), true);
+    /// assert_eq!("foo*".dowild("foobar"), true);
     /// ```
     #[must_use]
-    fn dowild(&self, pattern: Self) -> bool;
+    fn dowild(&self, haystack: Self) -> bool;
 
-    /// Matches this haystack against the specified `pattern` with customizable [`Options`].
+    /// Matches this `pattern` against the specified `haystack` with customizable [`Options`].
     ///
     /// See [`dowild_with`] for more details.
     ///
@@ -255,12 +255,12 @@ where
     /// use simplematch::{DoWild, Options};
     ///
     /// assert_eq!(
-    ///     "foobar".dowild_with("foo*", Options::default().case_insensitive(true)),
+    ///     "foo*".dowild_with("foobar", Options::default().case_insensitive(true)),
     ///     true
     /// );
     /// ```
     #[must_use]
-    fn dowild_with(&self, pattern: Self, options: Options<T>) -> bool;
+    fn dowild_with(&self, haystack: Self, options: Options<T>) -> bool;
 }
 
 /// The trait for types which should be able to be matched for a wildcard pattern
@@ -1007,7 +1007,7 @@ impl Wildcard for char {
 /// ```rust
 /// use simplematch::DoWild;
 ///
-/// assert_eq!("aaabc".dowild("*bc"), true);
+/// assert_eq!("*bc".dowild("aaabc"), true);
 /// ```
 #[must_use]
 pub fn dowild<T>(pattern: &[T], haystack: &[T]) -> bool
@@ -1157,7 +1157,7 @@ where
 /// use simplematch::{DoWild, Options};
 ///
 /// assert_eq!(
-///     "aaabc".dowild_with("%bc", Options::default().wildcard_any_with(b'%')),
+///     "%bc".dowild_with("aaabc", Options::default().wildcard_any_with(b'%')),
 ///     true
 /// );
 /// ```
