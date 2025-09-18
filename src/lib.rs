@@ -1057,6 +1057,11 @@ where
                                 break;
                             }
                         }
+                        // The end of the haystack might not yet be reached but for example `*????`
+                        // matches anything.
+                        if p_idx >= pattern.len() {
+                            return true;
+                        }
                     } else {
                         // Advancing the haystack and indirectly the `next_h_idx` counter to the
                         // first match significantly enhances the overall performance.
@@ -1071,7 +1076,8 @@ where
                     // Instead of pinning `next_p_idx` to the `wildcard_any` index and entering this
                     // match case in the big loop again after a reset to the `next` indices, it's
                     // more efficient to pin it to the first character after `wildcard_any` (or
-                    // after `wildcard_one` if it is the character after `wildcard_any`).
+                    // after `wildcard_one` if it is the character after `wildcard_any`). However, we
+                    // need to ensure in this match case that `next_p_idx` is not out of bounds.
                     next_p_idx = p_idx;
                     next_h_idx = h_idx;
                     continue;
@@ -1100,7 +1106,9 @@ where
             next_h_idx += 1;
 
             // We don't enter the `wildcard_any` match case in the big loop again, so we have to
-            // apply this optimization from above here again, if applicable.
+            // apply this optimization from above here again, if applicable. This check let's the
+            // compiler optimize the loop better than without the check although p_idx can't be
+            // out of bounds here.
             if p_idx < pattern.len() {
                 while next_h_idx < haystack.len() && haystack[next_h_idx] != pattern[p_idx] {
                     next_h_idx += 1;
@@ -1265,6 +1273,9 @@ where
                             if !(p_idx < pattern.len() && is_wildcard_one(pattern[p_idx])) {
                                 break;
                             }
+                        }
+                        if p_idx >= pattern.len() {
+                            return true;
                         }
                     } else if !is_valid_class_or_escape(next_c, p_idx, invalid_class_idx) {
                         while h_idx < haystack.len() && !match_one(haystack[h_idx], next_c) {
