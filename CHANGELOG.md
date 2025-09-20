@@ -17,11 +17,17 @@ Versioning](http://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+## [0.3.1] - 2025-09-20
+
+### Changed
+
+* Improve performance of wildcard `?` cases
+
 ## [0.3.0] - 2025-09-17
 
 ### Changed
 
-* Flip pattern with haystack in `DoWild::dowild` and `DoWild::dowild_with`.
+* Swap `pattern` with `haystack` in `DoWild::dowild` and `DoWild::dowild_with`.
 * Improve performance of classes, especially if they are invalid. Allocate heap
   memory only when necessary and only the minimum amount instead of the maximum
   amount.

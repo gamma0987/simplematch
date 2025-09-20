@@ -10,7 +10,7 @@
 //!
 //! ```toml
 //! [dependencies]
-//! simplematch = "0.3.0"
+//! simplematch = "0.3.1"
 //! ```
 //!
 //! ## Functions
