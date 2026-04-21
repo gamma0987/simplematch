@@ -1,5 +1,3 @@
-ldmr
-ldmw
 bumpversion
 cachegrind
 cachuse
@@ -19,12 +17,15 @@ flamegraphs
 fuzz
 gmax
 grcov
+gungraun
 hashset
 haystack
 helgrind
 indexmap
 indexset
 justfile
+ldmr
+ldmw
 libfuzzer
 memcheck
 mispredicted
