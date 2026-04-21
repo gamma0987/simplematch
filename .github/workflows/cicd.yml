@@ -208,7 +208,7 @@ jobs:
         benchmark: [compare, dowild, random]
 
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
       - uses: dtolnay/rust-toolchain@nightly
       - uses: gungraun/setup-gungraun@v1
       - run: |
