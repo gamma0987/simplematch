@@ -1,9 +1,8 @@
 use std::hint::black_box;
 
 use common::{pattern_to_regex, PatternOptions};
-use iai_callgrind::{
-    library_benchmark, library_benchmark_group, main, Callgrind, LibraryBenchmarkConfig,
-};
+use gungraun::prelude::*;
+use gungraun::Callgrind;
 use regex::bytes::Regex;
 use serde::{Deserialize, Serialize};
 use simplematch::{dowild, dowild_with, Options};

@@ -1,8 +1,7 @@
 use std::hint::black_box;
 
-use iai_callgrind::{
-    library_benchmark, library_benchmark_group, main, Dhat, EntryPoint, LibraryBenchmarkConfig,
-};
+use gungraun::prelude::*;
+use gungraun::{Dhat, EntryPoint};
 use simplematch::{dowild_with, Options};
 
 const DEFAULT_OPTIONS: Options<u8> = Options::new();
