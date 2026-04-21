@@ -19,22 +19,17 @@ jobs:
   deny:
     name: Check dependencies
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        checks:
+          - "--deny warnings advisories"
+          - bans licenses sources
+
     steps:
-      - uses: actions/checkout@v5
-      - uses: dtolnay/rust-toolchain@1.62.0
-      - name: Cache/Restore cargo registry
-        uses: actions/cache@v4
+      - uses: actions/checkout@v6
+      - uses: EmbarkStudios/cargo-deny-action@v2
         with:
-          path: |
-            ~/.cargo/registry
-            ~/.cargo/git
-          key: deny-cargo-registry
-      - uses: taiki-e/install-action@cargo-deny
-      - uses: taiki-e/install-action@just
-      - name: Check advisories
-        run: just args='--deny warnings' deny advisories
-      - name: Check bans licenses sources
-        run: just deny bans licenses sources
+          command: check ${{ matrix.checks }}
 
   minimal_versions:
     name: Check minimal version requirements of dependencies
@@ -133,7 +128,7 @@ jobs:
       - name: Set cargo registry protocol if the toolchain is MSRV
         if: matrix.toolchain == '1.62.0'
         run: |
-          echo CARGO_REGISTRIES_CRATES_IO_PROTOCOL=git >> $GITHUB_ENV
+          echo CARGO_REGISTRIES_CRATES_IO_PROTOCOL=git >> "$GITHUB_ENV"
       - name: Cache/Restore cargo registry
         uses: actions/cache@v4
         with:
@@ -203,3 +198,19 @@ jobs:
         with:
           name: fuzzing-artifacts-${{ matrix.fuzz_target }}-${{ github.sha }}
           path: fuzz/artifacts
+
+  bench:
+    name: Run benchmarks
+    needs: [deny, minimal_versions, format]
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        benchmark: [compare, dowild, random]
+
+    steps:
+      - uses: actions/checkout@v5
+      - uses: dtolnay/rust-toolchain@nightly
+      - uses: gungraun/setup-gungraun@v1
+      - run: |
+          cargo bench -p benchmarks --bench ${{ matrix.benchmark }}
