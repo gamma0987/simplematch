@@ -20,7 +20,7 @@ jobs:
     name: Check dependencies
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
       - uses: dtolnay/rust-toolchain@1.62.0
       - name: Cache/Restore cargo registry
         uses: actions/cache@v5
@@ -46,7 +46,7 @@ jobs:
           - stable
           - nightly
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
       - uses: dtolnay/rust-toolchain@master
         if: ${{ startsWith(matrix.toolchain, 'nightly') }}
         with:
@@ -72,7 +72,7 @@ jobs:
     name: Check format and spelling
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
       - uses: dtolnay/rust-toolchain@nightly
         with:
           components: rustfmt
@@ -100,7 +100,7 @@ jobs:
             components: clippy, llvm-tools
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
       - uses: dtolnay/rust-toolchain@master
         with:
           toolchain: ${{ matrix.toolchain }}
@@ -179,7 +179,7 @@ jobs:
           - fuzz_target: dowild_with
 
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
       - uses: dtolnay/rust-toolchain@nightly
         with:
           targets: "x86_64-unknown-linux-musl"
