@@ -65,7 +65,7 @@ jobs:
           cargo fuzz cmin ${{ matrix.fuzz_target }} "${CORPUS_DIR}"
           find "${CORPUS_DIR}" -type f -name 'crash-*' -delete || true
       - name: Upload updated corpus
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: fuzz-corpus-${{ matrix.fuzz_target }}
           path: ${{ env.CORPUS_DIR }}
