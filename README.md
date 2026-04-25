@@ -42,13 +42,13 @@ Supports the basic wildcards `*` (matches any sequence of characters), `?`
 characters or enable character classes `[...]`. Character classes can be negated
 `[!...]` and contain ranges `[a-zA-Z]`.
 
-* Optimized for **performance**
-* **Simple** API consisting of two functions `dowild` and `dowild_with` with
+- Optimized for **performance**
+- **Simple** API consisting of two functions `dowild` and `dowild_with` with
   custom pattern matching `Options`
-* **Customizable** wildcard characters and matching options like
+- **Customizable** wildcard characters and matching options like
   `case-insensitive`
-* `#![no_std]` compatible (when the `std` feature is disabled)
-* Fully **documented** on [docs.rs](https://docs.rs/simplematch)
+- `#![no_std]` compatible (when the `std` feature is disabled)
+- Fully **documented** on [docs.rs](https://docs.rs/simplematch)
 
 ## Examples
 
@@ -115,7 +115,7 @@ strings each with variable length.
 | wildmatch::Wildmatch::matches                  |           `4929` |          `13021` |           `22972` |           `232901` |          `1105726` |           `2122128` |
 
 To be able to run these benchmarks, you need
-[`iai-callgrind`](https://crates.io/crates/iai-callgrind) installed. Then run
+[`gungraun`](https://crates.io/crates/gungraun) installed. Then run
 the benchmarks from above with `cargo bench -p benchmarks --bench random`.
 
 ## License

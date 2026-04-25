@@ -6,7 +6,7 @@ use rand::rngs::ThreadRng;
 use rand::seq::SliceRandom;
 use serde::{Deserialize, Serialize};
 
-pub mod iai_callgrind;
+pub mod gungraun;
 
 #[derive(Subcommand)]
 pub enum Commands {
@@ -27,11 +27,11 @@ pub enum Commands {
         #[arg(short = 'y', long)]
         haystack: String,
     },
-    /// Import the iai-callgrind schema from json as rust library
-    ImportIaiCallgrindSchema,
+    /// Import the gungraun schema from json as rust library
+    ImportGungraunSchema,
     /// Summarize the random benchmarks as table (for the README)
     ///
-    /// This option needs the iai-callgrind random benchmarks to be run with
+    /// This option needs the gungraun random benchmarks to be run with
     /// `--save-summary=json`
     SummarizeRandomBenchmarks,
 }

@@ -4,7 +4,7 @@ use std::fs::File;
 use std::process::Command;
 
 use clap::Parser;
-use xtask::iai_callgrind::{BenchmarkSummary, EitherOrBoth2, Metric, ToolMetricSummary};
+use xtask::gungraun::{BenchmarkSummary, EitherOrBoth2, Metric, ToolMetricSummary};
 use xtask::{generate_random, Commands};
 
 fn main() {
@@ -28,18 +28,13 @@ fn main() {
                 pattern,
                 haystack,
             ),
-            Commands::ImportIaiCallgrindSchema => {
+            Commands::ImportGungraunSchema => {
                 let current_dir =
                     std::env::current_dir().expect("The current directory should be valid");
                 let status = Command::new("cargo")
                     .args(["typify", "-o"])
-                    .arg(
-                        current_dir
-                            .join("xtask")
-                            .join("src")
-                            .join("iai_callgrind.rs"),
-                    )
-                    .arg(current_dir.join("xtask").join("iai-callgrind.schema.json"))
+                    .arg(current_dir.join("xtask").join("src").join("gungraun.rs"))
+                    .arg(current_dir.join("xtask").join("gungraun.schema.json"))
                     .status()
                     .expect("Running cargo-typify should succeed");
                 if !status.success() {
@@ -51,7 +46,7 @@ fn main() {
                     std::env::current_dir().expect("The current directory should be valid");
                 let benchmarks_dir = current_dir
                     .join("target")
-                    .join("iai")
+                    .join("gungraun")
                     .join("benchmarks")
                     .join("random")
                     .join("random");
