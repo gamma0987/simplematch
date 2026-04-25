@@ -242,7 +242,7 @@
 #![warn(clippy::useless_let_if_seq)]
 #![warn(clippy::verbose_file_reads)]
 #![cfg_attr(not(feature = "std"), no_std)]
-#![cfg_attr(docsrs, feature(doc_auto_cfg))]
+#![cfg_attr(docsrs, feature(doc_cfg))]
 
 macro_rules! impl_dowild {
     ( $type:ty: $for:ty ) => {
