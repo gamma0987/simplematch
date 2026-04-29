@@ -46,7 +46,7 @@ jobs:
       - name: Install cargo‑fuzz
         run: cargo install cargo-fuzz --locked
       - name: Download previous corpus artifact
-        uses: dawidd6/action-download-artifact@v20
+        uses: dawidd6/action-download-artifact@v21
         with:
           workflow_conclusion: success
           name: fuzz-corpus-${{ matrix.fuzz_target }}
