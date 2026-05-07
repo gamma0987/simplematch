@@ -33,9 +33,10 @@ jobs:
     steps:
       - uses: actions/checkout@v6
       # FIX: Temporary until cargo-fuzz updates rustix
-      - uses: dtolnay/rust-toolchain@nightly-2026-05-01
+      - uses: dtolnay/rust-toolchain@master
         with:
           targets: "x86_64-unknown-linux-musl"
+          toolchain: "nightly-2026-05-01"
       - uses: taiki-e/install-action@just
       - name: Cache/Restore rust cache
         uses: Swatinem/rust-cache@v2
