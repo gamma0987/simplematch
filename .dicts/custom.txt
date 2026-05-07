@@ -53,10 +53,10 @@ rstest
 rustc
 rustdoc
 rustflags
+rustix
 rustls
 rustsec
 serde
-simplematch
 simplematch
 systime
 taplo
