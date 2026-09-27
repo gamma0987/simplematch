@@ -530,7 +530,8 @@ where
             Class::new_positive()
         };
 
-        // The `]` directly after the opening `[` (and possibly `!`) is special and matched literally
+        // The `]` directly after the opening `[` (and possibly `!`) is special and matched
+        // literally
         if pattern[p_idx] == T::DEFAULT_CLASS_CLOSE {
             let kind = ClassKind::parse_first(p_idx, pattern);
             p_idx += kind.len();
@@ -601,12 +602,13 @@ where
         if let Some(last) = self.0.back() {
             #[allow(clippy::else_if_without_else)]
             if last.start == start {
-                // SAFETY: The equivalent safe code is `return self.0.back().unwrap()`, but calling
-                // `back()` again and unwrap is unnecessary in this case. The reference `last` is
-                // guaranteed to be valid as it is just obtained from `self.0.back()`. The mutable
-                // reference to `self` prevents any concurrent modifications to `self.0` while this
-                // function is executing, ensuring that the data remains valid between the call to
-                // `back()` and the return here.
+                // SAFETY: The equivalent safe code is `return self.0.back().unwrap()`, but
+                // calling `back()` again and unwrap is unnecessary in this
+                // case. The reference `last` is guaranteed to be valid as it
+                // is just obtained from `self.0.back()`. The mutable reference
+                // to `self` prevents any concurrent modifications to `self.0` while this
+                // function is executing, ensuring that the data remains valid between the call
+                // to `back()` and the return here.
                 return unsafe { &*(last as *const CharacterClass<T>) };
             // We already parsed this character class
             } else if last.start > start {
@@ -616,10 +618,11 @@ where
 
         let class = Self::parse(start, pattern, class_negate);
 
-        // Stick to the default allocation strategy, doubling the buffer starting with a capacity of
-        // `1`. In case of an invalid class as first class, the maximum amount of classes is `1`, so
-        // `1` might be a good starting point in any case. The maximum amount of `(pattern.len() -
-        // start) / 3` valid classes is most likely too much in typical scenarios.
+        // Stick to the default allocation strategy, doubling the buffer starting with a
+        // capacity of `1`. In case of an invalid class as first class, the maximum
+        // amount of classes is `1`, so `1` might be a good starting point in any case.
+        // The maximum amount of `(pattern.len() - start) / 3` valid classes is most
+        // likely too much in typical scenarios.
         self.0.push_back(class);
 
         // SAFETY: This unwrap is safe since we just added a class
@@ -1130,8 +1133,8 @@ where
                     if next_c == wildcard_one {
                         // 1. This optimization prevents checking for the same `wildcard_one`
                         //    character in the big loop again.
-                        // 2. More importantly for the performance, we can advance the pattern and
-                        //    haystack for all index counters including `next_h_idx` and
+                        // 2. More importantly for the performance, we can advance the pattern
+                        //    and haystack for all index counters including `next_h_idx` and
                         //    `next_p_idx`.
                         while h_idx < haystack.len() {
                             p_idx += 1;
@@ -1140,14 +1143,15 @@ where
                                 break;
                             }
                         }
-                        // The end of the haystack might not yet be reached but for example `*????`
-                        // matches anything.
+                        // The end of the haystack might not yet be reached but for example
+                        // `*????` matches anything.
                         if p_idx >= pattern.len() {
                             return true;
                         }
                     } else {
-                        // Advancing the haystack and indirectly the `next_h_idx` counter to the
-                        // first match significantly enhances the overall performance.
+                        // Advancing the haystack and indirectly the `next_h_idx` counter to
+                        // the first match significantly enhances the
+                        // overall performance.
                         while h_idx < haystack.len() && haystack[h_idx] != next_c {
                             h_idx += 1;
                         }
@@ -1156,11 +1160,13 @@ where
                         }
                     }
 
-                    // Instead of pinning `next_p_idx` to the `wildcard_any` index and entering this
-                    // match case in the big loop again after a reset to the `next` indices, it's
-                    // more efficient to pin it to the first character after `wildcard_any` (or
-                    // after `wildcard_one` if it is the character after `wildcard_any`). However, we
-                    // need to ensure in this match case that `next_p_idx` is not out of bounds.
+                    // Instead of pinning `next_p_idx` to the `wildcard_any` index and entering
+                    // this match case in the big loop again after a reset
+                    // to the `next` indices, it's more efficient to pin it
+                    // to the first character after `wildcard_any` (or
+                    // after `wildcard_one` if it is the character after `wildcard_any`).
+                    // However, we need to ensure in this match case that
+                    // `next_p_idx` is not out of bounds.
                     next_p_idx = p_idx;
                     next_h_idx = h_idx;
                     continue;
@@ -1181,17 +1187,17 @@ where
                 }
             }
         }
-        // If `true`, we need to reset. Therefore, this statement can be entered multiple times per
-        // `wildcard_any`, so we need to be more careful with optimizations here than in the
-        // `wildcard_any` match case above.
+        // If `true`, we need to reset. Therefore, this statement can be entered multiple times
+        // per `wildcard_any`, so we need to be more careful with optimizations here
+        // than in the `wildcard_any` match case above.
         if has_seen_wildcard_any && next_h_idx < haystack.len() {
             p_idx = next_p_idx;
             next_h_idx += 1;
 
-            // We don't enter the `wildcard_any` match case in the big loop again, so we have to
-            // apply this optimization from above here again, if applicable. This check let's the
-            // compiler optimize the loop better than without the check although p_idx can't be
-            // out of bounds here.
+            // We don't enter the `wildcard_any` match case in the big loop again, so we have
+            // to apply this optimization from above here again, if applicable.
+            // This check let's the compiler optimize the loop better than without
+            // the check although p_idx can't be out of bounds here.
             if p_idx < pattern.len() {
                 while next_h_idx < haystack.len() && haystack[next_h_idx] != pattern[p_idx] {
                     next_h_idx += 1;
@@ -1414,8 +1420,8 @@ where
                                 class_negate,
                             ))
                         } else {
-                            // There's no need to store character classes as long as we don't require
-                            // to reset.
+                            // There's no need to store character classes as long as we don't
+                            // require to reset.
                             BorrowedOrOwned::Owned(CharacterClasses::parse(
                                 p_idx,
                                 pattern,
@@ -1423,9 +1429,10 @@ where
                             ))
                         };
 
-                        // Try to match this class. If it is an invalid class, we can interpret the
-                        // opening bracket character literally and the rest of the pattern as if
-                        // there is no class. If the class is valid and matched, we can advance as
+                        // Try to match this class. If it is an invalid class, we can interpret
+                        // the opening bracket character literally and
+                        // the rest of the pattern as if there is no
+                        // class. If the class is valid and matched, we can advance as
                         // usual, otherwise we need to reset.
                         #[allow(clippy::else_if_without_else)]
                         if let Some(is_match) =

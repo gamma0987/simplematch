@@ -81,7 +81,8 @@ pub fn pattern_to_regex(pattern: &str, options: PatternOptions) -> Result<Regex,
     while index < chars.len() {
         match chars[index] {
             c if !is_escape && is_ranges_enabled && c == range_open => {
-                // We store ranges in a buffer first which can be discarded if the range is invalid
+                // We store ranges in a buffer first which can be discarded if the range is
+                // invalid
                 let mut range = String::new();
                 // We have `[` as first char for sure
                 range.push(c);
@@ -89,8 +90,8 @@ pub fn pattern_to_regex(pattern: &str, options: PatternOptions) -> Result<Regex,
                 // In case of an invalid range reset to this index
                 let range_reset = index;
 
-                // The first char after `[` might be a negation or maybe have reached the end of the
-                // pattern.
+                // The first char after `[` might be a negation or maybe have reached the end
+                // of the pattern.
                 if index < chars.len() {
                     if chars[index] == range_negate {
                         range.push('^');
@@ -123,8 +124,8 @@ pub fn pattern_to_regex(pattern: &str, options: PatternOptions) -> Result<Regex,
                             index += 3;
                             break;
                         } else {
-                            // The ranges need to be nested in their own ranges or else multiple
-                            // ranges are interpreted wrong by the regex.
+                            // The ranges need to be nested in their own ranges or else
+                            // multiple ranges are interpreted wrong by the regex.
                             range.push('[');
 
                             let start = c;
@@ -150,9 +151,9 @@ pub fn pattern_to_regex(pattern: &str, options: PatternOptions) -> Result<Regex,
                                     || c == '}'
                             };
 
-                            // In contrast to our patterns, the regex engine expects the start and
-                            // end characters to be ordered from low to high. Also `-` and `]` need
-                            // to be escaped properly.
+                            // In contrast to our patterns, the regex engine expects the start
+                            // and end characters to be ordered from low to high. Also `-` and
+                            // `]` need to be escaped properly.
                             if start <= end {
                                 escape_char_if(&mut range, start, is_special);
                                 range.push('-');
@@ -178,7 +179,8 @@ pub fn pattern_to_regex(pattern: &str, options: PatternOptions) -> Result<Regex,
                 if is_valid {
                     regex.push_str(&range);
                 } else {
-                    // In case of an invalid range, we store the `[` and reset to the stored index.
+                    // In case of an invalid range, we store the `[` and reset to the stored
+                    // index.
                     escape_char(&mut regex, range_open);
                     index = range_reset;
                 }
@@ -194,10 +196,10 @@ pub fn pattern_to_regex(pattern: &str, options: PatternOptions) -> Result<Regex,
                 is_escape = true;
             }
             c if is_escape => {
-                // `]` does not need to be escaped here because it is handled in the ranges parser
-                // above or otherwise doesn't have a special meaning if it occurs outside of the
-                // context of ranges. `!` and `-` have no special meaning outside of ranges and don't
-                // need to be escaped either.
+                // `]` does not need to be escaped here because it is handled in the ranges
+                // parser above or otherwise doesn't have a special meaning if it occurs
+                // outside of the context of ranges. `!` and `-` have no special meaning
+                // outside of ranges and don't need to be escaped either.
                 if !(c == wildcard_any
                     || c == wildcard_one
                     || c == wildcard_escape
