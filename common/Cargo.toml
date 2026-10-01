@@ -11,4 +11,4 @@ regex = "1"
 simplematch = { path = ".." }
 
 [dev-dependencies]
-rstest = "0.18"
+rstest = "0.27"
